@@ -1,0 +1,50 @@
+{
+	"integrations": [
+		{
+			"name": "wordpress",
+			"needToCheckIntegration": false,
+			"alwaysActive": true,
+			"sourceId": ""
+		},
+		{
+			"name": "tablesome",
+			"needToCheckIntegration": false,
+			"alwaysActive": true
+		},
+		{
+			"name": "files",
+			"needToCheckIntegration": false,
+			"alwaysActive": true
+		},
+		{
+			"name": "mailchimp",
+			"needToCheckIntegration": true,
+			"alwaysActive": false
+		},
+		{
+			"name": "notion",
+			"needToCheckIntegration": true,
+			"alwaysActive": false
+		},
+		{
+			"name": "slack",
+			"needToCheckIntegration": true,
+			"alwaysActive": false
+		},
+		{
+			"name": "google",
+			"needToCheckIntegration": true,
+			"alwaysActive": false
+		},
+		{
+			"name": "openai",
+			"needToCheckIntegration": true,
+			"alwaysActive": false
+		},
+		{
+			"name": "pinterest",
+			"needToCheckIntegration": true,
+			"alwaysActive": false
+		}
+	]
+}

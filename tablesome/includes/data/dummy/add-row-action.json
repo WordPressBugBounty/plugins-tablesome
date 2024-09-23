@@ -1,0 +1,36 @@
+{
+	"status": 1,
+	"action_id": 1,
+	"action-data-version": 2,
+	"map_fields": [
+		{
+			"source_field": {
+				"id": "first_name",
+				"label": "",
+				"value": 1,
+				"data_type": "text",
+				"object_type": "trigger_source",
+				"meta": []
+			},
+			"destination_field": {
+				"id": "",
+				"label": "First Name",
+				"value": "",
+				"data_type": "",
+				"object_type": "column_name",
+				"meta": []
+			}
+		}
+	],
+	"action_conditions": {
+		"condition_object_version": 1,
+		"refer": "conditions-dummy.json"
+	},
+	"test_data": {
+		"delimiter": ";",
+		"form_data": [
+			["First Name", "Last Name", "Email"],
+			["John", "Doe", "john.doe@email.com"]
+		]
+	}
+}

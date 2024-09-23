@@ -1,0 +1,1 @@
+import utils from"../../src/utils";class CellEventsClass{constructor(){}onkeydown(E,e,t){const l=utils.getKeyPressed(E),s={...e};"TAB_KEY_EVENT"==l||"SHIFT_TAB_KEY_EVENT"==l?t.doAction({type:"TAB_KEY_IN_CELL",payload:{...s,keyEvent:l}}):"ENTER_KEY_EVENT"==l&&t.doAction({type:"ENTER_KEY_IN_CELL",payload:{...s}})}}let cellEvents=new CellEventsClass;export default cellEvents;

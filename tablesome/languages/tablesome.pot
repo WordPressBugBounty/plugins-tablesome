@@ -1,0 +1,486 @@
+msgid "Show Serial Number Column (S.No)"
+msgstr "Show Serial Number Column (S.No)"
+
+msgid "Hide Table Header"
+msgstr "Hide Table Header"
+
+msgid "Export"
+msgstr "Export"
+
+msgid "Date timezone"
+msgstr "Date timezone"
+
+msgid "Show Tablesome Posts in WP Search"
+msgstr "Show Tablesome Posts in WP Search"
+
+msgid "Pagination" 
+msgstr "Pagination"
+
+msgid "Show First and Last buttons"
+msgstr "Show First and Last buttons"
+
+msgid "Show Previous and Next buttons"
+msgstr "Show Previous and Next buttons"
+
+msgid "Sticky first Column" 
+msgstr "Sticky first Column"
+
+msgid "Fixed Column"
+msgstr "Fixed Column"
+
+msgid "Freeze Column"
+msgstr "Freeze Column"
+
+msgid "Number of Rows per page"
+msgstr "Number of Rows per page"
+
+msgid "Enable Column Min-Width"
+msgstr "Enable Column Min-Width"
+
+msgid "Enable Max Column Width"
+msgstr "Enable Max Column Width"
+
+msgid "Max Column Width"
+msgstr "Max Column Width"
+
+msgid "Table Display Mode"
+msgstr "Table Display Mode"
+
+msgid "S.No"
+msgstr "S.No" 
+
+#. Pagination
+msgid "First"
+msgstr "First" 
+
+msgid "Previous"
+msgstr "Previous" 
+
+msgid "Next"
+msgstr "Next" 
+
+msgid "Last"
+msgstr "Last"
+
+#. Column Options
+msgid "Sort Ascending"
+msgstr "Sort Ascending"
+
+msgid "Sort Descending"
+msgstr "Sort Descending"
+
+msgid "Insert left"
+msgstr "Insert left"
+
+msgid "Insert Right"
+msgstr "Insert Right"
+
+msgid "Duplicate"
+msgstr "Duplicate"
+
+msgid "Delete"
+msgstr "Delete"
+
+#. Column Format Types
+msgid "Format Type"
+msgstr "Format Type"
+
+msgid "Basic"
+msgstr "Basic"
+
+msgid "Text"
+msgstr "Text"
+
+msgid "Text Area"
+msgstr "Text Area"
+
+msgid "Number"
+msgstr "Number"
+
+msgid "Image"
+msgstr "Image"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Email"
+msgstr "Email"
+
+#. Search
+msgid "Type to Search ..."
+msgstr "Type to Search ..."
+
+#. Filter
+msgid "Filter"
+msgstr "Filter"
+
+msgid "Add a Filter"
+msgstr "Add a Filter"
+
+msgid "Type to filter ..."
+msgstr "Type to filter ..."
+
+#. Notices or Messages
+msgid "Are you sure want's to Delete the selected Row?"
+msgstr "Are you sure want's to Delete the selected Row?"
+
+msgid "Are you sure want's to Delete the selected Column?"
+msgstr "Are you sure want's to Delete the selected Column?"
+
+msgid "Couldn't remove the row. The table must have one row at least!"
+msgstr "Couldn't remove the row. The table must have one row at least!"
+
+msgid "Couldn't remove the Column. The table must have one Column at least!"
+msgstr "Couldn't remove the Column. The table must have one Column at least!"
+
+msgid "Unable to create a post."
+msgstr "Unable to create a post."
+
+
+#. Table Defaults like placeholder and title.
+msgid "Column name"
+msgstr "Column name"
+
+msgid "FILTER"
+msgstr "FILTER"
+
+msgid "Importing the Data"
+msgstr "Importing the Data"
+
+msgid "Title"
+msgstr "Title"
+
+msgid "File"
+msgstr "File"
+
+msgid "Take the first row as the column header of the table"
+msgstr "Take the first row as the column header of the table"
+
+msgid "Load Data"
+msgstr "Load Data"
+
+msgid "Notes"
+msgstr "Notes"
+
+msgid "As of now, it would load only up to 10,000 records. We are working to load more records and will be added soon."
+msgstr "As of now, it would load only up to 10,000 records. We are working to load more records and will be added soon."
+
+msgid "As of now, it supports only XLSX and CSV format."
+msgstr "As of now, it supports only XLSX and CSV format."
+
+#. CPT Page.
+
+msgid "Create New Table"
+msgstr "Create New Table"
+
+msgid "Add New"
+msgstr "Add New"
+
+msgid "Table Name"
+msgstr "Table Name"
+
+msgid "Column name..."
+msgstr "Column name..."
+
+msgid "Edit Table"
+msgstr "Edit Table"
+
+msgid "Save Table"
+msgstr "Save Table"
+
+msgid "Update Table"
+msgstr "Update Table"
+
+msgid "Changes needs to be saved"
+msgstr "Changes needs to be saved"
+
+msgid "Import"
+msgstr "Import"
+
+msgid "Import Table"
+msgstr "Import Table"
+
+msgid "Copy Shortcode Clipboard"
+msgstr "Copy Shortcode Clipboard"
+
+msgid "Copy Shortcode"
+msgstr "Copy Shortcode"
+
+msgid "Copy and paste this shortcode in any page or post to display this Table"
+msgstr "Copy and paste this shortcode in any page or post to display this Table"
+
+# Export Widget in Editor
+
+msgid "Full or Filtered Table"
+msgstr "Full or Filtered Table"
+
+msgid "Choose a format"
+msgstr "Choose a format"
+
+msgid "Save as"
+msgstr "Save as"
+
+msgid "Choose a delimiter"
+msgstr "Choose a delimiter"
+
+msgid "Types"
+msgstr "Types"
+
+msgid "Entire Table"
+msgstr "Entire Table"
+
+msgid "Filtered Table"
+msgstr "Filtered Table"
+
+msgid "Formats"
+msgstr "Formats"
+
+msgid "comma separated values"
+msgstr "comma separated values"
+
+msgid "Delimiters"
+msgstr "Delimiters"
+
+# Filter Widget
+msgid "Select Operator"
+msgstr "Select Operator"
+
+msgid "Contains"
+msgstr "Contains"
+
+msgid "Does not contain"
+msgstr "Does not contain"
+
+msgid "Is"
+msgstr "Is"
+
+msgid "Is not"
+msgstr "Is not"
+
+msgid "Starts with"
+msgstr "Starts with"
+
+msgid "Ends with"
+msgstr "Ends with"
+
+msgid "Is empty"
+msgstr "Is empty"
+
+msgid "Is not empty"
+msgstr "Is not empty"
+
+#. Shortcode
+msgid "Shortcode"
+msgstr "Shortcode"
+
+msgid "Shortcode Copied!"
+msgstr "Shortcode Copied!"
+
+msgid "Add Tablesome Shortcode"
+msgstr "Add Tablesome Shortcode"
+
+msgid "Enter the Tablesome Table ID"
+msgstr "Enter the Tablesome Table ID"
+
+msgid "Please enter the tablesome table id"
+msgstr "Please enter the tablesome table id"
+
+msgid "Exclude Columns"
+msgstr "Exclude Columns"
+
+msgid "Select an table exclude columns"
+msgstr "Select an table exclude columns"
+
+#. Settings -- General Section
+msgid "Tablesome Settings"
+msgstr "Tablesome Settings"
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "Table Settings"
+msgstr "Table Settings"
+
+msgid "General"
+msgstr "General"
+
+msgid "Number Of Records per Page"
+msgstr "Number Of Records per Page"
+
+msgid "Value should between 1-100"
+msgstr "Value should between 1-100"
+
+msgid "Value should be 100 or below"
+msgstr "Value should be 100 or below"
+
+msgid "Value should be 1 at least"
+msgstr "Value should be 1 at least"
+
+msgid "Search"
+msgstr "Search"
+
+msgid "This will affect the front end only"
+msgstr "This will affect the front end only"
+
+msgid "Sorting"
+msgstr "Sorting"
+
+msgid "Sort"
+msgstr "Sort"
+
+msgid "Select Operator"
+msgstr "Select Operator"
+
+msgid "Ascending"
+msgstr "Ascending"
+
+msgid "Descending"
+msgstr "Descending"
+
+msgid "Remember this on Save"
+msgstr "Remember this on Save"
+
+msgid "Created At"
+msgstr "Created At"
+
+msgid "Filters"
+msgstr "Filters"
+
+msgid "Layout Options"
+msgstr "Layout Options"
+
+msgid "Min Column Width"
+msgstr "Min Column Width"
+
+msgid "Mobile Layout"
+msgstr "Mobile Layout"
+
+
+# Table Editor
+
+msgid "Add Row"
+msgstr "Add Row"
+
+msgid "Drag Row"
+msgstr "Drag Row"
+
+msgid "Edit Row"
+msgstr "Edit Row"
+
+msgid "Delete Row"
+msgstr "Delete Row"
+
+#. Settings -- Style Section
+
+msgid "Style"
+msgstr "Style"
+
+msgid "Disable Style"
+msgstr "Disable Style"
+
+msgid "load default table styles from theme"
+msgstr "load default table styles from theme"
+
+msgid "Table Header Styles"
+msgstr "Table Header Styles"
+
+msgid "Header Border Width and Color"
+msgstr "Header Border Width and Color"
+
+msgid "Header background"
+msgstr "Header background"
+
+msgid "Header Typography"
+msgstr "Header Typography"
+
+msgid "Table Row and Cell Styles"
+msgstr "Table Row and Cell Styles"
+
+msgid "Row background"
+msgstr "Row background"
+
+msgid "Row background for alternate rows"
+msgstr "Row background for alternate rows"
+
+msgid "Cell Border Width and Color"
+msgstr "Cell Border Width and Color"
+
+msgid "Cell Typography"
+msgstr "Cell Typography"
+
+msgid "Import"
+msgstr "Import"
+
+msgid "Store all Forms Entries"
+msgstr "Store all Forms Entries"
+
+msgid "Forms"
+msgstr "Forms"
+
+msgid "Style"
+msgstr "Style"
+
+# Main Menu
+
+msgid "All Tables"
+msgstr "All Tables"
+
+msgid "Import a Table"
+msgstr "Import a Table"
+
+msgid "Export a Table"
+msgstr "Export a Table"
+
+msgid "Getting Started"
+msgstr "Getting Started"
+
+msgid "Action Log"
+msgstr "Action Log"
+
+msgid "System Info"
+msgstr "System Info"
+
+msgid "Workflows"
+msgstr "Workflows"
+
+msgid "Trigger"
+msgstr "Trigger"
+
+msgid "Triggers"
+msgstr "Triggers"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Actions"
+msgid "Actions"
+
+msgid "Add"
+msgstr "Add"
+
+# Frontend Editing
+msgid "Enable Frontend Editing"
+msgstr "Enable Frontend Editing"
+
+msgid "Allowed Roles"
+msgstr "Allowed Roles"
+
+msgid "User Editable Records"
+msgstr "User Editable Records"
+
+msgid "Editable Columns"
+msgstr "Editable Columns"
+
+msgid "Currently, Logged-in user has access to their own records"
+msgstr "Currently, Logged-in user has access to their own records"
+
+msgid "When columns are left empty. All columns are thought to be modifiable"
+msgstr "When columns are left empty. All columns are thought to be modifiable"
+
+msgid "Allow Users to Delete their records"
+msgstr "Allow Users to Delete their records"
+
+msgid "Allow Users to Add Records"
+msgstr "Allow Users to Add Records"
+
+#'.__("", "tablesome").'

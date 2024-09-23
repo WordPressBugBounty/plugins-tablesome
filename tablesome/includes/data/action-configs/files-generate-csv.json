@@ -1,0 +1,43 @@
+{
+	"status": 1,
+	"action_id": 10,
+	"action-data-version": 2,
+	"delimiter": ",",
+	"storing_in": {
+		"location_type": "gdrive",
+		"location": "domain/submissions/cf7",
+		"is_file_private": false
+	},
+	"map_fields": [
+		{
+			"source_field": {
+				"id": "first_name",
+				"label": "",
+				"value": 1,
+				"data_type": "boolean",
+				"object_type": "trigger_source",
+				"meta": []
+			},
+			"destination_field": {
+				"id": "",
+				"label": "First Name",
+				"value": "",
+				"data_type": "",
+				"object_type": "column_name",
+				"meta": []
+			}
+		}
+	],
+	"test_data": {
+		"delimiter": ";",
+		"storing_in": {
+			"location_type": "gdrive",
+			"location": "https://drive.google.com/drive/folders/1fyxgtbcXHqBk5xTo6DMbjR-OmZNyq3RM",
+			"is_file_private": false
+		},
+		"form_data": [
+			["First Name", "Last Name", "Email"],
+			["John", "Doe", "john.doe@email.com"]
+		]
+	}
+}

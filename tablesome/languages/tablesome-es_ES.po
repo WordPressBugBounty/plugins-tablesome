@@ -1,0 +1,1089 @@
+# Translation of Plugins - Tablesome &#8211; Responsive Table, Woocommerce Automation, Email Log, Form Automation &#8211; Contact Form 7, Elementor, WPForms, Forminator - Stable (latest release) in Spanish (Spain)
+# This file is distributed under the same license as the Plugins - Tablesome &#8211; Responsive Table, Woocommerce Automation, Email Log, Form Automation &#8211; Contact Form 7, Elementor, WPForms, Forminator - Stable (latest release) package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Plugins - Tablesome &#8211; Responsive Table, "
+"Woocommerce Automation, Email Log, Form Automation &#8211; Contact Form 7, "
+"Elementor, WPForms, Forminator - Stable (latest release)\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2024-05-30 19:11+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Poedit 3.4.2\n"
+
+msgid "Show Serial Number Column (S.No)"
+msgstr "Mostrar Columna del Número de Serie (SN)"
+
+msgid "Hide Table Header"
+msgstr "Esconder Cabecera de Tabla"
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "Date timezone"
+msgstr "Fecha zona horaria"
+
+msgid "Show Tablesome Posts in WP Search"
+msgstr "Mostrar Publicaciones de Tablesome en las búsquedas de WP"
+
+msgid "Pagination"
+msgstr "Paginación"
+
+msgid "Show First and Last buttons"
+msgstr "Mostrar botones Primero y Último"
+
+msgid "Show Previous and Next buttons"
+msgstr "Mostrar botones Anterior y Siguiente"
+
+msgid "Sticky first Column"
+msgstr "Inmovilizar primera columna"
+
+msgid "Fixed Column"
+msgstr "Columna fija"
+
+msgid "Freeze Column"
+msgstr "Congelar columna"
+
+msgid "Number of Rows per page"
+msgstr "Número de Filas por Página"
+
+msgid "Enable Column Min-Width"
+msgstr "Activar Ancho Mínimo de Columna"
+
+msgid "Enable Max Column Width"
+msgstr "Activar Ancho Mínimo de Fila"
+
+msgid "Max Column Width"
+msgstr "Anchura máxima de Columna"
+
+msgid "Table Display Mode"
+msgstr "Modo de visualización de tabla"
+
+msgid "S.No"
+msgstr "SN"
+
+#. Pagination
+msgid "First"
+msgstr "Primero"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Siguiente"
+
+msgid "Last"
+msgstr "Último"
+
+#. Column Options
+msgid "Sort Ascending"
+msgstr "Orden Ascendente"
+
+msgid "Sort Descending"
+msgstr "Orden Descendente"
+
+msgid "Insert left"
+msgstr "Insertar a la Izquierda"
+
+msgid "Insert Right"
+msgstr "Insertar a la Derecha"
+
+msgid "Duplicate"
+msgstr "Duplicar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+#. Column Format Types
+msgid "Format Type"
+msgstr "Tipo de Formato"
+
+msgid "Basic"
+msgstr "Básico"
+
+msgid "Text"
+msgstr "Texto"
+
+msgid "Text Area"
+msgstr "Área de Texto"
+
+msgid "Number"
+msgstr "Número"
+
+msgid "Image"
+msgstr "Imagen"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Email"
+msgstr "Email"
+
+#. Search
+msgid "Type to Search ..."
+msgstr "Escribe para buscar..."
+
+#. Filter
+msgid "Filter"
+msgstr "Filtrar"
+
+msgid "Add a Filter"
+msgstr "Añadir un Filtro"
+
+msgid "Type to filter ..."
+msgstr "Escribe para filtrar..."
+
+#. Notices or Messages
+msgid "Are you sure want's to Delete the selected Row?"
+msgstr "¿Estás seguro de que quieres Eliminar la fila seleccionada?"
+
+msgid "Are you sure want's to Delete the selected Column?"
+msgstr "¿Estás seguro de que quieres Eliminar la columna seleccionada?"
+
+msgid "Couldn't remove the row. The table must have one row at least!"
+msgstr ""
+"No se puede eliminar esta Fila. ¡La tabla tiene que tener al menos una Fila!"
+
+msgid "Couldn't remove the Column. The table must have one Column at least!"
+msgstr ""
+"No se puede eliminar esta Columna. ¡La tabla tiene que tener al menos una "
+"Columna!"
+
+msgid "Unable to create a post."
+msgstr "No fue posible crear la publicación."
+
+#. Table Defaults like placeholder and title.
+msgid "Column name"
+msgstr "Nombre de la columna"
+
+msgid "FILTER"
+msgstr "FILTRAR"
+
+msgid "Importing the Data"
+msgstr "Importando Datos"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "File"
+msgstr "Archivo"
+
+msgid "Take the first row as the column header of the table"
+msgstr "Tomar la primera fila como la cabecera de la tabla"
+
+msgid "Load Data"
+msgstr "Cargar Datos"
+
+msgid "Notes"
+msgstr "Notas"
+
+msgid ""
+"As of now, it would load only up to 10,000 records. We are working to load "
+"more records and will be added soon."
+msgstr ""
+"Por ahora, solo se cargarán hasta 10.000 registros. Estamos trabajando en "
+"poder cargar más registros y será añadido pronto."
+
+msgid "As of now, it supports only XLSX and CSV format."
+msgstr "Por ahora, solo está soportado el formato XLSX y CSV."
+
+#. CPT Page.
+msgid "Create New Table"
+msgstr "Crear Nueva Tabla"
+
+msgid "Add New"
+msgstr "Añadir Nueva"
+
+msgid "Table Name"
+msgstr "Nombre Tabla"
+
+msgid "Column name..."
+msgstr "Nombre de la columna..."
+
+msgid "Edit Table"
+msgstr "Editar la Tabla"
+
+msgid "Save Table"
+msgstr "Guardar Tabla"
+
+msgid "Update Table"
+msgstr "Actualizar Tabla"
+
+msgid "Changes needs to be saved"
+msgstr "Es necesario guardar los cambios"
+
+msgid "Import"
+msgstr "Importar"
+
+msgid "Import Table"
+msgstr "Importar Tabla"
+
+msgid "Copy Shortcode Clipboard"
+msgstr "Copiar Shortcode Clipboard"
+
+msgid "Copy Shortcode"
+msgstr "Copiar Shortcode"
+
+msgid "Copy and paste this shortcode in any page or post to display this Table"
+msgstr ""
+"Copia y pega este shortcode en cualquier página o post para mostrar esta "
+"Tabla"
+
+msgid "Full or Filtered Table"
+msgstr "Tabla completa o Filtrada"
+
+msgid "Choose a format"
+msgstr "Elige un formato"
+
+msgid "Save as"
+msgstr "Guardar como"
+
+msgid "Choose a delimiter"
+msgstr "Elige un delimitador"
+
+msgid "Types"
+msgstr "Tipos"
+
+msgid "Entire Table"
+msgstr "Tabla Completa"
+
+msgid "Filtered Table"
+msgstr "Tabla Filtrada"
+
+msgid "Formats"
+msgstr "Formatos"
+
+msgid "comma separated values"
+msgstr "valores separados por comas"
+
+msgid "Delimiters"
+msgstr "Delimitador"
+
+msgid "Select Operator"
+msgstr "Ordenar"
+
+msgid "Contains"
+msgstr "Contiene"
+
+msgid "Does not contain"
+msgstr "No contiene"
+
+msgid "Is"
+msgstr "Es"
+
+msgid "Is not"
+msgstr "No es"
+
+msgid "Starts with"
+msgstr "Empieza por"
+
+msgid "Ends with"
+msgstr "Termina por"
+
+msgid "Is empty"
+msgstr "Está vacío"
+
+msgid "Is not empty"
+msgstr "No está vacío"
+
+#. Shortcode
+msgid "Shortcode"
+msgstr "Shortcode"
+
+msgid "Shortcode Copied!"
+msgstr "¡Shortcode copiado!"
+
+msgid "Add Tablesome Shortcode"
+msgstr "Añadir Tablesome Shortcode"
+
+msgid "Enter the Tablesome Table ID"
+msgstr "Por favor introduce el ID de Tabla Tablesome"
+
+msgid "Please enter the tablesome table id"
+msgstr "Por favor introduce el ID de Tabla Tablesome"
+
+msgid "Exclude Columns"
+msgstr "Excluir Columnas"
+
+msgid "Select an table exclude columns"
+msgstr "Seleccione una tabla para excluir columnas"
+
+#. Settings -- General Section
+msgid "Tablesome Settings"
+msgstr "Ajustes de Tablesome"
+
+msgid "Settings"
+msgstr "Ajustes"
+
+msgid "Table Settings"
+msgstr "Ajustes de la Tabla"
+
+msgid "General"
+msgstr "General"
+
+msgid "Number Of Records per Page"
+msgstr "Número de Registros por Página"
+
+msgid "Value should between 1-100"
+msgstr "El valor debe estar entre 1-100"
+
+msgid "Value should be 100 or below"
+msgstr "El valor debe ser 100 o menos"
+
+msgid "Value should be 1 at least"
+msgstr "El valor debe ser al menos 1"
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "This will affect the front end only"
+msgstr "Esto solo afectará al Front-End"
+
+msgid "Sorting"
+msgstr "Clasificación"
+
+# Table Editor
+msgid "Sort"
+msgstr "Ordenar"
+
+msgid "Ascending"
+msgstr "Ascendente"
+
+msgid "Descending"
+msgstr "Descendente"
+
+msgid "Remember this on Save"
+msgstr "Recordar esta opción"
+
+msgid "Created At"
+msgstr "Creado en"
+
+msgid "Filters"
+msgstr "Filtros"
+
+msgid "Layout Options"
+msgstr "Opciones de Diseño"
+
+msgid "Min Column Width"
+msgstr "Anchura mínima de Columna"
+
+msgid "Mobile Layout"
+msgstr "Diseño Móvil"
+
+msgid "Add Row"
+msgstr "Añadir Fila"
+
+msgid "Drag Row"
+msgstr "Arrastrar fila"
+
+msgid "Edit Row"
+msgstr "Editar fila"
+
+msgid "Delete Row"
+msgstr "Borrar fila"
+
+#. Settings -- Style Section
+msgid "Style"
+msgstr "Estilo"
+
+msgid "Disable Style"
+msgstr "Desactivar Estilo"
+
+msgid "load default table styles from theme"
+msgstr "cargar estilos de tabla por defecto del tema"
+
+msgid "Table Header Styles"
+msgstr "Estilos de Cabecera de Tabla"
+
+msgid "Header Border Width and Color"
+msgstr "Anchura y Color del Borde de Cabecera"
+
+msgid "Header background"
+msgstr "Fondo de Cabecera"
+
+msgid "Header Typography"
+msgstr "Tipografía de la Cabecera"
+
+msgid "Table Row and Cell Styles"
+msgstr "Estilo de Filas y Celdas de la Tabla"
+
+msgid "Row background"
+msgstr "Fondo de Fila"
+
+msgid "Row background for alternate rows"
+msgstr "Fondo de Fila para filas alternas"
+
+msgid "Cell Border Width and Color"
+msgstr "Ancho y Color del borde de la celda"
+
+msgid "Cell Typography"
+msgstr "Tipografía de la celda"
+
+msgid "Store all Forms Entries"
+msgstr "Guardar todas las Entradas del Formulario"
+
+msgid "Forms"
+msgstr "Formularios"
+
+msgid "All Tables"
+msgstr "Todas las Tablas"
+
+msgid "Import a Table"
+msgstr "Importar una Tabla"
+
+msgid "Export a Table"
+msgstr "Exportar a Tabla"
+
+msgid "Getting Started"
+msgstr "Empezando"
+
+msgid "Action Log"
+msgstr "Activar Log"
+
+msgid "System Info"
+msgstr "Información del Sistema"
+
+msgid "Workflows"
+msgstr "Flujos de trabajo"
+
+msgid "Trigger"
+msgstr "Desencadenar"
+
+msgid "Triggers"
+msgstr "Desencadenantes"
+
+msgid "Action"
+msgstr "Acción"
+
+msgid "Add"
+msgstr "Agregar"
+
+# Frontend Editing
+msgid "Enable Frontend Editing"
+msgstr "Habilitar edición de interfaz"
+
+msgid "Allowed Roles"
+msgstr "Roles permitidos"
+
+msgid "User Editable Records"
+msgstr "Registros editables por el usuario"
+
+msgid "Editable Columns"
+msgstr "Columnas editables"
+
+msgid "Currently, Logged-in user has access to their own records"
+msgstr "Actualmente, el usuario conectado tiene acceso a sus propios registros"
+
+msgid "When columns are left empty. All columns are thought to be modifiable"
+msgstr ""
+"Cuando las columnas quedan vacías. Se entiende que todas las columnas son "
+"modificables"
+
+msgid "Allow Users to Delete their records"
+msgstr "Permitir a los usuarios eliminar sus propios registros"
+
+msgid "Allow Users to Add Records"
+msgstr "Permitir a los usuarios añadir registros"
+
+#~ msgid "Woocommerce - Order Complete (thank you page)"
+#~ msgstr "Woocommerce: pedido completo (página de agradecimiento)"
+
+#~ msgid "Woocommerce"
+#~ msgstr "Woocommerce"
+
+#~ msgid "Local Time"
+#~ msgstr "Hora Local"
+
+#~ msgid "UTC time"
+#~ msgstr "Zona horaria UTC"
+
+#~ msgid "Site default"
+#~ msgstr "Sitio por defecto"
+
+#~ msgid "Load from GSheet (beta)"
+#~ msgstr "Cargar desde GSheet (beta)"
+
+#~ msgid "Enable Email Logs"
+#~ msgstr "Activar Logs de Email"
+
+#~ msgid "Publish Table"
+#~ msgstr "Publicar Tabla"
+
+#~ msgid "See Logs"
+#~ msgstr "Ver Logs"
+
+#~ msgid "Table published successfully."
+#~ msgstr "Tabla publicada con éxito."
+
+#~ msgid "Email logs trigger table created successfully."
+#~ msgstr ""
+#~ "La tabla de activación de registros de correo electrónico se creó "
+#~ "correctamente."
+
+#~ msgid "OpenAI"
+#~ msgstr "OpenAI"
+
+#~ msgid "Generate Text (OpenAI)"
+#~ msgstr "Generar Texto (OpenAI)"
+
+#~ msgid "Failed to create email logs trigger table, Please try again."
+#~ msgstr ""
+#~ "No se pudo crear la tabla de activación de registros de correo "
+#~ "electrónico. Inténtelo de nuevo."
+
+#~ msgid "Please publish the table to start storing the email logs."
+#~ msgstr ""
+#~ "Por favor publica la tabla para empezar a guardar los logs de email."
+
+#~ msgid "On Email Send"
+#~ msgstr "Al Enviar Email"
+
+#~ msgid "Table Can't emptied, Please try again"
+#~ msgstr "La Tabla no ha podido vaciarse, Por favor inténtalo de nuevo"
+
+#~ msgid "Table emptied successfully."
+#~ msgstr "Tabla vaciada con éxito."
+
+#~ msgid "Files"
+#~ msgstr "Archivos"
+
+#~ msgid "Generate CSV"
+#~ msgstr "Generar CSV"
+
+#~ msgid ""
+#~ "Powerful Tables + Form Automations. Save, Edit, Display (frontend) & "
+#~ "Export Form entries, integrate with Notion, Redirection for Forms. "
+#~ "Supports Contact Form 7, WPForms, Gravity Forms, Fluent, Elementor and "
+#~ "more"
+#~ msgstr ""
+#~ "Poderosas Tables + Automatización de Formularios. Guarda, Edita, Muestra "
+#~ "(frontend) & Exporta registros de Formularios, intégrate con Notion, "
+#~ "Redirección para formularios. Soporta Contact Form 7, WPForms, Gravity "
+#~ "Forms, Fluent, Elementor y más"
+
+#~ msgid "Google"
+#~ msgstr "Google"
+
+#~ msgid "Slack"
+#~ msgstr "Slack"
+
+#~ msgid "Hubspot"
+#~ msgstr "Hubspot"
+
+#~ msgid "GSheet"
+#~ msgstr "GSheet"
+
+#~ msgid "Send Direct Message to User"
+#~ msgstr "Enviar un Mensaje Directo al Usuario"
+
+#~ msgid "Send message to Channel"
+#~ msgstr "Enviar Mensaje al Canal"
+
+#~ msgid "Add Contact to Static List"
+#~ msgstr "Añadir un Contacto a una Lista Estática"
+
+#~ msgid "Tablesome API Info"
+#~ msgstr "Información de API de Tablesome"
+
+#~ msgid "Fluent Forms"
+#~ msgstr "Fluent Forms"
+
+#~ msgid "Gravity Forms"
+#~ msgstr "Gravity Forms"
+
+#~ msgid "Replace Table Content with WP Query"
+#~ msgstr "Reemplazar el contenido de la tabla con la consulta de WP"
+
+#~ msgid "On Table Load"
+#~ msgstr "Al Cargar Tabla"
+
+#~ msgid "Send Mail"
+#~ msgstr "Enviar Email"
+
+#~ msgid "Add New WP User"
+#~ msgstr "Añadir Nuevo Usuario de WP"
+
+#~ msgid "WordPress"
+#~ msgstr "WordPress"
+
+#~ msgid "Redirection"
+#~ msgstr "Redirección"
+
+#~ msgid "Add New WP Post"
+#~ msgstr "Añadir Nuevo Post de WP"
+
+#~ msgid "Unknown Trigger"
+#~ msgstr "Desencadenante Desconocido"
+
+#~ msgid "Unknown Integration"
+#~ msgstr "Integración Desconocida"
+
+#~ msgid "Try Latest (Beta)"
+#~ msgstr "Intentar última (Beta)"
+
+#~ msgid "Forminator"
+#~ msgstr "Forminator"
+
+#~ msgid "I ❤️ Love it"
+#~ msgstr "❤️ Me gusta"
+
+#~ msgid "Don’t Ask Me Again"
+#~ msgstr "No Me Preguntes de Nuevo"
+
+#~ msgid "Already did"
+#~ msgstr "Ya hecho"
+
+#~ msgid "Move Right"
+#~ msgstr "Mover a la Derecha"
+
+#~ msgid "Move left"
+#~ msgstr "Mover a la Izquierda"
+
+#~ msgid "Add Record to Notion DB"
+#~ msgstr "Añadir Registro a BDD Notion"
+
+#~ msgid "Notion"
+#~ msgstr "Notion"
+
+#~ msgid "Ask me later"
+#~ msgstr "Pregúntame más tared"
+
+#~ msgid "Unknown Action"
+#~ msgstr "Acción Desconocida"
+
+#~ msgid "Failed"
+#~ msgstr "Fallo"
+
+#~ msgid "Success"
+#~ msgstr "Éxito"
+
+#~ msgid "Anonymous"
+#~ msgstr "Anónimo"
+
+#~ msgid "Completion Date"
+#~ msgstr "Fecha de Fin"
+
+#~ msgid "Status"
+#~ msgstr "Estado"
+
+#~ msgid "Message"
+#~ msgstr "Mensaje"
+
+#~ msgid "Table"
+#~ msgstr "Tabla"
+
+#~ msgid "Integration Type"
+#~ msgstr "Tipo de Integración"
+
+#~ msgid "Action Log Summary"
+#~ msgstr "Activar Resumen Log"
+
+#~ msgid "Help & Feature Request"
+#~ msgstr "Ayuda & Solicitud de Funcionalidad"
+
+#~ msgid "Liked Tablesome?"
+#~ msgstr "¿Te gusta Tablesome?"
+
+#~ msgid "Download System Info"
+#~ msgstr "Descargar Información del Sistema"
+
+#~ msgid "You can copy the below info as simple text with Ctrl+C / Ctrl+V:"
+#~ msgstr ""
+#~ "Puedes copiar la siguiente información como texto simple con Ctrl+C / "
+#~ "Ctrl+V:"
+
+#~ msgid "Copy & Paste site Info"
+#~ msgstr "Copiar y Pegar información del sitio"
+
+#~ msgid "User Agent"
+#~ msgstr "Usuario Agente"
+
+#~ msgid "Role"
+#~ msgstr "Rol"
+
+#~ msgid "Author"
+#~ msgstr "Autor"
+
+#~ msgid "Version"
+#~ msgstr "Versión"
+
+#~ msgid "Name"
+#~ msgstr "Nombre"
+
+#~ msgid "Debug Mode"
+#~ msgstr "Modo Debug"
+
+#~ msgid "Language"
+#~ msgstr "Idioma"
+
+#~ msgid "Timezone"
+#~ msgstr "Zona horaria"
+
+#~ msgid "Permalink Structure"
+#~ msgstr "Estructura de enlace permanente"
+
+#~ msgid "WP Memory Limit"
+#~ msgstr "WP Límite de Memoria"
+
+#~ msgid "PHP Memory Limit"
+#~ msgstr "Límite de Memoria de PHP"
+
+#~ msgid "Max Upload Size"
+#~ msgstr "Tamaño Máximo de Subida"
+
+#~ msgid "WP Multisite"
+#~ msgstr "WP multisitio"
+
+#~ msgid "Site Url"
+#~ msgstr "Url del Sitio"
+
+#~ msgid "Home Url"
+#~ msgstr "Url Inicio"
+
+#~ msgid "WP Version"
+#~ msgstr "WP Versión"
+
+#~ msgid "PHP Max Post Size"
+#~ msgstr "Tamaño máximo de publicación de PHP"
+
+#~ msgid "PHP Max Input Vars"
+#~ msgstr "Variables de entrada máximas de PHP"
+
+#~ msgid "PHP Version"
+#~ msgstr "Versión PHP"
+
+#~ msgid "MySQL version"
+#~ msgstr "Versión MySQL"
+
+#~ msgid "Software"
+#~ msgstr "Software"
+
+#~ msgid "Operating System"
+#~ msgstr "Sistema Operativo"
+
+#~ msgid "Inactive Plugins"
+#~ msgstr "Plugins Inactivos"
+
+#~ msgid "Active Plugins"
+#~ msgstr "Activar Plugins"
+
+#~ msgid "User"
+#~ msgstr "Usuario"
+
+#~ msgid "Theme"
+#~ msgstr "Tema"
+
+#~ msgid "WordPress Environment"
+#~ msgstr "Entorno WordPress"
+
+#~ msgid "Server Environment"
+#~ msgstr "Entorno del servidor"
+
+#~ msgid "Bi-Weekly"
+#~ msgstr "Quincenal"
+
+#~ msgid "Every 60 Seconds"
+#~ msgstr "Cada 60 Segundos"
+
+#~ msgid "Every Week"
+#~ msgstr "Cada Semana"
+
+#~ msgid "Postal/Zip"
+#~ msgstr "Código Postal"
+
+#~ msgid "State/Prov/Region"
+#~ msgstr "Estado/Provincia/Región"
+
+#~ msgid "Address Line 2"
+#~ msgstr "Dirección Línea 2"
+
+#~ msgid "Elementor"
+#~ msgstr "Elementor"
+
+#~ msgid "Integrations"
+#~ msgstr "Integraciones"
+
+#~ msgid "Country"
+#~ msgstr "País"
+
+#~ msgid "City"
+#~ msgstr "Ciudad"
+
+#~ msgid "Street Address"
+#~ msgstr "Dirección"
+
+#~ msgid "Email Address"
+#~ msgstr "Dirección de Email"
+
+#~ msgid "Add Contact"
+#~ msgstr "Añadir un Contacto"
+
+#~ msgid "Mailchimp"
+#~ msgstr "Mailchimp"
+
+#~ msgid "to configure the Mailchimp API settings in Tablesome."
+#~ msgstr "para configurar los ajustes de la API de Mailchimp en Tablesome."
+
+#~ msgid "Click here"
+#~ msgstr "Clica aquí"
+
+#~ msgid " Response from Mailchimp"
+#~ msgstr " Responder desde Mailchimp"
+
+#~ msgid "Mailchimp API key validation has failed."
+#~ msgstr "Ha fallado la validación de la API Key de MailChimp."
+
+#~ msgid "PDF (.pdf)"
+#~ msgstr "PDF (.pdf)"
+
+#~ msgid "Excel (.xlsx)"
+#~ msgstr "Excel (.xlsx)"
+
+#~ msgid "CSV (.csv)"
+#~ msgstr "CSV (.csv)"
+
+#~ msgid "Export Table as"
+#~ msgstr "Exportar Tabla como"
+
+#~ msgid "Export Table"
+#~ msgstr "Exportar Tabla"
+
+#~ msgid "WPForms"
+#~ msgstr "WPForms"
+
+#~ msgid "On Form Submit"
+#~ msgstr "Al Rellenar Formulario"
+
+#~ msgid "Contact Form 7"
+#~ msgstr "Contact Form 7"
+
+#~ msgid "Choose the table"
+#~ msgstr "Elige la tabla"
+
+#~ msgid "Choose the tablesome table"
+#~ msgstr "Elige la tabla Tablesome"
+
+#~ msgid "Preview Table"
+#~ msgstr "Previsualizar Tabla"
+
+#~ msgid "Documentation"
+#~ msgstr "Documentación"
+
+#~ msgid "Sticky first Column (Fixed Column / Freeze Column)"
+#~ msgstr "Primera columna fija (columna fija/columna congelada)"
+
+#~ msgid "Loading..."
+#~ msgstr "Cargando..."
+
+#~ msgid "Table duplicated successfully."
+#~ msgstr "Tabla duplicada con éxito."
+
+#~ msgid "Table Can't duplicated, Please try again"
+#~ msgstr "La Tabla no ha podido duplicarse, Por favor inténtalo de nuevo"
+
+#~ msgid "Invalid Table ID"
+#~ msgstr "ID de Tabla Inválido"
+
+#~ msgid "Session Expired, Please try again."
+#~ msgstr "La sesión ha Expirado, Por favor inténtalo de nuevo."
+
+#~ msgid "Missing Tablesome table ID "
+#~ msgstr "No se encontró el ID de Tabla de Tablesome "
+
+#~ msgid "Duplicate the table"
+#~ msgstr "Duplicar la Tabla"
+
+#~ msgid ""
+#~ "When this is enabled, we will collect completely anonymous information "
+#~ "about which features are enabled, which storage/vision provider is being "
+#~ "used and which batch tools are being used. We do not collect any "
+#~ "personally identifiable information, everything is completely anonymous. "
+#~ "Nor do we collect any information such as file names, access keys, etc. "
+#~ "We use this information to focus development efforts on features that "
+#~ "matter most to our users."
+#~ msgstr ""
+#~ "Cuando esto esté habilitado, recopilaremos información completamente "
+#~ "anónima sobre qué funciones están habilitadas, qué proveedor de "
+#~ "almacenamiento/visión se está utilizando y qué herramientas por lotes se "
+#~ "están utilizando. No recopilamos ninguna información de identificación "
+#~ "personal, todo es completamente anónimo. Tampoco recopilamos ninguna "
+#~ "información como nombres de archivos, claves de acceso, etc. Utilizamos "
+#~ "esta información para centrar los esfuerzos de desarrollo en las "
+#~ "funciones que más importan a nuestros usuarios."
+
+#~ msgid ""
+#~ "The following option control the permission you are granting for "
+#~ "Tablesome."
+#~ msgstr "La siguiente opción controla los permisos otorgados a Tablesome."
+
+#~ msgid "Every 5 min"
+#~ msgstr "Cada 5 min"
+
+#~ msgid "Tablesome Shortcode"
+#~ msgstr "Tablesome Shortcode"
+
+#~ msgid "Insert Shortcode"
+#~ msgstr "Insertar Shortcode"
+
+#~ msgid "Select a shortcode"
+#~ msgstr "Seleccionar un shortcode"
+
+#~ msgid "Google Web Fonts"
+#~ msgstr "Fuentes Web de Google"
+
+#~ msgid "Safe Web Fonts"
+#~ msgstr "Fuentes Web Seguras"
+
+#~ msgid "Custom Web Fonts"
+#~ msgstr "Fuentes Web Personalizadas"
+
+#~ msgid "Disable"
+#~ msgstr "Desactivar"
+
+#~ msgid "Enable"
+#~ msgstr "Activar"
+
+#~ msgid "Your browser does not support HTML audio"
+#~ msgstr "Tu navegador no admite HTML audio"
+
+#~ msgid "Your browser does not support HTML video"
+#~ msgstr "Tu navegador no admite HTML vídeo"
+
+#~ msgid ""
+#~ "Tablesome requires WordPress version %s+. Because you are using an "
+#~ "earlier version, the plugin is currently NOT ACTIVE."
+#~ msgstr ""
+#~ "Tablesome requiere la versión de WordPress %s+. Como estás usando una "
+#~ "versión anterior, el plugin actualmente NO ESTÁ ACTIVO."
+
+#~ msgid "Tablesome requires PHP version %s+, plugin is currently NOT ACTIVE."
+#~ msgstr ""
+#~ "Tablesome requiere la versión de PHP %s+, el plugin actualmente NO ESTÁ "
+#~ "ACTIVO."
+
+#~ msgid "Table Tag"
+#~ msgstr "Etiqueta de Tabla"
+
+#~ msgid "New Table Tag Name"
+#~ msgstr "Nueva Etiqueta de Tabla"
+
+#~ msgid "Add New Table Tag"
+#~ msgstr "Añadir Nueva Etiqueta de Tabla"
+
+#~ msgid "Update Table Tag"
+#~ msgstr "Actualizar Etiqueta de Tabla"
+
+#~ msgid "Edit Table Tag"
+#~ msgstr "Editar la Etiqueta de la Tabla"
+
+#~ msgid "Parent Table Tag:"
+#~ msgstr "Etiqueta de tabla principal:"
+
+#~ msgid "Parent Table Tag"
+#~ msgstr "Etiqueta de tabla principal"
+
+#~ msgid "All Table Tags"
+#~ msgstr "Todas las Etiquetas de Tabla"
+
+#~ msgid "Search Table Tags"
+#~ msgstr "Buscar Etiquetas de Tabla"
+
+#~ msgctxt "taxonomy singular name"
+#~ msgid "Table Tag"
+#~ msgstr "Etiqueta de Tabla"
+
+#~ msgctxt "taxonomy general name"
+#~ msgid "Table Tags"
+#~ msgstr "Etiquetas de Tabla"
+
+#~ msgid "Table Category"
+#~ msgstr "Categoría de Tabla"
+
+#~ msgid "New Table Category Name"
+#~ msgstr "Nueva Categoría de Tabla"
+
+#~ msgid "Add New Table Category"
+#~ msgstr "Añadir Nueva Categoría de Tabla"
+
+#~ msgid "Update Table Category"
+#~ msgstr "Actualizar Categoría de Tabla"
+
+#~ msgid "Parent Table Category:"
+#~ msgstr "Categoría de tabla principal:"
+
+#~ msgid "Parent Table Category"
+#~ msgstr "Categoría de tabla principal"
+
+#~ msgid "All Table Categories"
+#~ msgstr "Todas las Categorías de Tabla"
+
+#~ msgid "Search Table Categories"
+#~ msgstr "Buscar Categorías de Tabla"
+
+#~ msgctxt "taxonomy singular name"
+#~ msgid "Table Category"
+#~ msgstr "Categoría de Tabla"
+
+#~ msgctxt "taxonomy general name"
+#~ msgid "Table Categories"
+#~ msgstr "Categorías de Tabla"
+
+#~ msgid "Filter Table Items list"
+#~ msgstr "Lista de elementos de la tabla de filtro"
+
+#~ msgid "Table Items list Navigation"
+#~ msgstr "Navegación por la lista de elementos de la tabla"
+
+#~ msgid "Table Items list"
+#~ msgstr "Lista de elementos de la tabla"
+
+#~ msgid "No Tables found in Trash."
+#~ msgstr "No se encontraron Tablas en la Papelera."
+
+#~ msgid "No Tables found."
+#~ msgstr "No se encontraron Tablas."
+
+#~ msgid "Parent Tables:"
+#~ msgstr "Tablas principales:"
+
+#~ msgid "Search Tables"
+#~ msgstr "Buscar Tablas"
+
+#~ msgid "New Table"
+#~ msgstr "Nueva Tabla"
+
+#~ msgid "Add New Table"
+#~ msgstr "Añadir Nueva Tabla"
+
+#~ msgctxt "add new on admin bar"
+#~ msgid "Table"
+#~ msgstr "Tabla"
+
+#~ msgctxt "admin menu"
+#~ msgid "Tablesome"
+#~ msgstr "Tablesome"
+
+#~ msgctxt "post type singular name"
+#~ msgid "Table"
+#~ msgstr "Tabla"
+
+#~ msgctxt "post type general name"
+#~ msgid "Tables"
+#~ msgstr "Tablas"
+
+#~ msgid "http://pauple.com"
+#~ msgstr "http://pauple.com"
+
+#~ msgid "Pauple"
+#~ msgstr "Pauple"
+
+#~ msgid "https://tablesomewp.com/"
+#~ msgstr "https://tablesomewp.com/"
+
+#~ msgid "Tablesome"
+#~ msgstr "Tablesome"

@@ -1,0 +1,14 @@
+{
+	"default": "dashicons-media-text",
+	"text/csv": "dashicons-media-text",
+	"application/pdf": "dashicons-pdf",
+	"date_filter": true,
+	"filtered_views": false,
+	"triggers_and_actions": true,
+	"ontableload_action": true,
+	"filter_table_action": true,
+	"slack_action": false,
+	"hubspot_action": false,
+	"gsheet_action": true,
+	"generate_csv_action": true
+}

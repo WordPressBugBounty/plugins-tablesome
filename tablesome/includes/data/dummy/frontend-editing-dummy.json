@@ -1,0 +1,259 @@
+{
+	"settings": {
+		"access_control": {
+			"data_version": 1,
+			"enable_frontend_editing": false,
+			"allowed_roles": ["subscriber", "customer"],
+			"record_edit_access": "own_records||all_records",
+			"editable_columns": [1, 2, 5],
+			"can_delete_own_records": false
+		},
+		"who_can_edit": {
+			"enabled": true,
+			"can_edit_row": true,
+			"can_edit_column": true,
+			"row_conditions": [
+				{
+					"conditions": [
+						{
+							"operand_1": {
+								"id": "created_by",
+								"value": "",
+								"data_type": "",
+								"object_type": "table_column",
+								"meta": []
+							},
+							"operand_1_options": [
+								{
+									"id": "created_by",
+									"label": "Created By",
+									"type": "table_column",
+									"Option Group": "Table Hidden Column"
+								},
+								{
+									"id": "created_at",
+									"label": "Created At",
+									"type": "table_column",
+									"Option Group": "Table Hidden Columns"
+								},
+								{
+									"id": "column_id",
+									"label": "Entry Message",
+									"type": "table_column",
+									"Option Group": "Table Columns"
+								}
+							],
+							"operand_2": {
+								"id": "current_user_id",
+								"value": "",
+								"data_type": "",
+								"object_type": "session_data",
+								"meta": []
+							},
+							"operand_2_options": [
+								{
+									"id": "current_user_id",
+									"label": "Current User Id",
+									"type": "session_data"
+								},
+								{
+									"id": "current_user_role",
+									"label": "Current User Role",
+									"type": "session_data"
+								}
+							],
+							"operator": "=="
+						},
+						{
+							"operand_1": {
+								"id": "column_id",
+								"value": "",
+								"data_type": "",
+								"object_type": "table_column",
+								"meta": []
+							},
+							"operand_2": {
+								"id": "current_user_role",
+								"value": ["subscriber", "customer"],
+								"data_type": "",
+								"object_type": "session_data",
+								"meta": []
+							},
+							"operator": "=="
+						},
+
+						{
+							"operand_1": {
+								"id": "column_id",
+								"value": "",
+								"data_type": "",
+								"object_type": "table_column",
+								"meta": []
+							},
+							"operand_2": {
+								"id": "",
+								"value": "Industry",
+								"data_type": "",
+								"object_type": "custom",
+								"meta": []
+							},
+							"operator": "contains"
+						}
+					],
+					"group_operator": "AND",
+					"group_id": 1,
+					"parent": "none"
+				}
+			],
+			"column_conditions": [
+				{
+					"columns": ["quantity", "size"],
+					"conditions": [
+						{
+							"operand_1": {
+								"id": "user_role",
+								"value": "",
+								"data_type": "",
+								"object_type": "session_data",
+								"meta": []
+							},
+							"operand_2": {
+								"id": "",
+								"value": "customer",
+								"data_type": "",
+								"object_type": "user",
+								"meta": []
+							},
+							"operator": "=="
+						},
+						{
+							"operand_1": {
+								"id": "user_id",
+								"value": "",
+								"data_type": "",
+								"object_type": "session_data",
+								"meta": []
+							},
+							"operand_2": {
+								"id": "",
+								"value": 12,
+								"data_type": "",
+								"object_type": "user",
+								"meta": []
+							},
+							"operator": "=="
+						}
+					],
+					"group_operator": "AND",
+					"group_id": 1,
+					"parent": "none"
+				}
+			]
+		}
+	},
+
+	"derived_permissions": {
+		"can_create_rows": true,
+		"can_create_columns": true,
+		"deletable_rows": [1, 2],
+		"editable_rows": [1, 2],
+		"editable_columns": [1, 2],
+		"deletable_columns": [1, 2]
+	},
+	"derived_permissions_two": {
+		"can_create_rows": true,
+		"can_create_columns": true,
+		"rows": [
+			{
+				"id": "1",
+				"is_editable": true,
+				"is_deletable": true
+			},
+			{
+				"id": "10",
+				"is_editable": true,
+				"is_deletable": true
+			}
+		],
+		"columns": [
+			{
+				"id": "1",
+				"is_editable": true,
+				"is_deletable": true
+			},
+			{
+				"id": "10",
+				"is_editable": true,
+				"is_deletable": true
+			}
+		]
+	},
+	"dummy_settings": {
+		"access_control": {
+			"data_version": 1,
+			"enable_frontend_editing": true,
+			"allowed_roles": ["administrator", "editor", "customer"],
+			"record_edit_access": "own_records",
+			"editable_columns": [1, 2, 5],
+			"can_delete_own_records": false
+		},
+		"who_can_edit": {
+			"enabled": true,
+			"can_edit_row": true,
+			"can_edit_column": true,
+			"row_conditions": [
+				{
+					"conditions": [
+						{
+							"operand_1": {
+								"id": "created_by",
+								"value": "",
+								"data_type": "",
+								"object_type": "table_column",
+								"meta": []
+							},
+							"operand_2": {
+								"id": "current_user_id",
+								"value": "",
+								"data_type": "",
+								"object_type": "session_data",
+								"meta": []
+							},
+							"operator": "=="
+						}
+					],
+					"group_operator": "AND",
+					"group_id": 1,
+					"parent": "none"
+				}
+			],
+			"column_conditions": [
+				{
+					"columns": ["3"],
+					"conditions": [
+						{
+							"operand_1": {
+								"id": "user_id",
+								"value": "",
+								"data_type": "",
+								"object_type": "session_data",
+								"meta": []
+							},
+							"operand_2": {
+								"id": "",
+								"value": 1,
+								"data_type": "",
+								"object_type": "user",
+								"meta": []
+							},
+							"operator": "=="
+						}
+					],
+					"group_operator": "AND",
+					"group_id": 1,
+					"parent": "none"
+				}
+			]
+		}
+	}
+}

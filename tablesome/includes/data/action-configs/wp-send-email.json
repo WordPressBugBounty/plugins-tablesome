@@ -1,0 +1,26 @@
+{
+	"action_id": 7,
+	"integration": "wordpress",
+	"status": 1,
+	"email_fields": {
+		"from_address": {
+			"email": "{{admin_email}}"
+		},
+		"to_address": [
+			{
+				"emails": "",
+				"cc": "",
+				"bcc": ""
+			}
+		],
+		"subject": {
+			"content": ""
+		},
+		"body": {
+			"content": ""
+		},
+		"template": {
+			"id": ""
+		}
+	}
+}
