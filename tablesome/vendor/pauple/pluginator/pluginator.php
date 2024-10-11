@@ -3,7 +3,7 @@
 Library Name: Plugination
 Description: A library to manage plugins
 Author: HelpieWP
-Version: 0.3.0
+Version: 0.2.9
 
  */
 
