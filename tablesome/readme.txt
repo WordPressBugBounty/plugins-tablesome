@@ -1,9 +1,9 @@
-=== Tablesome - Form DB & Automation - WPForms, Contact Form 7, Elementor, Forminator, Fluent, Gravity ===
+=== Tablesome Table - Contact Form DB - WPForms, CF7, Gravity, Forminator, Fluent ===
 Donate link: https://pauple.com
 Tags: table, email, contact form 7, wpforms, redirect
 Requires at least: 5.2
 Tested up to: 6.5.2
-Stable tag: 1.1.10
+Stable tag: 1.1.11
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -193,6 +193,9 @@ We love to hear from our users and we try to integrate features that our users w
 5. Copy and paste the shortcode on the post.
 
 == Change Log ==
+
+= 1.1.11 =
+Fix: Duplicate column issue (on column duplicate, the content was empty)
 
 = 1.1.10 =
 Enhancement: Filter table recipe
