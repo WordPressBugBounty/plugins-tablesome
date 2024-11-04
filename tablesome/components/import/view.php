@@ -64,7 +64,7 @@ if (!class_exists('\Tablesome\Components\Import\View')) {
             $html = '';
             $html .= '<p class="tablesome__notes">' . __("Notes", "tablesome") . '</p>';
             $html .= '<ul class="tablesome__notes-list">';
-            $html .= '<li>' . __("As of now, it would load only up to 10,000 records. We are working to load more records and will be added soon.", "tablesome") . '</li>';
+            $html .= '<li>' . __("As of now, it would load only up to 20,000 records. We are working to load more records and will be added soon.", "tablesome") . '</li>';
             $html .= '<li>' . __("As of now, it supports only XLSX and CSV format.", "tablesome") . '</li>';
             $html .= '</ul>';
             return $html;

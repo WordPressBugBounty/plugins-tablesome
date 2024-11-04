@@ -934,8 +934,6 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
         }
 
         public function load_api_admin_notices_by_status( $api_data ) {
-            error_log( 'load_api_admin_notices_by_status api_data:' );
-            error_log( print_r( $api_data, true ) );
             return;
             $status = ( $api_data['mailchimp_api_status'] == true ? true : false );
             $message = $api_data['mailchimp_api_status_message'];

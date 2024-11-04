@@ -31,6 +31,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Myque')) {
             return $response;
         }
 
+        public function insert_column($args, $response = array())
+        {
+            $response = $this->mysql->insert_column($args, $response);
+            return $response;
+        }
+
         public function duplicate_column($args, $response = array())
         {
             $response = $this->mysql->duplicate_column($args, $response);

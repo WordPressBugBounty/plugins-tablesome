@@ -143,13 +143,57 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             return $record;
         }
 
-        public function duplicate_column($args, $response = array())
+        public function insert_column($args , $response = array()){
+            global $wpdb;
+            $table_name = $args['table_name'];
+            $args['table_name'] = $table_name;
+            $column_name = $args['name'];
+            $column_type = $args['format'];
+
+            $query = "ALTER TABLE $table_name ADD $column_name $column_type DEFAULT ''";
+            $response['new_column_created'] = $wpdb->query($query);
+            return $response;
+        }
+
+        public function copy_column_content($args, $response = array())
         {
             global $wpdb;
-            $table_name = $wpdb->prefix . $args['table_name'];
+            $table_name = $args['table_name'];
             $args['table_name'] = $table_name;
             $source_column = $args['source_column'];
             $target_column = $args['target_column'];
+
+            if(empty($source_column) || empty($target_column)){
+                error_log('copy_column_content: $source_column or $target_column is empty');
+                return $response;
+            }
+
+            $query = "UPDATE $table_name SET $target_column = $source_column";
+            $response['copied_column_records'] = $wpdb->query($query);
+            return $response;
+        }
+
+        public function duplicate_column($args, $response = array())
+        {
+
+            // error_log('args: ' . print_r($args, true));
+            global $wpdb;
+            $table_name = $args['table_name'];
+            $args['table_name'] = $table_name;
+            $source_column = $args['source_column'];
+            $target_column = $args['target_column'];
+
+            if(empty($source_column) || empty($target_column)){
+                error_log('duplicate_column: $source_column or $target_column is empty');
+                return $response;
+            }
+
+            // If target column already exists, return
+            $columns = $this->get_table_columns($table_name);
+            if($this->does_column_exists($columns, $target_column)){
+                $response = $this->copy_column_content($args, $response);
+                return $response;
+            }
 
             // Create New Column
             $query = "ALTER TABLE $table_name ADD $target_column TEXT NOT NULL";
@@ -157,7 +201,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             // Copy Data from Source Column to Target Column
             $query = "UPDATE $table_name SET $target_column = $source_column";
-            error_log('$query : ' . $query);
+            // error_log('$query : ' . $query);
             $response['copied_column_records'] = $wpdb->query($query);
 
             return $response;

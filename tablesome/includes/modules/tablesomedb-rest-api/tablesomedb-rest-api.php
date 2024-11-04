@@ -281,7 +281,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
                 foreach ($triggers as $trigger) {
 
-                    if (empty($trigger) || !is_array($trigger)) {
+                    if (empty($trigger) || !is_array($trigger) || !isset($trigger['trigger_id'])) {
                         continue;
                     }
                     $trigger_id = $trigger['trigger_id'];
