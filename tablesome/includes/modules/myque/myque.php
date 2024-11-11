@@ -25,6 +25,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Myque')) {
             $this->mysql->set_schema();
         }
 
+        public function get_row_count($table_id)
+        {
+            return $this->mysql->get_row_count($table_id);
+        }
+
         public function insert_record($record, $table_name, $insert_args)
         {
             $response = $this->mysql->insert_record($record, $table_name, $insert_args);

@@ -48,6 +48,17 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             return $result;
         }
 
+        public function get_row_count($table_id)
+        {
+            if( !isset($table_id) || empty($table_id) || is_null($table_id) || $table_id == 0 ){
+                return 0;
+            }
+            $table_name = TABLESOME_TABLE_NAME . '_' . $table_id;
+            $table_name = $this->wpdb->prefix . $table_name;
+            $query = "SELECT COUNT(*) FROM $table_name";
+            return $this->wpdb->get_var($query);
+        }
+
         public function insert_record($record, $table_name, $insert_args)
         {
             // error_log('insert_record $record : ' . print_r($record, true));

@@ -1,2 +1,2 @@
 === Pluginator - Making Plugin Development Easy ===
-Stable tag: 0.2.9
+Stable tag: 0.3.3

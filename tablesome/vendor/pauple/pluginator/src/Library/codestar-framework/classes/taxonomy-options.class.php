@@ -14,8 +14,8 @@ if ( ! class_exists( 'CSF_Taxonomy_Options' ) ) {
     public $unique      = '';
     public $taxonomy    = '';
     public $abstract    = 'taxonomy';
-    public $pre_fields  = array();
     public $sections    = array();
+    public $pre_fields  = array();
     public $taxonomies  = array();
     public $args        = array(
       'taxonomy'        => 'category',
@@ -49,22 +49,6 @@ if ( ! class_exists( 'CSF_Taxonomy_Options' ) ) {
     // instance
     public static function instance( $key, $params ) {
       return new self( $key, $params );
-    }
-
-    public function pre_fields( $sections ) {
-
-      $result  = array();
-
-      foreach ( $sections as $key => $section ) {
-        if ( ! empty( $section['fields'] ) ) {
-          foreach ( $section['fields'] as $field ) {
-            $result[] = $field;
-          }
-        }
-      }
-
-      return $result;
-
     }
 
     // add taxonomy add/edit fields
@@ -146,6 +130,8 @@ if ( ! class_exists( 'CSF_Taxonomy_Options' ) ) {
           if ( ! empty( $section['fields'] ) ) {
             foreach ( $section['fields'] as $field ) {
 
+              # error_log('render_taxonomy_form_fields field: ' . print_r($field, true));
+
               if ( ! empty( $field['id'] ) && ! empty( $errors['fields'][$field['id']] ) ) {
                 $field['_error'] = $errors['fields'][$field['id']];
               }
@@ -154,7 +140,11 @@ if ( ! class_exists( 'CSF_Taxonomy_Options' ) ) {
                 $field['default'] = $this->get_default( $field );
               }
 
-              CSF::field( $field, $this->get_meta_value( $field, $term_id ), $this->unique, 'taxonomy' );
+              $meta_value = $this->get_meta_value( $field, $term_id );
+              # error_log('before escapemeta_value: ' . print_r($meta_value, true));
+              $meta_value = $this->escape_meta_value($meta_value);
+              // error_log('meta_value: ' . print_r($meta_value, true));
+              CSF::field( $field, $meta_value, $this->unique, 'taxonomy' );
 
             }
           }
@@ -166,8 +156,62 @@ if ( ! class_exists( 'CSF_Taxonomy_Options' ) ) {
 
     }
 
+    
+    public function escape_meta_value($meta_value) {
+       // error_log('meta_value: ' . print_r($meta_value, true));
+
+       if(empty($meta_value) || is_null($meta_value)) {
+        return $meta_value;
+      }
+      
+      foreach ($meta_value as $key => $value) {
+        if (is_array($value)) {
+
+          $title = $value['faq_item']['title'];
+          // error_log('title: ' . $title);
+
+          $title = html_entity_decode($title);
+          $content = html_entity_decode($value['faq_item']['content']);
+          // $title = strip_tags($title);
+          // $title = esc_attr($title);
+          // error_log('sanitized title: ' . $title);
+          $title = pluginator_safe_kses($title);
+          $content = pluginator_safe_kses($content);
+ 
+          $meta_value[$key]['faq_item']['title'] = $title;
+          $meta_value[$key]['faq_item']['content'] = $content;
+        } else {
+          $value = html_entity_decode($value);
+          $value = pluginator_safe_kses($value);
+        }
+      }
+      return $meta_value;
+    }
+
+    public function recursive_field_sanitize_validate($field, $request) {
+
+      // error_log('recursive_field_sanitize_validate called');
+
+      if (is_array($field)) {
+        foreach ($field as $key => &$value) {
+
+          if(is_array($value)) {
+            $value = $this->recursive_field_sanitize_validate($value, $request);
+          } else {
+            error_log('key: ' . $key);
+            $value = wp_kses_post($value);
+            # error_log('value: ' . print_r($value, true));
+          }
+        }
+      }
+
+      return $field;
+    }
+
     // save taxonomy form fields
     public function save_taxonomy( $term_id ) {
+
+      # error_log('save_taxonomy called');
 
       $count    = 1;
       $data     = array();
@@ -191,6 +235,10 @@ if ( ! class_exists( 'CSF_Taxonomy_Options' ) ) {
           if ( ! empty( $section['fields'] ) ) {
 
             foreach ( $section['fields'] as $field ) {
+
+              # error_log('taxonomy field: ' . print_r($field, true));
+
+              $field = $this->recursive_field_sanitize_validate($field, $request);
 
               if ( ! empty( $field['id'] ) ) {
 
@@ -250,8 +298,10 @@ if ( ! class_exists( 'CSF_Taxonomy_Options' ) ) {
       if ( empty( $data ) ) {
 
         if ( $this->args['data_type'] !== 'serialize' ) {
-          foreach ( $data as $key => $value ) {
-            delete_term_meta( $term_id, $key );
+          foreach ( $this->pre_fields as $field ) {
+            if ( ! empty( $field['id'] ) ) {
+              delete_term_meta( $term_id, $field['id'] );
+            }
           }
         } else {
           delete_term_meta( $term_id, $this->unique );

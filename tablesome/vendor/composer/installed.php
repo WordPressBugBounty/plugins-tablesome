@@ -3,7 +3,7 @@
         'name' => 'pauple/tablesome',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => 'fb032e1a60206fbfef659e2b21117737c9803ad8',
+        'reference' => 'a956477244e5b486726a8d532dfef27f92a97213',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'pauple/pluginator' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '742ec88b48048ebbe4a5fab23b0560f715bd473c',
+            'reference' => '95e30a70d123b51fd7a37cb4e3c96c2509c3b4dd',
             'type' => 'pauple-library',
             'install_path' => __DIR__ . '/../pauple/pluginator',
             'aliases' => array(
@@ -33,7 +33,7 @@
         'pauple/tablesome' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => 'fb032e1a60206fbfef659e2b21117737c9803ad8',
+            'reference' => 'a956477244e5b486726a8d532dfef27f92a97213',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

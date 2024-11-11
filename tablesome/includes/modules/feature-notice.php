@@ -11,11 +11,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Feature_Notice')) {
     {
         public $dismissed_option_name = 'tablesome_feature_notice_dismissed';
 
-        public $version = '1.0.24';
+        public $version = '1.1.12';
 
         public $feature_page_url = 'https://tablesomewp.com/releases/';
 
-        public $content = 'Feature: Google Sheet - Filter Columns to load';
+        public $content = 'Feature: Create tables with 20,000 records. More improvements to come.';
 
         public function init()
         {

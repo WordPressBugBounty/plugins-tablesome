@@ -23,6 +23,10 @@ if (!class_exists('\Tablesome\Includes\Filters')) {
             add_filter("manage_edit-{$tablesome_cpt}_columns", array($this, 'add_tablesome_shortcode_column'), 10, 1);
             add_filter("manage_{$tablesome_cpt}_posts_custom_column", array($this, 'add_tablesome_shortcode_column_data'), 10, 2);
 
+            // Adding Table Row Count 
+            add_filter("manage_edit-{$tablesome_cpt}_columns", array($this, 'add_tablesome_row_count_column'), 10, 1);
+            add_filter("manage_{$tablesome_cpt}_posts_custom_column", array($this, 'add_tablesome_row_count_column_data'), 10, 2);
+
             add_filter('cron_schedules', [new \Tablesome\Includes\Cron, 'set_intervals']);
 
             add_filter('wp_check_filetype_and_ext', array($this, 'check_filetype_and_ext'), 10, 5);
@@ -30,6 +34,30 @@ if (!class_exists('\Tablesome\Includes\Filters')) {
             add_filter("post_row_actions", [new \Tablesome\Components\Table\Quick_Actions(), 'modify_table_row_actions'], 10, 2);
 
             $this->add_compatibility_filters();
+        }
+
+        public function add_tablesome_row_count_column($columns)
+        {
+            $new_columns = array_slice($columns, 0, 3, true) +
+            array("tablesome-row-count" => __("No of Rows", "tablesome")) +
+            array_slice($columns, 3, count($columns) - 1, true);
+
+            return $new_columns;
+        }
+
+        public function add_tablesome_row_count_column_data($column_name, $table_id)
+        {
+            $html = '';
+            if ($column_name != 'tablesome-row-count') {
+                return $html;
+            }
+            $table = new \Tablesome\Includes\Modules\Myque\Myque();
+            $count = $table->get_row_count($table_id);
+            
+            // Comma separate number 
+            $count = number_format($count);
+
+            echo wp_kses_post($count);
         }
 
         public function check_filetype_and_ext($types, $file, $filename, $mimes, $real_mime = false)

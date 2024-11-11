@@ -7,6 +7,9 @@ if (!class_exists('\Pauple\Pluginator\Library')) {
     {
         public static function register_libraries($dependencies)
         {
+            // load functions.php
+            require_once __DIR__ . '/functions.php';
+            
             if (empty($dependencies) || !is_array($dependencies)) {
                 return;
             }
