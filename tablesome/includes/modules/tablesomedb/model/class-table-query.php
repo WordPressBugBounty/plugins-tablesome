@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Tablesome_Table_Query extends BerlinDB\Database\Query
+class Tablesome_Table_Query extends Tablesome\BerlinDB\Database\Query
 {
 
     public $schema_columns = [];

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit0644e96cfacb2ca4ff8746091848ba2b
+class ComposerStaticInit83edc123d7c8c0924661f7cffd7bcc1b
 {
     public static $prefixLengthsPsr4 = array (
         'P' => 
@@ -29,20 +29,20 @@ class ComposerStaticInit0644e96cfacb2ca4ff8746091848ba2b
     );
 
     public static $classMap = array (
-        'BerlinDB\\Database\\Base' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/base.php',
-        'BerlinDB\\Database\\Column' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/column.php',
-        'BerlinDB\\Database\\Queries\\Compare' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/compare.php',
-        'BerlinDB\\Database\\Queries\\Date' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/date.php',
-        'BerlinDB\\Database\\Queries\\Meta' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/meta.php',
-        'BerlinDB\\Database\\Query' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/query.php',
-        'BerlinDB\\Database\\Row' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/row.php',
-        'BerlinDB\\Database\\Schema' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/schema.php',
-        'BerlinDB\\Database\\Table' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/table.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'FPDF' => __DIR__ . '/../..' . '/includes/lib/fpdf/fpdf.php',
         'PDF_HTML' => __DIR__ . '/../..' . '/includes/lib/fpdf/pdf-html.php',
         'TTFParser' => __DIR__ . '/../..' . '/includes/lib/fpdf/makefont/ttfparser.php',
         'Tablesome' => __DIR__ . '/../..' . '/includes/plugin.php',
+        'Tablesome\\BerlinDB\\Database\\Base' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/base.php',
+        'Tablesome\\BerlinDB\\Database\\Column' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/column.php',
+        'Tablesome\\BerlinDB\\Database\\Queries\\Compare' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/compare.php',
+        'Tablesome\\BerlinDB\\Database\\Queries\\Date' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/date.php',
+        'Tablesome\\BerlinDB\\Database\\Queries\\Meta' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/meta.php',
+        'Tablesome\\BerlinDB\\Database\\Query' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/query.php',
+        'Tablesome\\BerlinDB\\Database\\Row' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/row.php',
+        'Tablesome\\BerlinDB\\Database\\Schema' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/schema.php',
+        'Tablesome\\BerlinDB\\Database\\Table' => __DIR__ . '/../..' . '/includes/lib/berlin-db/core/table.php',
         'Tablesome\\Components\\CellTypes\\Button' => __DIR__ . '/../..' . '/components/cell-types/button.php',
         'Tablesome\\Components\\CellTypes\\Date' => __DIR__ . '/../..' . '/components/cell-types/date.php',
         'Tablesome\\Components\\CellTypes\\Email' => __DIR__ . '/../..' . '/components/cell-types/email.php',
@@ -117,7 +117,7 @@ class ComposerStaticInit0644e96cfacb2ca4ff8746091848ba2b
         'Tablesome\\Includes\\Modules\\Proxy' => __DIR__ . '/../..' . '/includes/modules/proxy.php',
         'Tablesome\\Includes\\Modules\\Review_Notification' => __DIR__ . '/../..' . '/includes/modules/review-notification.php',
         'Tablesome\\Includes\\Modules\\Tables\\Tables' => __DIR__ . '/../..' . '/includes/modules/tables/tables.php',
-        'Tablesome\\Includes\\Modules\\TablesomeDB\\Berlin_Db_Adapter' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/berlin-db-adapter.php',
+        'Tablesome\\Includes\\Modules\\TablesomeDB\\BerlinDB_Db_Adapter' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/berlin-db-adapter.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB\\Schema_Generator' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/schema-generator.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB\\TablesomeDB' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/tablesomedb.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB\\TablesomeDB_New' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/tablesomedb-new.php',
@@ -221,9 +221,9 @@ class ComposerStaticInit0644e96cfacb2ca4ff8746091848ba2b
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit0644e96cfacb2ca4ff8746091848ba2b::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit0644e96cfacb2ca4ff8746091848ba2b::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit0644e96cfacb2ca4ff8746091848ba2b::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit83edc123d7c8c0924661f7cffd7bcc1b::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit83edc123d7c8c0924661f7cffd7bcc1b::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit83edc123d7c8c0924661f7cffd7bcc1b::$classMap;
 
         }, null, ClassLoader::class);
     }

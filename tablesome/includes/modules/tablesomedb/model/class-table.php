@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Tablesome_Table extends \BerlinDB\Database\Table
+class Tablesome_Table extends \Tablesome\BerlinDB\Database\Table
 {
     public $table_schema = array();
 

@@ -841,6 +841,7 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
                 'site_url'                 => site_url(),
                 'date_timezone'            => Tablesome_Getter::get( 'date_timezone' ),
                 'wp_site_search'           => Tablesome_Getter::get( 'wp_site_search' ),
+                'locale'                   => get_locale(),
             ];
             if ( $is_tablesome_onboarding_page ) {
                 $tablesome_settings['email_logs_trigger_table_info'] = $this->get_email_logs_trigger_table_info();

@@ -6,16 +6,15 @@ if (!defined('ABSPATH')) {
     exit;
 } // Exit if accessed directly
 
-if (!class_exists('\Tablesom
-e\Includes\Modules\TablesomeDB\Berlin_Db_Adapter')) {
-    class Berlin_Db_Adapter
+if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\BerlinDB_Db_Adapter')) {
+    class BerlinDB_Db_Adapter
     {
 
         public function load()
         {
             /**
              * REQUIRE BERLINDB FILES.
-             * For now, BerlinDB files are manually required.
+             * For now, Tablesome\BerlinDB files are manually required.
              */
             require_once TABLESOME_PATH . 'includes/lib/berlin-db/core/base.php';
             require_once TABLESOME_PATH . 'includes/lib/berlin-db/core/column.php';

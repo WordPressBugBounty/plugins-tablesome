@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Tablesome_Event_Log_Table_Query extends BerlinDB\Database\Query
+class Tablesome_Event_Log_Table_Query extends Tablesome\BerlinDB\Database\Query
 {
 
     /**

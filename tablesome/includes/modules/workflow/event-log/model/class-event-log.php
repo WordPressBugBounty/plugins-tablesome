@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Tablesome_Event_Log extends \BerlinDB\Database\Table
+class Tablesome_Event_Log extends \Tablesome\BerlinDB\Database\Table
 {
     /**
      * Table name, without the global table prefix.

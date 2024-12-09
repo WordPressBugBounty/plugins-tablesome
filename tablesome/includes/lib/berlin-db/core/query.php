@@ -8,7 +8,7 @@
  * @license     https://opensource.org/licenses/gpl-2.0.php GNU Public License
  * @since       1.0.0
  */
-namespace BerlinDB\Database;
+namespace Tablesome\BerlinDB\Database;
 
 // Exit if accessed directly
 defined('ABSPATH') || exit;
@@ -78,7 +78,7 @@ class Query extends Base
      * @since 1.0.0
      * @var   string
      */
-    protected $table_schema = '\\BerlinDB\\Database\\Schema';
+    protected $table_schema = '\\Tablesome\BerlinDB\\Database\\Schema';
 
     /** Item ******************************************************************/
 
@@ -114,7 +114,7 @@ class Query extends Base
      * @since 1.0.0
      * @var   mixed
      */
-    protected $item_shape = '\\BerlinDB\\Database\\Row';
+    protected $item_shape = '\\Tablesome\BerlinDB\\Database\\Row';
 
     /** Cache *****************************************************************/
 
@@ -1852,12 +1852,14 @@ class Query extends Base
      */
     public function update_item($item_id = 0, $data = array())
     {
-
         // Bail if no item ID
         $item_id = $this->shape_item_id($item_id);
+
         if (empty($item_id)) {
             return false;
         }
+
+    
 
         // Get primary column
         $primary = $this->get_primary_column_name();
@@ -1900,6 +1902,7 @@ class Query extends Base
         if (!empty($modified)) {
             $save[$modified->name] = $this->get_current_time();
         }
+        
 
         // Try to update
         $where = array($primary => $item_id);

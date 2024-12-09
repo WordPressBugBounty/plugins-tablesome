@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Tablesome_Table_Record extends BerlinDB\Database\Row
+class Tablesome_Table_Record extends Tablesome\BerlinDB\Database\Row
 {
 
     /**

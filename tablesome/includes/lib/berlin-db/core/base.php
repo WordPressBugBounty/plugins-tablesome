@@ -8,7 +8,7 @@
  * @license     https://opensource.org/licenses/gpl-2.0.php GNU Public License
  * @since       1.0.0
  */
-namespace BerlinDB\Database;
+namespace Tablesome\BerlinDB\Database;
 
 // Exit if accessed directly
 defined('ABSPATH') || exit;
