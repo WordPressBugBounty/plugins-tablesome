@@ -610,11 +610,12 @@ if (!function_exists('maybe_refresh_access_token_by_integration')) {
         $api_credentials_handler = new Tablesome\Includes\Modules\API_Credentials_Handler();
         $api_credentials = $api_credentials_handler->get_api_credentials($integration);
 
-        error_log('maybe_refresh_access_token_by_integration $api_credentials: ' . print_r($api_credentials, true));
+        // error_log('maybe_refresh_access_token_by_integration $api_credentials: ' . print_r($api_credentials, true));
         $is_access_token_expired = isset($api_credentials["access_token_is_expired"]) && $api_credentials["access_token_is_expired"] == true;
         $does_refresh_token_exist = isset($api_credentials["refresh_token"]) && !empty($api_credentials["refresh_token"]);
 
         $should_request_refresh_token = ($is_access_token_expired && $does_refresh_token_exist) || $can_retry;
+        // error_log(' $should_request_refresh_token: ' . print_r($should_request_refresh_token, true));
         $log_data = array(
             'integration' => $integration,
             'is_access_token_expired' => $is_access_token_expired,

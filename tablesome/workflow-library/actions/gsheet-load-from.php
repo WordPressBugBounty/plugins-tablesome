@@ -56,7 +56,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\GSheet_Load_From')) {
 
             $action_meta = $this->get_action_meta($args);
 
-            error_log('action_meta: ' . print_r($action_meta, true));
+            // error_log('action_meta: ' . print_r($action_meta, true));
 
             $get_rows_params = [];
             $get_rows_params['spreadsheet_id'] = isset($action_meta['spreadsheet_id']) ? $action_meta['spreadsheet_id'] : '';
@@ -64,7 +64,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\GSheet_Load_From')) {
             $get_rows_params['selected_columns'] = isset($action_meta['selected_columns']) ? $action_meta['selected_columns'] : [];
             $get_rows_params['show_all_columns'] = isset($action_meta['show_all_columns']) ? $action_meta['show_all_columns'] : true;
             $get_rows_params['sheet_name'] = $this->get_sheet_name($get_rows_params['spreadsheet_id'], $get_rows_params['sheet_id']);
-            $get_rows_params['coordinates'] = isset($action_meta['coordinates']) ? $action_meta['coordinates'] : 'A1:Z1000';
+            $get_rows_params['coordinates'] = isset($action_meta['coordinates']) ? $action_meta['coordinates'] : 'A1:AG10000';
             $get_rows_params['range'] = $get_rows_params['sheet_name'];
 
             // error_log('action_meta: ' . print_r($action_meta, true));
@@ -80,6 +80,9 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\GSheet_Load_From')) {
 
             // If last update time is more than 15 minutes ago, update table
             $gsheet_data = $this->gsheet_api->get_rows($get_rows_params);
+            $row_count = count($gsheet_data['values']);
+            error_log('row_count: ' . $row_count);
+            // error_log('gsheet_data: ' . print_r($gsheet_data, true));
             $incoming_columns = $gsheet_data['values'][0];
 
             if (empty($incoming_columns)) {
@@ -148,6 +151,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\GSheet_Load_From')) {
 
         public function get_sheet_name($spreadsheet_id, $sheet_id)
         {
+            // error_log('get_sheet_name');
             $sheet_name = '';
             $spreadsheet = $this->gsheet_api->get_sheets_by_spreadsheet_id($spreadsheet_id);
 

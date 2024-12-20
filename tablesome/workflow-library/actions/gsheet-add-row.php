@@ -185,8 +185,16 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\GSheet_Add_Row')) {
         {
             $file_types = ["upload", "file-upload", "fileupload", "post_image", 'input_image', 'input_file', 'file'];
             foreach ($trigger_data as $field_key => $field) {
+                // error_log("field_key: " . $field_key);
+                // error_log("field: " . wp_json_encode($field));
+                $file_type = isset($field["file_type"]) ? $field["file_type"] : '';
                 if (in_array($field["type"], $file_types) && !empty($field["value"])) {
                     $trigger_data[$field_key]["value"] = $this->get_attachment_url_by_id($field["value"]);
+                }
+
+                // PDF File Type
+                if (isset($field["file_type"]) && $field["file_type"] == "application/pdf") {
+                    $trigger_data[$field_key]["value"] = $field["file_url"];
                 }
             }
 

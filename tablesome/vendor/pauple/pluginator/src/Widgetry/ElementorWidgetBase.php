@@ -7,8 +7,8 @@ namespace Pauple\Pluginator\Widgetry;
 // } // Exit if accessed directly
 
 use Elementor\Controls_Manager;
-use Elementor\Core\Schemes\Color;
-use Elementor\Core\Schemes\Typography;
+use \Elementor\Core\Kits\Documents\Tabs\Global_Colors;
+use \Elementor\Core\Kits\Documents\Tabs\Global_Typography;
 use Elementor\Group_Control_Background;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
@@ -32,11 +32,11 @@ if (!class_exists('\Pauple\Pluginator\Widgetry\ElementorWidgetBase')) {
 
         public function get_style_depends()
         {
-            error_log('get_style_depends - args: ' . print_r($this->args, true));
-            error_log('get_style_depends - data: ' . print_r($this->data, true));
+            // error_log('get_style_depends - args: ' . print_r($this->args, true));
+            // error_log('get_style_depends - data: ' . print_r($this->data, true));
 
             $style_depends = isset($this->args['style_depends']) ? $this->args['style_depends'] : [];
-            error_log('get_style_depends: ' . print_r($style_depends, true));
+            // error_log('get_style_depends: ' . print_r($style_depends, true));
             return $style_depends;
         }
 
@@ -216,9 +216,8 @@ if (!class_exists('\Pauple\Pluginator\Widgetry\ElementorWidgetBase')) {
                     [
                         'label' => __($label . ' Color', 'pauple-helpie'),
                         'type' => Controls_Manager::COLOR,
-                        'scheme' => [
-                            'type' => Color::get_type(),
-                            'value' => Color::COLOR_1,
+                        'global' => [
+                            'default' => Global_Colors::COLOR_PRIMARY,
                         ],
                         'selectors' => [
                             '{{WRAPPER}} ' . $selector => 'color: {{VALUE}} !important',
@@ -230,7 +229,9 @@ if (!class_exists('\Pauple\Pluginator\Widgetry\ElementorWidgetBase')) {
                     Group_Control_Typography::get_type(),
                     [
                         'name' => $name . '_typography',
-                        'scheme' => Typography::TYPOGRAPHY_1,
+                        'global' => [
+                            'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+                        ],
                         'selector' => '{{WRAPPER}} ' . $selector,
                         'separator' => 'before',
                     ]

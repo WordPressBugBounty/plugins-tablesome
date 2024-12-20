@@ -30,9 +30,9 @@ if (!class_exists('\Tablesome\Workflow_Library\Integrations\GSheet')) {
 
         public function get_spreadsheets()
         {
-            error_log('get_spreadsheets');
+            // error_log('get_spreadsheets');
             $files = $this->gdrive_api->get_spreadsheets();
-            error_log("get_spreadsheets: " . wp_json_encode($files));
+            // error_log("get_spreadsheets: " . wp_json_encode($files));
             if (empty($files)) {
                 return [];
             }
@@ -49,14 +49,24 @@ if (!class_exists('\Tablesome\Workflow_Library\Integrations\GSheet')) {
 
         public function get_sheets_by_spreadsheet_id($spreadsheet_id)
         {
+            // error_log('integrations -> get_sheets_by_spreadsheet_id');
             $data = $this->gsheet_api->get_sheets_by_spreadsheet_id($spreadsheet_id, true);
             $sheets = isset($data['sheets']) ? $data['sheets'] : [];
+
+            // error_log('sheets: ' . print_r($sheets, true));
             if (empty($sheets)) {
                 return [];
             }
 
-            $sheets = array_map(function ($sheet) {
-                $header = $this->get_first_row_data_from_sheet_grid_data($sheet);
+            $sheets = array_map(function ($sheet) use ($spreadsheet_id) {
+                $first_row_data = $this->gsheet_api->get_header_from_sheetId($spreadsheet_id, $sheet['properties']['sheetId'], $sheet['properties']['title']);
+                $header = $this->convert_to_id_label($first_row_data);
+                // $header_old = $this->get_first_row_data_from_sheet_grid_data_old($sheet);
+
+                // error_log('sheetId: ' . $sheet['properties']['sheetId']);
+                // error_log('label: ' . $sheet['properties']['title']);
+                // error_log('header: ' . print_r($header, true));
+                // error_log('header2: ' . print_r($header2, true));
                 return [
                     'id' => "" . $sheet['properties']['sheetId'] . "",
                     'label' => $sheet['properties']['title'],
@@ -105,9 +115,28 @@ if (!class_exists('\Tablesome\Workflow_Library\Integrations\GSheet')) {
             return $result;
         }
 
-        private function get_first_row_data_from_sheet_grid_data($sheet)
+        private function convert_to_id_label($row_values)
+        {
+
+            $cells_data = [];
+
+            if (!empty($row_values)) {
+                foreach ($row_values as $cell_index => $cell) {
+                    $temp_column_name = 'Column: ' . tablesome_num2alpha($cell_index);
+                    $cells_data[] = [
+                        'id' => "" . $cell_index . "",
+                        'label' => isset($cell) && !empty($cell) ? $cell : $temp_column_name,
+                    ];
+                }
+            }
+
+            return $cells_data;
+        }
+
+        private function get_first_row_data_from_sheet_grid_data_old($sheet)
         {
             $data = isset($sheet['data']) ? $sheet['data'] : [];
+            // error_log("data: " . wp_json_encode($data));
             $row_data = isset($data[0]['rowData']) ? $data[0]['rowData'] : [];
             $first_row_values = isset($row_data[0]['values']) ? $row_data[0]['values'] : [];
             $cells_data = [];
@@ -124,5 +153,5 @@ if (!class_exists('\Tablesome\Workflow_Library\Integrations\GSheet')) {
 
             return $cells_data;
         }
-    }
+    } // end of class
 }

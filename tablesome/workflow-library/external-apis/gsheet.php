@@ -2,6 +2,7 @@
 
 namespace Tablesome\Workflow_Library\External_Apis;
 
+use Error;
 use Tablesome\Includes\Modules\API_Credentials_Handler;
 
 if (!defined('ABSPATH')) {
@@ -32,8 +33,9 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\GSheet')) {
 
             $url = "https://sheets.googleapis.com/{$this->api_version}/spreadsheets/{$spreadsheet_id}";
             $parameters = [
-                'includeGridData' => $include_grid_data,
+                // 'includeGridData' => $include_grid_data,
                 'alt' => 'json',
+                // 'range' => '1:1'
             ];
             global $pluginator_security_agent;
             $url = $pluginator_security_agent->add_query_arg($parameters, $url, 'raw');
@@ -45,12 +47,18 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\GSheet')) {
                 ),
             ));
 
+            // error_log('url: ' . $url);
             $response_code = wp_remote_retrieve_response_code($response);
+            // error_log('response: ' . print_r($response, true));
             $data = json_decode(wp_remote_retrieve_body($response), true);
+
+            // error_log('data: ' . print_r($data, true));
             $response_failed = (is_wp_error($response) || !is_tablesome_success_response($response_code));
+            // error_log('response_failed: ' . print_r($response_failed, true));
             $is_authorization_error = isset($data['error']['code']) && $data['error']['code'] == 401;
             $error_data = isset($data['error']) ? $data['error'] : [];
 
+            // error_log('error_data: ' . print_r($error_data, true));
             if ($is_authorization_error) {
                 Retry::set_integration($this->integration);
                 return Retry::call([$this, 'get_sheets_by_spreadsheet_id'], [$spreadsheet_id, $include_grid_data]);
@@ -62,12 +70,50 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\GSheet')) {
             return $data;
         }
 
+        public function get_header_from_sheetId($spreadsheet_id, $sheet_id, $sheet_name)
+        {
+            // error_log('get_header_from_sheetId: step 1');
+            $access_token = maybe_refresh_access_token_by_integration($this->integration);
+            $url = "https://sheets.googleapis.com/{$this->api_version}/spreadsheets/{$spreadsheet_id}/values/{$sheet_name}!1:1";
+            $parameters = [
+                'alt' => 'json',
+            ];
+            global $pluginator_security_agent;
+            $url = $pluginator_security_agent->add_query_arg($parameters, $url, 'raw');
+            $response = wp_remote_post($url, array(
+                'method' => 'GET',
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $access_token,
+                ),
+            ));
+            $response_code = wp_remote_retrieve_response_code($response);
+            $data = json_decode(wp_remote_retrieve_body($response), true);
+
+            // error_log('get_header_from_sheetId: step 2');
+            // error_log('data: ' . print_r($data, true));
+            $response_failed = (is_wp_error($response) || !is_tablesome_success_response($response_code));
+            $is_authorization_error = isset($data['error']['code']) && $data['error']['code'] == 401;
+            $error_data = isset($data['error']) ? $data['error'] : [];
+            if ($is_authorization_error) {
+                Retry::set_integration($this->integration);
+                return Retry::call([$this, 'get_header_from_sheetId'], [$spreadsheet_id, $sheet_id]);
+            }
+            Retry::reset_count();
+            if ($response_failed && !$is_authorization_error) {
+                return [];
+            }
+
+            // error_log('get_header_from_sheetId data: ' . print_r($data, true));
+            return isset($data['values'][0]) ? $data['values'][0] : [];
+        }
+
         public function get_sheet_name($spreadsheet_id, $sheet_id)
         {
             $sheet_name = '';
             $sheets = $this->get_sheets_by_spreadsheet_id($spreadsheet_id);
 
-            error_log('sheets: ' . print_r($sheets, true));
+            // error_log('sheets: ' . print_r($sheets, true));
 
             if (empty($sheets)) {
                 return '';
@@ -199,9 +245,9 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\GSheet')) {
             $response_failed = (is_wp_error($response) || !is_tablesome_success_response($response_code));
             $is_authorization_error = isset($data['error']['code']) && $data['error']['code'] == 401;
             $error_data = isset($data['error']) ? $data['error'] : [];
-
-            error_log('$response: ' . print_r($response, true));
-            error_log('$response_code: ' . $response_code);
+            
+            // error_log('$response: ' . print_r($response, true));
+            // error_log('$response_code: ' . $response_code);
             if ($is_authorization_error) {
                 Retry::set_integration($this->integration);
                 return Retry::call([$this, 'get_spreadsheet_records'], [$spreadsheet_id, $params]);
