@@ -56,6 +56,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Redirection')) {
         private function set_defaults()
         {
 
+            // error_log('set_defaults called');
             $this->trigger_source_data = $this->trigger_class->trigger_source_data['data'];
 
             $this->action_meta = isset($this->trigger_instance['action_meta']) ? $this->trigger_instance['action_meta'] : [];
@@ -90,8 +91,10 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Redirection')) {
 
             $url_params = isset($this->action_meta['url_params']) ? $this->action_meta['url_params'] : [];
 
+            // error_log('$this->trigger_source_data: ' . print_r($this->trigger_source_data, true));
+            // error_log('enable_all_url_params: ' . print_r($enable_all_url_params, true));
             if ($enable_all_url_params) {
-
+                // error_log('if enable_all_url_params: ' . print_r($enable_all_url_params, true));
                 foreach ($this->trigger_source_data as $source_field_name => $source_field_data) {
 
                     $param_name = $this->get_active_param_name_from_config($url_params, $source_field_name);
@@ -99,6 +102,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Redirection')) {
                 }
 
             } else {
+                // error_log('else enable_all_url_params: ' . print_r($enable_all_url_params, true));
                 foreach ($url_params as $param) {
 
                     $field_status = isset($param['field_status']) ? $param['field_status'] : false;
