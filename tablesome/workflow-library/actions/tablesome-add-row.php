@@ -154,7 +154,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
                 }
 
                 // Special case - wpforms date-time field with 'time' format (field option in wpforms)
-                if ($column_format == 'text' && $field_data['type'] == 'date-time') {
+                if ($column_format == 'text' && isset($field_data['type']) && $field_data['type'] == 'date-time') {
                     $field_value = (string) $field_data['value'];
                 }
 
@@ -200,7 +200,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
                 return false;
             }
 
-            error_log('check_and_insert_table_row');
+            // error_log('check_and_insert_table_row');
             $tablesome_db = new \Tablesome\Includes\Modules\TablesomeDB\TablesomeDB();
             $db_table = $tablesome_db->create_table_instance($event_params['table_id'], $event_params['table_meta']);
 
@@ -425,7 +425,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
 
         private function get_enabled_smart_fields($event_params)
         {
-            error_log('get_enabled_smart_fields');
+            // error_log('get_enabled_smart_fields');
             $enabled_smart_fields = [];
             // Get Smart Fields Data
             $smart_fields_data = $this->get_extra_information();
@@ -692,8 +692,8 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
             // error_log("get_column_type() source_data: " . print_r($event_params['source_data'], true));
             // error_log("get_column_type() field_name: " . $field_name);
 
-            $field_source = $event_params['source_data'][$field_name];
-            $field_type = $field_source['type'];
+            $field_source = isset($event_params['source_data'][$field_name]) ? $event_params['source_data'][$field_name] : [];
+            $field_type = isset($field_source['type']) ? $field_source['type'] : '';
 
             $column_type = $this->get_cell_format_by_field_type($field_type);
 
@@ -717,7 +717,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
                 $event_params['table_meta'] = set_tablesome_data($event_params['table_id'], $event_params['table_meta']);
             }
 
-            error_log('update_postmeta');
+            // error_log('update_postmeta');
             // error_log('$this->table_meta_needs_update: ' . $this->table_meta_needs_update);
             // error_log('update_postmeta $event_params[table_meta][columns]: ' . print_r($event_params['table_meta']['columns'], true));
 

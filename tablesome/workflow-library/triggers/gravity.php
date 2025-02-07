@@ -218,7 +218,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Gravity')) {
 
                         foreach ($entry as $key => $field_value) {
                             $exp_key = explode('.', $key);
-                            error_log('$exp_key: ' . print_r($exp_key, true));
+                            // error_log('$exp_key: ' . print_r($exp_key, true));
                             if ($exp_key[0] == $startWith && $field_value != '') {
                                 // $field_value = isset($entry[$field['id']]) ? $entry[$field['id']] : '';
                                 $values_array[] = $field_value; // Add the value to the array

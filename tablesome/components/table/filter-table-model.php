@@ -75,7 +75,7 @@ if (!class_exists('\Tablesome\Components\Table\Filter_Table_Model')) {
             $args = $query;
             $args['collection'] = $this->collection;
             $args['table_meta'] = $this->collection['table_meta'];
-            $args['where'] = $this->collection['where'];
+            $args['where'] = isset($this->collection['where']) ? $this->collection['where'] : [];
             $rows = $this->tablesome_db->get_rows($args);
 
             // error_log(' rows : ' . print_r($rows, true));
@@ -101,7 +101,7 @@ if (!class_exists('\Tablesome\Components\Table\Filter_Table_Model')) {
                 }
             }
 
-            error_log('$filters : ' . print_r($filters, true));
+            // error_log('$filters : ' . print_r($filters, true));
             return $filters;
         }
 

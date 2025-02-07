@@ -43,7 +43,7 @@ if (!class_exists('\Tablesome\Includes\Translations')) {
                 'export_table_csv' => __('CSV (.csv)', 'tablesome'),
                 'export_table_excel' => __('Excel (.xlsx)', 'tablesome'),
                 'export_table_pdf' => __('PDF (.pdf)', 'tablesome'),
-
+                'column_id' => __('Column ID', 'tablesome'),
                 'format_type' => __("Format Type", 'tablesome'),
                 'basic' => __('Basic', 'tablesome'),
                 'import_table' => __('Import Table', 'tablesome'),
@@ -68,8 +68,10 @@ if (!class_exists('\Tablesome\Includes\Translations')) {
                 'formats' => __('Formats', 'tablesome'),
                 'comma_separated_values' => __('comma separated values', 'tablesome'),
                 'delimiters' => __('Delimiters', 'tablesome'),
-
+                'update_rank_order_hint' => __('Updates Rank Order which controls custom sorting order of rows', 'tablesome'),
+                'table_too_large' => __('Table is too large to update Rank Order', 'tablesome'),
                 'select_operator' => __('Select Operator', 'tablesome'),
+                'other_options' => __('Other Options', 'tablesome'),
                 'contains' => __('Contains', 'tablesome'),
                 'does_not_contain' => __('Does not contain', 'tablesome'),
                 'is' => __('Is', 'tablesome'),

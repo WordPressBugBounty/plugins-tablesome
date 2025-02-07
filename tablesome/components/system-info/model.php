@@ -264,6 +264,9 @@ if (!class_exists('\Tablesome\Components\System_Info\Model')) {
             $api_credentials = get_option('tablesome_api_credentials');
             $required_key_info = array('status', 'message', 'api_version', 'expires_in', 'token_updated_utc', 'response_code');
             $data = [];
+            if (empty($api_credentials)) {
+                return '';
+            }
             foreach ($api_credentials as $key => $value) {
                 $data[$key] = [];
                 foreach ($value as $k => $v) {
