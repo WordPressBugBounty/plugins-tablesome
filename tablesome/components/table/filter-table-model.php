@@ -140,10 +140,15 @@ if (!class_exists('\Tablesome\Components\Table\Filter_Table_Model')) {
             $operand_2 = $condition["operand_2"];
             $value = $condition["operand_2"]["value"];
 
+            // error_log('before  value : ' . print_r($value, true));
+
             if ($value == "current_user") {
                 $value = get_current_user_id();
+            } else if(isset($operand_2["extra_options"]) && $operand_2["extra_options"] == "current_user_email") {
+                $current_user = wp_get_current_user();
+                $value = $current_user->user_email;
             }
-            error_log(' value : ' . print_r($value, true));
+            // error_log(' value : ' . print_r($value, true));
 
             return $value;
 

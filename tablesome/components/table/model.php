@@ -184,6 +184,8 @@ if (!class_exists('\Tablesome\Components\Table\Model')) {
                 'pagination_show_first_and_last_buttons' => $this->utils->get_bool(Tablesome_Getter::get('pagination_show_first_and_last_buttons')),
                 'pagination_show_previous_and_next_buttons' => $this->utils->get_bool(Tablesome_Getter::get('pagination_show_previous_and_next_buttons')),
                 'hideTableHeader' => $this->utils->get_bool(Tablesome_Getter::get('hide_table_header')),
+                'searchPlaceholder' => Tablesome_Getter::get('search_placeholder'),
+                'searchErrorMessage' => Tablesome_Getter::get('search_error_message'),
                 'stickyFirstColumn' => $this->utils->get_bool(Tablesome_Getter::get('sticky_first_column')),
                 'serialNumberColumn' => $this->utils->get_bool(Tablesome_Getter::get('show_serial_number_column')),
 
@@ -201,6 +203,8 @@ if (!class_exists('\Tablesome\Components\Table\Model')) {
                 "showHideComponentDevice" => "desktop",
                 // desktop
                 'desktop-search' => $this->utils->get_bool(Tablesome_Getter::get('search')),
+                'desktop-search-placeholder' => Tablesome_Getter::get('search_placeholder'),
+                'desktop-search-error-message' => Tablesome_Getter::get('search_error_message'),
                 'desktop-sort' => $this->utils->get_bool(Tablesome_Getter::get('sorting')),
                 'desktop-filter' => $this->utils->get_bool(Tablesome_Getter::get('filters')),
                 'desktop-export' => $this->utils->get_bool(Tablesome_Getter::get('export')),
@@ -243,6 +247,13 @@ if (!class_exists('\Tablesome\Components\Table\Model')) {
             if (isset($args['search'])) {
                 $arguments['desktop-search'] = $this->utils->get_bool($args['search']);
             }
+            if (isset($args['search_placeholder'])) {
+                $arguments['searchPlaceholder'] = $args['search_placeholder'];
+            }
+            if (isset($args['search_error_message'])) {
+                $arguments['searchErrorMessage'] = $args['search_error_message'];
+            }
+
             if (isset($args['sorting'])) {
                 $arguments['desktop-sort'] = $this->utils->get_bool($args['sorting']);
             }

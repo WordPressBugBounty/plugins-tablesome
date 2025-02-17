@@ -270,6 +270,20 @@ if (!class_exists('\Tablesome\Includes\Settings\Settings')) {
                     'class' => 'search',
                     'default' => true,
                 ),
+                array(
+                    'id' => 'search_placeholder',
+                    'type' => 'text',
+                    'title' => __("Search Placeholder", "tablesome"),
+                    'class' => 'search',
+                    'default' => 'Type to Search ...',
+                ),
+                array(
+                    'id' => 'search_error_message',
+                    'type' => 'text',
+                    'title' => __("Search Error Message", "tablesome"),
+                    'class' => 'search',
+                    'default' => 'No matching records found',
+                ),
 
                 array(
                     'id' => 'hide_table_header',

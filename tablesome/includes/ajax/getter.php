@@ -62,6 +62,8 @@ if (!class_exists('\Tablesome\Includes\Ajax')) {
                 if ($post_type == TABLESOME_CPT) {
                     $exclude_column_ids = isset($table_props['exclude_columns_ids']) ? $table_props['exclude_columns_ids'] : [];
                     $hide_table_header = isset($table_props['hide_table_header']) ? $table_props['hide_table_header'] : 0;
+                    $search_placeholder = isset($table_props['search_placeholder']) ? $table_props['search_placeholder'] : 'Type to Search ...';
+                    $search_error_message = isset($table_props['search_error_message']) ? $table_props['search_error_message'] : 'No matching records found';
                     $show_serial_number_column = isset($table_props['show_serial_number_column']) ? $table_props['show_serial_number_column'] : 0;
                     $page_limit = isset($table_props['page_limit']) ? $table_props['page_limit'] : 0;
                     $args = [
@@ -69,6 +71,8 @@ if (!class_exists('\Tablesome\Includes\Ajax')) {
                         'exclude_column_ids' => $exclude_column_ids,
                         'page_limit' => $page_limit,
                         'search' => $table_props['search'],
+                        'search_placeholder' => $search_placeholder,
+                        'search_error_message' => $search_error_message,
                         'hide_table_header' => $hide_table_header,
                         'show_serial_number_column' => $show_serial_number_column,
                         'sorting' => $table_props['sorting'],

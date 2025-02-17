@@ -327,7 +327,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 }
             }
 
-            error_log('$conditions : ' . print_r($conditions, true));
+            // error_log('$conditions : ' . print_r($conditions, true));
 
             $count = count($conditions);
             $ii = 0;

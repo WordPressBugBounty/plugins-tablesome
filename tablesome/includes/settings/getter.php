@@ -58,6 +58,8 @@ if (!class_exists('\Tablesome\Includes\Settings\Tablesome_Getter')) {
                 "pagination_show_previous_and_next_buttons" => true,
                 "show_serial_number_column" => false,
                 "search" => true,
+                "search_placeholder" => 'Type to Search ...',
+                "search_error_message" => 'No matching records found',
                 "hide_table_header" => false,
                 "sorting" => true,
                 "filters" => false,

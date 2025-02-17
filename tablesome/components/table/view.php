@@ -167,7 +167,7 @@ if (!class_exists('\Tablesome\Components\Table\View')) {
 
             $html = '<div class="tablesome__search  ' . $class . '">';
             $html .= '<label><span class="dashicons dashicons-search tablesome__search--icon"></span>';
-            $html .= '<input type="text" placeholder="' . __("Type to Search ...", "tablesome") . '" name="search2" class="tablesome__search--input"></input></label>';
+            $html .= '<input type="text" placeholder="' . $this->collection["display"]["searchPlaceholder"] . '" name="search2" class="tablesome__search--input"></input></label>';
             $html .= '</div>';
 
             return $html;
