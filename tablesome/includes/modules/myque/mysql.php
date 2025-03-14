@@ -59,6 +59,48 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             return $this->wpdb->get_var($query);
         }
 
+        public function check_and_add_missing_columns($record, $table_name)
+        {
+            // error_log('check_and_add_missing_columns $record : ' . print_r($record, true));
+            // error_log('check_and_add_missing_columns $table_name : ' . print_r($table_name, true));
+            $table_columns = $this->get_table_columns($table_name);
+            $record_columns = array_keys($record);
+            // $missing_columns = array_diff($record_columns, $table_columns);
+            $missing_columns = [];
+
+            foreach($record_columns as $record_column){
+                $isColumnMissing = true;
+                // error_log('check_and_add_missing_columns $record_column : ' . $record_column);
+                foreach($table_columns as $table_column) {
+                    // error_log('check_and_add_missing_columns $table_column : ' . $table_column['Field']);
+                    if($table_column['Field'] == $record_column){
+                        $isColumnMissing = false;
+                        break;
+                    }
+                }
+                if($isColumnMissing){
+                    $missing_columns[] = ['name' => $record_column, 'format' => 'TEXT', 'table_name' => $table_name];
+                }
+            }
+
+
+            // error_log('check_and_add_missing_columns $table_columns : ' . print_r($table_columns, true));
+            // error_log('check_and_add_missing_columns $record_columns : ' . print_r($record_columns, true));
+            // error_log('check_and_add_missing_columns $missing_columns : ' . print_r($missing_columns, true));
+
+            if(empty($missing_columns)){
+                return;
+            }
+
+            $response = [];
+
+            foreach($missing_columns as $column){
+                $this->insert_column($column, $response);
+            }
+
+            return;
+        }
+
         public function insert_record($record, $table_name, $insert_args)
         {
             // error_log('insert_record $record : ' . print_r($record, true));
@@ -81,6 +123,10 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             if (count($record) == 0) {
                 return 0;
             }
+
+            // Check if record has columns missing in table
+            // $this->check_and_add_missing_columns($record, $table_name);
+
 
             foreach ($record as $key => $cell) {
                 # code...
@@ -162,6 +208,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             $column_type = $args['format'];
 
             $query = "ALTER TABLE $table_name ADD $column_name $column_type DEFAULT ''";
+            // error_log('insert_column $query : ' . $query);
             $response['new_column_created'] = $wpdb->query($query);
             return $response;
         }

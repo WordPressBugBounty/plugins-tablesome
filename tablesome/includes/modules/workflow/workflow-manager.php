@@ -3,6 +3,7 @@
 namespace Tablesome\Includes\Modules\Workflow;
 
 use Tablesome\Includes\Modules\Workflow\Event_Log\Event_Log;
+use \Tablesome\Includes\Settings\Tablesome_Getter;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -15,6 +16,8 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Manager')) {
         public static $instance = null;
 
         public $library;
+
+        public $workflows;
 
         public static function get_instance()
         {
@@ -31,6 +34,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Manager')) {
             // add_filter('http_request_timeout', function ($timeout) {return 60;});
 
             $this->library = get_tablesome_workflow_library();
+            $this->workflows = new \Tablesome\Includes\Modules\Workflow\Workflows();
 
             // if (pauple_is_feature_active('gsheet_action')) {
             //     $this->library->actions['gsheet_add_row'] = new GSheet_Add_Row();
@@ -40,7 +44,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Manager')) {
             $this->register_trigger_hooks();
             // add_action("load_editor");
 
-            add_filter("tablesome_form_submission_data", [self::$instance, "add_attachment_to_submission_data"]);
+            add_filter("tablesome_form_submission_data", [self::$instance, "add_attachment_to_submission_data"], 10, 2);
 
             Event_Log::get_instance();
         }
@@ -177,8 +181,68 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Manager')) {
             return $fields;
         }
 
-        public function add_attachment_to_submission_data($submission_data)
+        public function find_trigger_source_id($form_id)
         {
+            global $wpdb;
+
+            // Get all 'tablesome_table_triggers' post_meta of all posts
+            $trigger_meta_rows = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s",
+                    'tablesome_table_triggers'
+                )
+            );
+
+            if (empty($trigger_meta_rows)) {
+                return false;
+            }
+
+            // Loop through each meta value
+            foreach ($trigger_meta_rows as $row) {
+                $triggers = \maybe_unserialize($row->meta_value);
+                
+                if (!is_array($triggers)) {
+                    continue;
+                }
+
+                // Loop through triggers array
+                foreach ($triggers as $trigger) {
+                    // Check if this is a valid trigger array with required keys
+                    if (!isset($trigger['form_id']) || !isset($trigger['status']) || !isset($trigger['trigger_id'])) {
+                        continue;
+                    }
+
+                    // Check if trigger is active and matches form_id
+                    if ($trigger['status'] === true && (int) $trigger['form_id'] === (int) $form_id) {
+                        return [
+                            'post_id' => $row->post_id,
+                            'trigger_id' => $trigger['trigger_id']
+                        ];
+                    }
+                }
+            }
+
+            return false;
+        }
+        public function add_attachment_to_submission_data($submission_data, $form_id)
+        {
+            // error_log('add_attachment_to_submission_data submission_data' . print_r($submission_data, true));
+            // Check if store all form entries is enabled
+            $enabled_all_forms_entries = Tablesome_Getter::get('enabled_all_forms_entries');
+
+            // Check if the form is added in a Tablesome trigger
+            $is_trigger_configured = $this->find_trigger_source_id($form_id);
+
+            // error_log('enabled_all_forms_entries : ' . $enabled_all_forms_entries);
+            // error_log('is_trigger_configured : ' . $is_trigger_configured);
+
+            if (!$is_trigger_configured && !$enabled_all_forms_entries) {
+                return $submission_data;
+            }
+
+
+            // STORE FILES IN MEDIA LIBRARY
+
             $file_types = ["upload", "file-upload", "fileupload", "post_image", 'input_image', 'input_file'];
             if (isset($submission_data) && !empty($submission_data)) {
                 // error_log(' before submission_data : ' . print_r($submission_data, true));

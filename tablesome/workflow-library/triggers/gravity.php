@@ -153,7 +153,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Gravity')) {
                 return;
             }
             $submission_data = $this->get_formatted_posted_data($entry, $form);
-            $submission_data = apply_filters("tablesome_form_submission_data", $submission_data);
+            $submission_data = apply_filters("tablesome_form_submission_data", $submission_data, $form['id']);
             $this->trigger_source_id = $form['id'];
             $this->trigger_source_data = array(
                 'integration' => $this->get_config()['integration'],

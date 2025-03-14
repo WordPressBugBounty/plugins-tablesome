@@ -30,6 +30,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Myque')) {
             return $this->mysql->get_row_count($table_id);
         }
 
+        public function check_and_add_missing_columns($record, $table_name)
+        {
+            return $this->mysql->check_and_add_missing_columns($record, $table_name);
+        }
+
         public function insert_record($record, $table_name, $insert_args)
         {
             $response = $this->mysql->insert_record($record, $table_name, $insert_args);

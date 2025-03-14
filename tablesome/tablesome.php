@@ -5,7 +5,7 @@ Plugin Name: Tablesome
 Plugin URI: https://tablesomewp.com/
 Description: Powerful Tables + Form Automations. Save, Edit, Display (frontend) & Export Form entries, integrate with Notion, Redirection for Forms. Supports Contact Form 7, WPForms, Gravity Forms, Fluent, Elementor and more
 Author: Pauple
-Version: 1.1.19
+Version: 1.1.22
 Author URI: http://pauple.com
 Network: False
 Text Domain: tablesome
@@ -38,7 +38,7 @@ if (function_exists('tablesome_fs')) {
                 ini_set('memory_limit', '2048M');
                 self::$instance->setup_constants();
                 self::$instance->tablesome_activation();
-                add_action('plugins_loaded', array(self::$instance, 'tablesome_load_textdomain'));
+                add_action('init', array(self::$instance, 'tablesome_load_textdomain'));
                 require_once plugin_dir_path(__FILE__) . "/includes/lib/freemius-integrator.php";
             }
 
@@ -46,7 +46,7 @@ if (function_exists('tablesome_fs')) {
             {
 
                 $constants = [
-                    'TABLESOME_VERSION' => '1.1.19',
+                    'TABLESOME_VERSION' => '1.1.22',
                     'TABLESOME_DOMAIN' => 'tablesome',
                     'TABLESOME_CPT' => 'tablesome_cpt',
                     'TABLESOME__FILE__' => __FILE__,

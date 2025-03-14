@@ -67,7 +67,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Elementor')) {
             }
 
             $submission_data = $this->get_formatted_posted_data($record->get('fields'));
-            $submission_data = apply_filters("tablesome_form_submission_data", $submission_data);
+            $submission_data = apply_filters("tablesome_form_submission_data", $submission_data, $form_id);
 
             $this->trigger_source_id = $form_id;
             $this->trigger_source_data = array(

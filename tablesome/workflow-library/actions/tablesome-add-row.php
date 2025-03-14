@@ -21,9 +21,11 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
         public $last_column_id;
         public $exception_table_id = 254;
         public $datatable;
+        public $myque;
 
         public function __construct()
         {
+            $this->myque = new \Tablesome\Includes\Modules\Myque\Myque();
             $this->datatable = new \Tablesome\Includes\Modules\Datatable\Datatable();
         }
         public function get_config()
@@ -214,9 +216,18 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
             $conditional_args = $this->get_conditional_args($event_params['action_meta']);
 
             // error_log('insert_record_data: ' . print_r($insert_record_data, true));
+
+            $this->insert_missing_columns($insert_record_data, $db_table->name);
             // error_log('query: ' . print_r($insert_record_data, true));
             $result = $this->datatable->record->insert($query, $insert_record_data, $conditional_args);
             return $result;
+        }
+
+        private function insert_missing_columns($insert_record_data, $table_name)
+        {
+            global $wpdb;
+            $table_name = $wpdb->prefix . $table_name;
+            $this->myque->check_and_add_missing_columns($insert_record_data, $table_name);
         }
 
         public function get_record_default($table_id)
@@ -523,6 +534,8 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
         public function update_table_columns($event_params)
         {
             $fields_map = $event_params['fields_map'];
+
+            // error_log('update_table_columns $fields_map: ' . print_r($fields_map, true));
             foreach ($fields_map as $key => $field_set) {
 
                 if ($field_set['detection_mode'] == 'disabled') {

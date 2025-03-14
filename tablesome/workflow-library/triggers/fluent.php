@@ -193,7 +193,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
             $fields = $this->get_post_fields($form->id);
 
             $submission_data = $this->get_formatted_posted_data($fields, $data);
-            $submission_data = apply_filters("tablesome_form_submission_data", $submission_data);
+            $submission_data = apply_filters("tablesome_form_submission_data", $submission_data, $form->id);
 
             // error_log(' submission_data $fields : ' . print_r($fields, true));
             error_log(' submission_data $data : ' . print_r($data, true));

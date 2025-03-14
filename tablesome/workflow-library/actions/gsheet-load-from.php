@@ -80,6 +80,11 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\GSheet_Load_From')) {
 
             // If last update time is more than 15 minutes ago, update table
             $gsheet_data = $this->gsheet_api->get_rows($get_rows_params);
+
+            if (empty($gsheet_data)) {
+                return;
+            }
+
             $row_count = count($gsheet_data['values']);
             error_log('row_count: ' . $row_count);
             // error_log('gsheet_data: ' . print_r($gsheet_data, true));
