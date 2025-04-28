@@ -41,6 +41,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Myque')) {
             return $response;
         }
 
+        public function update_record($record, $table_name, $insert_args)
+        {
+            $response = $this->mysql->update_record($record, $table_name, $insert_args);
+            return $response;
+        }
+
         public function insert_column($args, $response = array())
         {
             $response = $this->mysql->insert_column($args, $response);

@@ -200,6 +200,30 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             return $record;
         }
 
+        public function update_record($record, $table_name, $insert_args)
+        {
+            // error_log('update_record $record : ' . print_r($record, true));
+
+            $prevent_field_column = isset($insert_args['prevent_field_column']) ? $insert_args['prevent_field_column'] : "";
+            $prevent_field_value = isset($record[$prevent_field_column]) ? $record[$prevent_field_column] : "";
+
+            global $wpdb;
+            $query = "UPDATE $table_name SET ";
+            $ii = 0;
+            foreach ($record as $key => $value) {
+                $value = esc_sql($value);
+                $query .= " `$key` = '$value'";
+                // Add comma if not the last item
+                if ($ii < count($record) - 1) {
+                    $query .= ",";
+                }
+                $ii++;
+            } // END of cell loop
+            $query .= " WHERE `$prevent_field_column` = '$prevent_field_value' LIMIT 1;";
+            $wpdb->query($query);
+            return $record;
+        }   
+
         public function insert_column($args , $response = array()){
             global $wpdb;
             $table_name = $args['table_name'];

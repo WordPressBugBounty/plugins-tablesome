@@ -49,8 +49,31 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Record')) {
             //     }
             // }
 
-            $record_id = $this->myque->insert_record($data, $table_name, $insert_args);
+            // error_log('insert $data : ' . print_r($data, true));
+            // error_log('insert $insert_args : ' . print_r($insert_args, true));
+          
+            $is_duplicate = $this->check_if_duplicate($data, $table_name, $insert_args);
+            $should_update = isset($insert_args['enable_duplication_prevention']) &&  isset($insert_args['on_duplicate']) && $insert_args['on_duplicate'] == 'update';
+
+            $should_update = $is_duplicate && $should_update;
+            if($should_update) {
+                $record_id = $this->myque->update_record($data, $table_name, $insert_args);
+            } else {
+                $record_id = $this->myque->insert_record($data, $table_name, $insert_args);
+            }
             return !empty($record_id) ? $record_id : false;
+        }
+
+        public function check_if_duplicate($data, $table_name, $insert_args)
+        {
+
+            $prevent_field_column = isset($insert_args['prevent_field_column']) ? $insert_args['prevent_field_column'] : "";
+            $prevent_field_value = isset($data[$prevent_field_column]) ? $data[$prevent_field_column] : "";
+
+            global $wpdb;
+            $query = "SELECT * FROM $table_name WHERE `$prevent_field_column` = '$prevent_field_value' LIMIT 1;";
+            $result = $wpdb->get_results($query);
+            return !empty($result) ? true : false;
         }
 
         public function get_editable_cells($data, $active_editable_columns)

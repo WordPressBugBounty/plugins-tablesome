@@ -33,7 +33,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
             return array(
                 'id' => 1,
                 'name' => 'add_row',
-                'label' => __('Add Row', 'tablesome'),
+                'label' => __('Add / Update Row', 'tablesome'),
                 'integration' => 'tablesome',
                 'is_premium' => false,
             );
@@ -215,12 +215,88 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
 
             $conditional_args = $this->get_conditional_args($event_params['action_meta']);
 
-            // error_log('insert_record_data: ' . print_r($insert_record_data, true));
+            // Check if we need to update on duplicate
+            $on_duplicate = isset($event_params['action_meta']['on_duplicate']) ? $event_params['action_meta']['on_duplicate'] : 'skip';
+            
+            // error_log('event_params: ' . print_r($event_params, true));
+            // error_log('enable_duplication_prevention: ' . $conditional_args['enable_duplication_prevention']);
+            // error_log('on_duplicate: ' . $on_duplicate);
+            // If duplication prevention is enabled and on_duplicate is set to "update"
+            // if ($conditional_args['enable_duplication_prevention'] && $on_duplicate === 'update') {
+            //     // Get the existing record ID based on the duplicate criteria field
+            //     $record_id = $this->get_existing_record_id($event_params, $row_values);
+                
+            //     // error_log('get_existing_record_id() record_id: ' . $record_id);
+            //     // If a duplicate record is found, update it instead of inserting
+            //     if (!empty($record_id)) {
+            //         return $this->update_existing_record($record_id, $row_values, $event_params, $db_table);
+            //     }
+            // }
+
+            error_log('insert_record_data: ' . print_r($insert_record_data, true));
 
             $this->insert_missing_columns($insert_record_data, $db_table->name);
             // error_log('query: ' . print_r($insert_record_data, true));
             $result = $this->datatable->record->insert($query, $insert_record_data, $conditional_args);
             return $result;
+        }
+
+        private function get_existing_record_id($event_params, $row_values)
+        {
+            $action_meta = $event_params['action_meta'];
+            $prevent_field_column = $this->get_prevent_field_column($action_meta);
+
+            $row_values['author_id'] = get_current_user_id();
+                
+            // error_log('get_existing_record_id()prevent_field_column: ' . $prevent_field_column);
+            // error_log('get_existing_record_id()row_values: ' . print_r($row_values, true));
+
+            if (empty($prevent_field_column) || !isset($row_values[$prevent_field_column])) {
+                return false;
+            }
+            
+            global $wpdb;
+            $table_id = $event_params['table_id'];
+            $table_name = $wpdb->prefix . 'tablesome_table_' . $table_id;
+            
+            $field_value = esc_sql($row_values[$prevent_field_column]);
+
+            // error_log('get_existing_record_id() field_value: ' . $field_value);
+           
+            // error_log('get_existing_record_id()table_name: ' . $table_name);
+            $query = "SELECT id FROM $table_name WHERE $prevent_field_column = '$field_value' LIMIT 1";
+            
+            return $wpdb->get_var($query);
+        }
+
+        private function update_existing_record($record_id, $row_values, $event_params, $db_table)
+        {
+            if (empty($record_id)) {
+                return false;
+            }
+
+            // Add default values for updated_at and updated_by
+            $row_values['updated_at'] = current_time('mysql', true);
+            $row_values['updated_by'] = get_current_user_id();
+
+            // Update the record
+            global $wpdb;
+            $table_name = $wpdb->prefix . $db_table->name;
+            
+            // Prepare the SET part of the query
+            $set_parts = [];
+            foreach ($row_values as $column => $value) {
+                $escaped_value = esc_sql($value);
+                $set_parts[] = "`$column` = '$escaped_value'";
+            }
+            
+            $set_clause = implode(', ', $set_parts);
+            
+            // Build and execute the UPDATE query
+            $query = "UPDATE $table_name SET $set_clause WHERE id = $record_id";
+            $result = $wpdb->query($query);
+            
+            return $result ? ['record_id' => $record_id, 'status' => 'updated'] : false;
         }
 
         private function insert_missing_columns($insert_record_data, $table_name)
@@ -248,12 +324,15 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
             $prevent_field_column = $this->get_prevent_field_column($action_meta);
             $enable_submission_limit = isset($action_meta['enable_submission_limit']) ? $action_meta['enable_submission_limit'] : false;
             $enable_submission_limit = $enable_submission_limit && tablesome_fs()->can_use_premium_code__premium_only();
+            $on_duplicate = isset($action_meta['on_duplicate']) ? $action_meta['on_duplicate'] : 'skip';
+            $on_duplicate =  tablesome_fs()->can_use_premium_code__premium_only() ? $on_duplicate : 'skip';
 
             return array(
                 'enable_duplication_prevention' => isset($action_meta['enable_duplication_prevention']) ? $action_meta['enable_duplication_prevention'] : false,
                 'enable_submission_limit' => $enable_submission_limit,
                 'max_allowed_submissions' => isset($action_meta['max_allowed_submissions']) ? $action_meta['max_allowed_submissions'] : false,
                 'prevent_field_column' => $prevent_field_column,
+                'on_duplicate' => isset($action_meta['on_duplicate']) ? $action_meta['on_duplicate'] : '',
             );
         }
 
