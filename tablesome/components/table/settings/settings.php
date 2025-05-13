@@ -29,12 +29,12 @@ if ( !class_exists( '\\Tablesome\\Components\\Table\\Settings\\Settings' ) ) {
             $config = self::get_config();
             $defaults = [];
             if ( !isset( $config[$section] ) ) {
-                error_log( $section . ' not found in existing config ' );
+                // error_log($section . ' not found in existing config ');
                 return $defaults;
             }
             foreach ( $config[$section]["field"] as $field_key => $field ) {
                 if ( !isset( $field["default"] ) ) {
-                    error_log( $field["id"] . ' doesn\'t have a default value ' );
+                    // error_log($field["id"] . ' doesn\'t have a default value ');
                     continue;
                 }
                 $defaults[$field["id"]] = $field["default"];
@@ -69,11 +69,11 @@ if ( !class_exists( '\\Tablesome\\Components\\Table\\Settings\\Settings' ) ) {
                     continue;
                 }
                 if ( !isset( $field["extra"]["breakpoint"] ) ) {
-                    error_log( $field["id"] . ' doesn\'t have a breakpoint' );
+                    // error_log($field["id"] . ' doesn\'t have a breakpoint');
                     continue;
                 }
                 if ( !isset( $field["extra"]["css_property_name"] ) ) {
-                    error_log( $field["id"] . ' doesn\'t have a css_property_name' );
+                    // error_log($field["id"] . ' doesn\'t have a css_property_name');
                     continue;
                 }
                 $cannot_display = !self::get_dependency( $style_meta, $field );
@@ -114,11 +114,11 @@ if ( !class_exists( '\\Tablesome\\Components\\Table\\Settings\\Settings' ) ) {
                     continue;
                 }
                 if ( !isset( $field["extra"]["breakpoint"] ) ) {
-                    error_log( $field["id"] . ' doesn\'t have a breakpoint' );
+                    // error_log($field["id"] . ' doesn\'t have a breakpoint');
                     continue;
                 }
                 if ( !isset( $field["extra"]["css_property_name"] ) ) {
-                    error_log( $field["id"] . ' doesn\'t have a css_property_name' );
+                    // error_log($field["id"] . ' doesn\'t have a css_property_name');
                     continue;
                 }
                 $cannot_display = !self::get_dependency( $style_meta, $field );

@@ -233,7 +233,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
             //     }
             // }
 
-            error_log('insert_record_data: ' . print_r($insert_record_data, true));
+            // error_log('insert_record_data: ' . print_r($insert_record_data, true));
 
             $this->insert_missing_columns($insert_record_data, $db_table->name);
             // error_log('query: ' . print_r($insert_record_data, true));

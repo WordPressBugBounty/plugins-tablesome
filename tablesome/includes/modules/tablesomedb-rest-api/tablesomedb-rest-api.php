@@ -30,13 +30,70 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             foreach ($routes as $route) {
                 /** Register the REST route */
-                register_rest_route($namespece, $route['url'], $route['args']);
+                \register_rest_route($namespece, $route['url'], $route['args']);
             }
         }
 
+        public function api_backend_permission()
+        {
+            
+            // Check if this is a get-access-token request and verify nonce
+            if (strpos($_SERVER['REQUEST_URI'], '/workflow/get-access-token') !== false) {
+                $user = \wp_get_current_user();
+                // error_log('api_backend_permission() user: ' . print_r($user, true));
+            
+                // Check if user is logged in via cookie authentication
+                if ($user && $user->ID > 0) {
+                    // error_log('api_backend_permission() user is logged in via cookie');
+                    return true;
+                }
+                
+                // Try nonce verification as a fallback
+                $nonce = isset($_SERVER['HTTP_X_WP_NONCE']) ? $_SERVER['HTTP_X_WP_NONCE'] : '';
+                // error_log('api_backend_permission() nonce: ' . $nonce);
+                
+                // Log all headers for debugging
+                // error_log('api_backend_permission() headers: ' . print_r(getallheaders(), true));
+                
+                if (!empty($nonce) && \wp_verify_nonce($nonce, 'wp_rest')) {
+                    // error_log('api_backend_permission() nonce verified');
+                    return true;
+                }
+                
+                // error_log('api_backend_permission() nonce verification failed');
+            }
+            
+            $can = \current_user_can('manage_options');
+            // error_log('api_backend_permission() can: ' . $can);
+            if ($can) {
+                return true;
+            }
+            $error_code = "UNAUTHORIZED";
+            return new \WP_Error($error_code, $this->get_error_message($error_code));
+        }
+        
+        public function api_nonce_check($request)
+        {
+            // error_log('api_nonce_check()');
+            $params = $request->get_params();
+            // error_log('api_nonce_check() params: ' . print_r($params, true));
+            $nonce = isset($params['client_wp_nonce']) ? $params['client_wp_nonce'] : '';
+            
+            // Check nonce
+            $stored_nonce = get_transient('tablesome_workflow_nonce');
+            
+            // error_log('api_nonce_check() verified: ' . $verified);
+            if (!empty($nonce) && $stored_nonce == $nonce) {
+                // error_log('api_access_permission() nonce verified');
+                return true;
+            }    
+            $error_code = "UNAUTHORIZED";
+            return new \WP_Error($error_code, $this->get_error_message($error_code));
+        }
+        
         public function api_access_permission()
         {
-            if (get_current_user_id() >= 1) {
+            if (\get_current_user_id() >= 1) {
                 return true;
             }
             $error_code = "UNAUTHORIZED";
@@ -59,7 +116,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
         public function is_admin_user()
         {
-            if (current_user_can('manage_options')) {
+            if (\current_user_can('manage_options')) {
                 return true;
             }
             return false;
@@ -129,13 +186,13 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
         public function sanitize_by_type($type, $content)
         {
             if ($type == 'text') {
-                return sanitize_text_field($content);
+                return \sanitize_text_field($content);
             } else if ($type == 'html') {
-                return tablesome_wp_kses($content);
+                return \tablesome_wp_kses($content);
             } else if ($type == 'number') {
                 return intval($content);
             } else {
-                return tablesome_wp_kses($content);
+                return \tablesome_wp_kses($content);
             }
 
         }
@@ -273,7 +330,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 return $event_params;
             }
 
-            $this->workflow_library = get_tablesome_workflow_library();
+            $this->workflow_library = \get_tablesome_workflow_library();
 
             // error_log('get_triggers_and_actions() $triggers : ' . print_r($triggers, true));
 
@@ -336,7 +393,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             // error_log('save_table() $params : ' . print_r($params, true));
 
             $is_rest_backend = (defined('REST_REQUEST') && REST_REQUEST);
-            $should_create_table = ($params['mode'] == 'editor' || is_admin()) && ($params['origin_location'] == 'backend');
+            $should_create_table = ($params['mode'] == 'editor' || \is_admin()) && ($params['origin_location'] == 'backend');
 
             if ($params['origin_location'] == 'import') {
                 $should_create_table = true;
@@ -398,7 +455,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             // Dispatch to Mixpanel
             $this->dispatch_mixpanel_event($params);
-            return rest_ensure_response($this->response);
+            return \rest_ensure_response($this->response);
         }
 
         public function create_cpt_post($params)
@@ -407,7 +464,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             $table_title = 'Untitled Table';
             if (isset($params['table_title']) && !empty($params['table_title'])) {
-                $table_title = isset($params['table_title']) ? $params['table_title'] : get_the_title($params['table_id']);
+                $table_title = isset($params['table_title']) ? $params['table_title'] : \get_the_title($params['table_id']);
             }
 
             $post_data = array(
@@ -422,7 +479,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             // error_log('create_cpt_post table_id: ' . $params['table_id']);
             // if (isset($params['table_id']) && $params['table_id'] > 0) {
             //     // $post_data['post_status'] = 'private';
-            //     $post = get_post($params['table_id']);
+            //     $post = \get_post($params['table_id']);
             //     // error_log('create_cpt_post post: ' . print_r($post, true));
             //     if ($post->post_status == 'private') {
             //         $post_data['post_status'] = 'private';
@@ -456,7 +513,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
         {
             $data = array();
             /** Get all tablesome posts */
-            $posts = get_posts(
+            $posts = \get_posts(
                 array(
                     'post_type' => TABLESOME_CPT,
                     'numberposts' => -1,
@@ -468,12 +525,12 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             );
 
             if (empty($posts)) {
-                return rest_ensure_response($response_data);
+                return \rest_ensure_response($response_data);
             }
             $tablesome_db = new \Tablesome\Includes\Modules\TablesomeDB\TablesomeDB();
 
             foreach ($posts as $post) {
-                $meta_data = get_tablesome_data($post->ID);
+                $meta_data = \get_tablesome_data($post->ID);
 
                 error_log('$meta_data : ' . print_r($meta_data, true));
 
@@ -492,7 +549,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             }
 
             $response_data['data'] = $data;
-            return rest_ensure_response($data);
+            return \rest_ensure_response($data);
         }
 
         public function check_table_access($post)
@@ -510,7 +567,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 // return new \WP_Error($error_code, $this->get_error_message($error_code));
             }
 
-            if ($post->post_status == 'private' && !current_user_can('read_private_posts')) {
+            if ($post->post_status == 'private' && !\current_user_can('read_private_posts')) {
                 $result['error_code'] = "UNAUTHORIZED";
                 $result['has_access'] = false;
                 $result['message'] = $this->get_error_message($result['error_code']);
@@ -531,7 +588,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
         {
             $data = array();
             $table_id = $request->get_param('table_id');
-            $post = get_post($table_id);
+            $post = \get_post($table_id);
 
             $access_info = $this->check_table_access($post);
 
@@ -540,7 +597,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             }
 
             $tablesome_db = new \Tablesome\Includes\Modules\TablesomeDB\TablesomeDB();
-            $table_meta = get_tablesome_data($post->ID);
+            $table_meta = \get_tablesome_data($post->ID);
 
             $table = $tablesome_db->create_table_instance($post->ID);
             $records_count = $table->count();
@@ -577,7 +634,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 'message' => 'Successfully get table with records',
             );
 
-            return rest_ensure_response($data);
+            return \rest_ensure_response($data);
         }
 
         public function delete($request)
@@ -589,7 +646,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 return new \WP_Error($error_code, $this->get_error_message($error_code));
             }
 
-            $post = get_post($table_id);
+            $post = \get_post($table_id);
 
             $access_info = $this->check_table_access($post);
 
@@ -598,7 +655,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             }
 
             // Check if user has permission to delete the table
-            if (!current_user_can('delete_post', $table_id)) {
+            if (!\current_user_can('delete_post', $table_id)) {
                 $error_code = "UNAUTHORIZED";
                 return new \WP_Error($error_code, $this->get_error_message($error_code));
             }
@@ -618,7 +675,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             $response_data = array(
                 'message' => $message,
             );
-            return rest_ensure_response($response_data);
+            return \rest_ensure_response($response_data);
         }
 
         public function get_table_records($request)
@@ -634,7 +691,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             $query_args = isset($params['query_args']) && is_array($params['query_args']) ? $params['query_args'] : [];
 
-            $post = get_post($table_id);
+            $post = \get_post($table_id);
 
             $access_info = $this->check_table_access($post);
 
@@ -646,7 +703,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             //     $error_code = "INVALID_POST";
             //     return new \WP_Error($error_code, $this->get_error_message($error_code));
             // }
-            $table_meta = get_tablesome_data($post->ID);
+            $table_meta = \get_tablesome_data($post->ID);
             $tablesome_db = new \Tablesome\Includes\Modules\TablesomeDB\TablesomeDB();
             $table = $tablesome_db->create_table_instance($post->ID);
 
@@ -670,7 +727,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 'status' => 'success',
             );
 
-            return rest_ensure_response($response_data);
+            return \rest_ensure_response($response_data);
         }
 
         public function update_table_records_rest($request)
@@ -686,7 +743,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             /* Input Validation */
             $params['mode'] = isset($params['mode']) ? $params['mode'] : '';
             $params['table_id'] = isset($params['table_id']) ? $params['table_id'] : 0;
-            $params['meta_data'] = get_tablesome_data($params['table_id']);
+            $params['meta_data'] = \get_tablesome_data($params['table_id']);
 
             /* Early Return */
             if (empty($params['table_id'])) {
@@ -698,7 +755,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 return new \WP_Error($error_code, $this->get_error_message($error_code));
             }
 
-            $post = get_post($params['table_id']);
+            $post = \get_post($params['table_id']);
 
             $access_info = $this->check_table_access($post);
 
@@ -755,7 +812,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             $record_ids = $request->get_param("record_ids");
 
-            $post = get_post($table_id);
+            $post = \get_post($table_id);
 
             $access_info = $this->check_table_access($post);
 
@@ -797,7 +854,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 'message' => $message,
                 'status' => ($delete_records) ? 'success' : 'failed',
             );
-            return rest_ensure_response($response_data);
+            return \rest_ensure_response($response_data);
         }
 
     }

@@ -5,6 +5,18 @@ namespace Tablesome\Workflow_Library\External_Apis;
 use Error;
 use Tablesome\Includes\Modules\API_Credentials_Handler;
 
+// Import WordPress global functions to use in this namespace
+// Note: As per user request, we're ignoring the lint errors for these imports
+use function wp_remote_post;
+use function wp_json_encode;
+use function wp_remote_retrieve_response_code;
+use function wp_remote_retrieve_body;
+use function is_wp_error;
+use function sprintf;
+use function json_decode;
+use function maybe_refresh_access_token_by_integration;
+use function is_tablesome_success_response;
+
 if (!defined('ABSPATH')) {
     exit;
 } // Exit if accessed directly
@@ -259,6 +271,143 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\GSheet')) {
             }
 
             return $data;
+        }
+
+        /**
+         * Count rows in a Google Sheet
+         * 
+         * @param array $params Parameters for the request
+         * @return array Response with row count information
+         */
+        public function get_row_count($params)
+        {
+            $spreadsheet_id = isset($params['spreadsheet_id']) ? $params['spreadsheet_id'] : '';
+            $sheet_name = isset($params['sheet_name']) ? $params['sheet_name'] : 'Sheet1';
+
+            if (empty($spreadsheet_id)) {
+                return [
+                    'status' => 'error',
+                    'message' => 'Spreadsheet ID is required',
+                ];
+            }
+
+            // Get all rows from the sheet to count them
+            $data = $this->get_spreadsheet_records($spreadsheet_id, [
+                'sheet_name' => $sheet_name,
+                'coordinates' => 'A1:Z1000', // Adjust range as needed
+            ]);
+
+            $total_rows = isset($data['values']) ? count($data['values']) : 0;
+
+            return [
+                'status' => 'success',
+                'total_rows' => $total_rows,
+                'sheet_name' => $sheet_name,
+            ];
+        }
+
+        /**
+         * Clear rows from a Google Sheet
+         * 
+         * @param array $params Parameters for the request
+         * @return array Response with deletion status
+         */
+        public function delete_rows($params)
+        {
+
+            // error_log("Google Sheet Delete Rows : " . print_r($params, true));
+            $spreadsheet_id = isset($params['spreadsheet_id']) ? $params['spreadsheet_id'] : '';
+            $sheet_name = isset($params['sheet_name']) ? $params['sheet_name'] : 'Sheet1';
+            $start_row = isset($params['start_row']) ? intval($params['start_row']) : 6; // Default to row 6 (keeping top 5)
+            $end_row = isset($params['end_row']) ? intval($params['end_row']) : 1000; // Default to a large number
+
+            if (empty($spreadsheet_id)) {
+                
+                return [
+                    'status' => 'error',
+                    'message' => 'Spreadsheet ID is required',
+                ];
+            }
+
+            // Get access token
+            $access_token = maybe_refresh_access_token_by_integration($this->integration);
+            
+            if (empty($access_token)) {
+                return [
+                    'status' => 'error',
+                    'message' => 'Failed to get access token',
+                ];
+            }
+
+            // Get sheet ID
+            $sheets_data = $this->get_sheets_by_spreadsheet_id($spreadsheet_id);
+            // error_log("Google Sheet Delete Rows  sheets_data: " . print_r($sheets_data, true));
+            $sheet_id = null;
+            
+            if (isset($sheets_data['sheets'])) {
+                foreach ($sheets_data['sheets'] as $sheet) {
+                    // error_log("Checking sheet: " . print_r($sheet['properties']['title'], true) . " against " . $sheet_name);
+                    if ($sheet['properties']['title'] == $sheet_name) {
+                        $sheet_id = $sheet['properties']['sheetId'];
+                        // error_log("Found matching sheet with ID: " . $sheet_id);
+                        break;
+                    }
+                }
+            }
+
+            if ($sheet_id === null) {
+                return [
+                    'status' => 'error',
+                    'message' => 'Sheet not found',
+                ];
+            }
+
+            // Create a batch update request to clear the rows
+            $url = "https://sheets.googleapis.com/v4/spreadsheets/{$spreadsheet_id}:batchUpdate";
+            
+            // Prepare the request to clear content
+            $payload = [
+                'requests' => [
+                    [
+                        'updateCells' => [
+                            'range' => [
+                                'sheetId' => $sheet_id,
+                                'startRowIndex' => $start_row - 1, // 0-indexed
+                                'endRowIndex' => $end_row, // 0-indexed, exclusive
+                            ],
+                            'fields' => 'userEnteredValue'
+                        ]
+                    ]
+                ]
+            ];
+
+            $response = wp_remote_post($url, [
+                'method' => 'POST',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $access_token,
+                ],
+                'body' => wp_json_encode($payload),
+            ]);
+
+            $response_code = wp_remote_retrieve_response_code($response);
+            $data = json_decode(wp_remote_retrieve_body($response), true);
+            
+            // error_log("Google Sheet Delete Rows : " . print_r($data, true));
+            if (is_wp_error($response) || !is_tablesome_success_response($response_code)) {
+                return [
+                    'status' => 'error',
+                    'message' => 'Failed to clear rows',
+                    'response' => $data,
+                ];
+            }
+
+            return [
+                'status' => 'success',
+                'message' => sprintf('Cleared rows %d to %d', $start_row, $end_row),
+                'sheet_id' => $sheet_id,
+                'response' => $data,
+            ];
         }
 
     }

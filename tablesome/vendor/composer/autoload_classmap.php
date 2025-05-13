@@ -99,6 +99,7 @@ return array(
     'Tablesome\\Includes\\Modules\\TablesomeDB\\TablesomeDB' => $baseDir . '/includes/modules/tablesomedb/tablesomedb.php',
     'Tablesome\\Includes\\Modules\\TablesomeDB\\TablesomeDB_New' => $baseDir . '/includes/modules/tablesomedb/tablesomedb-new.php',
     'Tablesome\\Includes\\Modules\\TablesomeDB\\Transform_Filters_For_Myque' => $baseDir . '/includes/modules/tablesomedb/transform-filters-for-myque.php',
+    'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\GSheet_Rest_Api' => $baseDir . '/includes/modules/tablesomedb-rest-api/gsheet-rest-api.php',
     'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\Import' => $baseDir . '/includes/modules/tablesomedb-rest-api/import.php',
     'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\Routes' => $baseDir . '/includes/modules/tablesomedb-rest-api/routes.php',
     'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\TablesomeDB_Rest_Api' => $baseDir . '/includes/modules/tablesomedb-rest-api/tablesomedb-rest-api.php',

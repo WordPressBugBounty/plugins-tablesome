@@ -24,12 +24,34 @@ if (!class_exists('\Tablesome')) {
             $this->load_shortcodes();
 
             // Test Prototypes
-            // add_action('init', array($this, 'test_prototypes'));
+            // add_action('init', array($this, 'test_google_delete_rows'));
             // $this->test_prototypes();
 
             // global $myque_db_created;
             // $myque_db_created = false;
         }
+
+        // public function test_google_delete_rows()
+        // {
+        //     $gsheet_api = new \Tablesome\Workflow_Library\External_Apis\GSheet();
+
+        //     $params = [
+        //         'spreadsheet_id' => '1SD0hILufpysPQ8HKeGhLA1OmQ8-m8F0Ybn0kNPA8y-c',
+        //         'sheet_name' => 'Sheet1',
+        //         'start_row' => 6,
+        //         'end_row' => 1000,
+        //     ];
+
+        //     // $params2 = [
+        //     //     'spreadsheet_id' => '1ba1PzANsNKwWf4Xl29ccYAkf6sg2ZSrysypdV3H3lWQ',
+        //     //     'sheet_name' => 'tablepress',
+        //     //     'coordinates' => 'A1:Z1000',
+        //     //     'range' => 'tablepress',
+        //     // ];
+
+        //     $result = $gsheet_api->delete_rows($params);
+        //     error_log("Google Sheet Delete Rows Result : " . print_r($result, true));
+        // }
 
         public function test_prototypes()
         {

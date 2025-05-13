@@ -19,6 +19,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
         {
             $tablesome_db = new \Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_Rest_Api();
             $workflow_api = new \Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Rest_Api();
+            $gsheet_api = new \Tablesome\Includes\Modules\TablesomeDB_Rest_Api\GSheet_Rest_Api();
             $hubspot = new \Tablesome\Workflow_Library\External_Apis\Hubspot();
             return array(
 
@@ -233,7 +234,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'getOAuthDataByIntegration'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
                     ),
                 ),
 
@@ -242,7 +243,8 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'setOAuthDataByIntegration'),
-                        'permission_callback' => '__return_true',
+                        // 'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_nonce_check'),
                     ),
                 ),
 
@@ -251,7 +253,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'deleteOAuthDataByIntegration'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
                     ),
                 ),
                 array(
@@ -259,7 +261,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'maybe_refresh_access_token'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
 
@@ -268,7 +270,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_spreadsheets'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
                     ),
                 ),
                 array(
@@ -276,7 +278,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_sheets_by_spreadsheet_id'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
                     ),
                 ),
                 array(
@@ -284,7 +286,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_spreadsheet_records'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
                     ),
                 ),
                 // Test Endpoint for add records to Spreadsheet
@@ -293,7 +295,23 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::EDITABLE,
                         'callback' => array($workflow_api, 'add_records_to_spreadsheet'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
+                    ),
+                ),
+                array(
+                    'url' => '/get-spreadsheet-row-count',
+                    'args' => array(
+                        'methods' => \WP_REST_Server::READABLE,
+                        'callback' => array($gsheet_api, 'get_row_count'),
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
+                    ),
+                ),
+                array(
+                    'url' => '/spreadsheet-clear-rows',
+                    'args' => array(
+                        'methods' => \WP_REST_Server::EDITABLE,
+                        'callback' => array($gsheet_api, 'delete_rows'),
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
                     ),
                 ),
             );

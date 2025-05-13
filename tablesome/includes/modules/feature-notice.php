@@ -11,7 +11,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Feature_Notice')) {
     {
         public $dismissed_option_name = 'tablesome_feature_notice_dismissed';
 
-        public $version = '1.1.24.1';
+        public $version = '1.1.25';
 
         public $feature_page_url = 'https://tablesomewp.com/releases/';
 

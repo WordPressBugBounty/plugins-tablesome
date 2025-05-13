@@ -639,7 +639,7 @@ if (!function_exists('maybe_refresh_access_token_by_integration')) {
             ));
 
             $new_api_credentials = json_decode(wp_remote_retrieve_body($response), true);
-            error_log('$new_api_credentials : ' . print_r($new_api_credentials, true));
+            //error_log('$new_api_credentials : ' . print_r($new_api_credentials, true));
             $is_response_failed = (isset($new_api_credentials['status']) && $new_api_credentials['status'] == 'failed');
             $is_error = is_wp_error($response) || empty($new_api_credentials) || $is_response_failed;
             if ($is_error) {

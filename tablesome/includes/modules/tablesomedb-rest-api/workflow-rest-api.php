@@ -375,6 +375,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
             $params = $request->get_query_params();
             $integration = isset($params["integration"]) ? $params["integration"] : "";
 
+            // error_log(' getOAuthDataByIntegration $integration: ' . print_r($integration, true));
             if (empty($integration)) {
                 return rest_ensure_response(
                     array(
@@ -385,7 +386,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
             }
 
             $redirect_url = $this->get_oauth_redirect_url($integration);
-            error_log(' getOAuthDataByIntegration $redirect_url: ' . print_r($redirect_url, true));
+            // error_log(' getOAuthDataByIntegration $redirect_url: ' . print_r($redirect_url, true));
 
             return rest_ensure_response(
                 array(
@@ -398,6 +399,11 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
 
         public function setOAuthDataByIntegration($request)
         {
+            // error_log('Request Headers: ' . print_r($request->get_headers(), true));
+            // error_log(' setOAuthDataByIntegration $request: ' . print_r($request, true));
+
+        //    $request_origin = $request->headers['origin'];
+        //    error_log(' setOAuthDataByIntegration $request_origin: ' . print_r($request_origin, true));
             $params = $request->get_query_params();
             $integration = isset($params["integration"]) ? $params["integration"] : "";
             // error_log(' get_query_params : ' . print_r($params, true));
@@ -447,8 +453,15 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
             $client_redirect_url = $pluginator_security_agent->add_query_arg(array('integration' => $integration), $client_redirect_url, 'raw');
             $wp_nonce = wp_create_nonce('tablesome_workflow_nonce');
 
-            $connector_url = $pluginator_security_agent->add_query_arg(array('client_redirect_url' => $client_redirect_url), $connector_url, 'raw');
+            // Store in transient for 5 minutes
+            set_transient('tablesome_workflow_nonce', $wp_nonce, 5 * 60);
+            
             $connector_url = $pluginator_security_agent->add_query_arg(array('wp_nonce' => $wp_nonce), $connector_url, 'raw');
+
+            // Should be last
+            $connector_url = $pluginator_security_agent->add_query_arg(array('client_redirect_url' => $client_redirect_url), $connector_url, 'raw');
+
+            // error_log('get_oauth_redirect_url $connector_url: ' . print_r($connector_url, true));
             return $connector_url;
         }
 

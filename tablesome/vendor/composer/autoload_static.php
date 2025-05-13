@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitdae03401c2ec28544e68efebe3ed5c5e
+class ComposerStaticInited250ab504d1b69d412299fad2c89fe3
 {
     public static $prefixLengthsPsr4 = array (
         'P' => 
@@ -122,6 +122,7 @@ class ComposerStaticInitdae03401c2ec28544e68efebe3ed5c5e
         'Tablesome\\Includes\\Modules\\TablesomeDB\\TablesomeDB' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/tablesomedb.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB\\TablesomeDB_New' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/tablesomedb-new.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB\\Transform_Filters_For_Myque' => __DIR__ . '/../..' . '/includes/modules/tablesomedb/transform-filters-for-myque.php',
+        'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\GSheet_Rest_Api' => __DIR__ . '/../..' . '/includes/modules/tablesomedb-rest-api/gsheet-rest-api.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\Import' => __DIR__ . '/../..' . '/includes/modules/tablesomedb-rest-api/import.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\Routes' => __DIR__ . '/../..' . '/includes/modules/tablesomedb-rest-api/routes.php',
         'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\TablesomeDB_Rest_Api' => __DIR__ . '/../..' . '/includes/modules/tablesomedb-rest-api/tablesomedb-rest-api.php',
@@ -221,9 +222,9 @@ class ComposerStaticInitdae03401c2ec28544e68efebe3ed5c5e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitdae03401c2ec28544e68efebe3ed5c5e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitdae03401c2ec28544e68efebe3ed5c5e::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitdae03401c2ec28544e68efebe3ed5c5e::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInited250ab504d1b69d412299fad2c89fe3::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInited250ab504d1b69d412299fad2c89fe3::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInited250ab504d1b69d412299fad2c89fe3::$classMap;
 
         }, null, ClassLoader::class);
     }
