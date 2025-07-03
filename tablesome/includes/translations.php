@@ -51,6 +51,7 @@ if (!class_exists('\Tablesome\Includes\Translations')) {
                 'enter_table_id_alert' => __('Please enter the tablesome table id', 'tablesome'),
 
                 'loading' => __('Loading...', 'tablesome'),
+                'empty_table_confirmation' => __('Are you sure you want to empty this table? This action will remove all rows and cannot be undone.', 'tablesome'),
 
                 'add_row' => __('Add Row', 'tablesome'),
                 'edit_row' => __('Edit Row', 'tablesome'),

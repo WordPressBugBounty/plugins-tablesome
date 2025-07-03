@@ -13,6 +13,7 @@ if ( !class_exists( '\\Tablesome\\Components\\Table\\Quick_Actions' ) ) {
             }
             $actions['export'] = '<a href="' . admin_url( 'admin.php?page=tablesome-export&action=export&table_id=' . $post->ID ) . '">' . __( 'Export', 'tablesome' ) . '</a>';
             $actions['duplicate'] = $this->get_duplicate_table_action_url( $post );
+            $actions['empty'] = $this->get_empty_table_action_url( $post );
             return $actions;
         }
 
@@ -25,6 +26,21 @@ if ( !class_exists( '\\Tablesome\\Components\\Table\\Quick_Actions' ) ) {
             $title = __( 'Duplicate the table', 'tablesome' );
             $link_text = __( 'Duplicate', 'tablesome' );
             $classes = 'tablesome__table-action--duplicate';
+            $link_text .= '<span class="tablesome__premiumText">PRO</span>';
+            $classes .= ' free';
+            $url = tablesome_fs()->get_trial_url();
+            return '<a class="' . $classes . '" href="javascript:void(0);" data-url="' . $url . '" title="' . $title . '" rel="permalink">' . $link_text . '</a>';
+        }
+
+        private function get_empty_table_action_url( $table ) {
+            /** empty table action url */
+            $url = wp_nonce_url( add_query_arg( array(
+                'action'   => 'empty_the_tablesome_table',
+                'table_id' => $table->ID,
+            ), 'admin.php' ), TABLESOME_PLUGIN_BASE, 'tablesome_empty_table_nonce' );
+            $title = __( 'Empty the table (remove all rows)', 'tablesome' );
+            $link_text = __( 'Empty Table', 'tablesome' );
+            $classes = 'tablesome__table-action--emptyTable';
             $link_text .= '<span class="tablesome__premiumText">PRO</span>';
             $classes .= ' free';
             $url = tablesome_fs()->get_trial_url();

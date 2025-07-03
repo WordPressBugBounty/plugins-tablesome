@@ -203,6 +203,8 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
 
         private function set_post_terms()
         {
+            /** @noinspection PhpUndefinedConstantInspection */
+            $ABSPATH = defined('ABSPATH') ? ABSPATH : '';
 
             $taxonomy_fields = array_filter($this->fields, function ($field) {
                 return $field['field_type'] == 'taxonomies';
@@ -227,10 +229,13 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
                     foreach ($terms as $term_value) {
                         $term = get_term_by('id', (int) $term_value, $taxonomy);
 
-                        if (!isset($term) || is_wp_error($term)) {
+                        if (!$term) {
                             continue;
                         }
 
+                        if (!function_exists('wp_set_object_terms')) {
+                            require_once $ABSPATH . 'wp-includes/taxonomy.php';
+                        }
                         wp_set_object_terms($this->post_id, intval($term->term_id), $taxonomy, true);
                     }
                 } else if ('trigger_source' === $source_type || 'trigger_smart_fields' === $source_type) {
@@ -243,6 +248,9 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
 
         private function set_featured_image($post_data)
         {
+            /** @noinspection PhpUndefinedConstantInspection */
+            $ABSPATH = defined('ABSPATH') ? ABSPATH : '';
+
             if (!isset($post_data["post_featured_image"])) {
                 return false;
             }
@@ -266,7 +274,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
                 'post_parent' => $this->post_id,
             ), true);
 
-            require_once ABSPATH . "/wp-admin/includes/image.php";
+            require_once $ABSPATH . "/wp-admin/includes/image.php";
             $attachment_data = wp_generate_attachment_metadata($attachment_id, get_attached_file($attachment_id));
             wp_update_attachment_metadata($attachment_id, $attachment_data);
             set_post_thumbnail($this->post_id, $attachment_id);
@@ -274,6 +282,8 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
 
         private function set_featured_image_from_external_url($url, $post_id)
         {
+            /** @noinspection PhpUndefinedConstantInspection */
+            $ABSPATH = defined('ABSPATH') ? ABSPATH : '';
 
             if (!filter_var($url, FILTER_VALIDATE_URL) || empty($post_id)) {
                 return;
@@ -313,7 +323,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
             $attach_id = wp_insert_attachment($attachment, $file, $post_id);
 
             // Include image.php
-            require_once ABSPATH . 'wp-admin/includes/image.php';
+            require_once $ABSPATH . 'wp-admin/includes/image.php';
 
             // Define attachment metadata
             $attach_data = wp_generate_attachment_metadata($attach_id, $file);

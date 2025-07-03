@@ -186,6 +186,7 @@ return array(
     'Tablesome\\Workflow_Library\\Triggers\\Tablesome' => $baseDir . '/workflow-library/triggers/tablesome.php',
     'Tablesome\\Workflow_Library\\Triggers\\WP_Forms' => $baseDir . '/workflow-library/triggers/wp-forms.php',
     'Tablesome\\Workflow_Library\\Triggers\\Woo_Thankyou' => $baseDir . '/workflow-library/triggers/woo-thankyou.php',
+    'Tablesome_Dropdown_Plugin' => $baseDir . '/includes/plugins/dropdown/dropdown.php',
     'Tablesome_Event_Log' => $baseDir . '/includes/modules/workflow/event-log/model/class-event-log.php',
     'Tablesome_Event_Log_Table_Query' => $baseDir . '/includes/modules/workflow/event-log/model/class-event-log-query.php',
     'Tablesome_Event_Log_Table_Row' => $baseDir . '/includes/modules/workflow/event-log/model/class-event-log-row.php',
