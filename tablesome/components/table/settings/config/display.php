@@ -137,11 +137,11 @@ if (!class_exists('\Tablesome\Components\Table\Settings\Config\Display')) {
                 ],
                 [
                     "id" => "numOfRecordsPerPage",
-                    "label" => "Number of Rows per page (1-100)",
-                    "placeholder" => "Number of Rows per page (1-100)",
+                    "label" => "Number of Rows per page (1-200)",
+                    "placeholder" => "Number of Rows per page (1-200)",
                     "type" => "number",
                     "min" => 1,
-                    "max" => 100,
+                    "max" => 200,
                     "default" => 10,
                 ],
 

@@ -36,7 +36,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 return false;
             }
 
-            $query = "CREATE TABLE $table_name";
+            $query = "CREATE TABLE IF NOT EXISTS $table_name";
             $query .= " ( ";
             $query .= $this->schema->get_schema($column_names);
             $query .= " ); ";

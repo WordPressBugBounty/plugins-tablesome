@@ -22,6 +22,7 @@ if (!class_exists('\Tablesome\Includes\Update\Upgrade_List')) {
         public function get_upgrades()
         {
             $upgrades = [
+                '1.1.28' => 'upgrade_v1128',
                 '0.9.9' => 'upgrade_v099',
                 '0.8.3' => 'upgrade_v083',
                 '0.7.3' => 'upgrade_v073',
@@ -509,6 +510,80 @@ if (!class_exists('\Tablesome\Includes\Update\Upgrade_List')) {
             }
             $old_table_data['rows'] = [];
             return $old_table_data;
+        }
+
+        /**
+         * Migration for version 1.1.28
+         * Remove global-only settings from table-level postmeta
+         * These settings should only come from global settings, not be stored at table level
+         */
+        public function upgrade_v1128()
+        {
+            $upgrade_v1128_done = true;
+            $tablesome_version = \get_option("tablesome_version");
+            if ($tablesome_version === "1.1.28") {
+                return $upgrade_v1128_done;
+            }
+
+            // Get all tablesome posts
+            $tables = \get_posts([
+                'numberposts' => -1,
+                'post_type' => TABLESOME_CPT,
+                'post_status' => array('publish', 'pending', 'draft', 'trash'),
+            ]);
+
+            if (!isset($tables) || empty($tables)) {
+                return $upgrade_v1128_done;
+            }
+
+            // List of global-only settings that should be removed from table-level postmeta
+            $global_only_settings = [
+                'searchPlaceholder',
+                'searchErrorMessage',
+                'desktop-search-placeholder',
+                'desktop-search-error-message'
+            ];
+
+            $tables_updated = 0;
+            $tables_processed = 0;
+
+            foreach ($tables as $table) {
+                $tables_processed++;
+                
+                // Get the current table data
+                $table_data = \get_post_meta($table->ID, 'tablesome_data', true);
+                
+                if (empty($table_data) || !is_array($table_data)) {
+                    continue;
+                }
+
+                $data_modified = false;
+
+                // Check if display options exist and remove global-only settings
+                if (isset($table_data['options']['display']) && is_array($table_data['options']['display'])) {
+                    foreach ($global_only_settings as $setting) {
+                        if (isset($table_data['options']['display'][$setting])) {
+                            unset($table_data['options']['display'][$setting]);
+                            $data_modified = true;
+                        }
+                    }
+                }
+
+                // Update the table data if modifications were made
+                if ($data_modified) {
+                    $update_result = \update_post_meta($table->ID, 'tablesome_data', $table_data);
+                    if ($update_result !== false) {
+                        $tables_updated++;
+                    } else {
+                        $upgrade_v1128_done = false;
+                    }
+                }
+            }
+
+            // Log the migration results
+            \error_log("Tablesome v1.1.28 Migration: Processed {$tables_processed} tables, updated {$tables_updated} tables");
+
+            return $upgrade_v1128_done;
         }
 
     } // END CLASS

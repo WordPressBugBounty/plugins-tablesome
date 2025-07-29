@@ -26,13 +26,16 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Settings')) {
                 $sort = $previous_sort_settings;
             }
 
+            // Filter out global-only settings from display options before saving
+            $filtered_display = $this->filter_global_only_settings($params['display']);
+
             set_tablesome_table_triggers($params['table_id'], $params['triggers']);
 
             set_tablesome_data($params['table_id'],
                 array(
                     'editorState' => $params['editorState'],
                     'options' => array(
-                        'display' => $params['display'],
+                        'display' => $filtered_display,
                         'style' => $params['style'],
                         'access_control' => $params['access_control'],
                         'sort' => $sort,
@@ -57,7 +60,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Settings')) {
 
         public function is_admin_user()
         {
-            if (current_user_can('manage_options')) {
+            if (\current_user_can('manage_options')) {
                 return true;
             }
             return false;
@@ -73,6 +76,34 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Settings')) {
             }
 
             return $previous_sort_settings;
+        }
+
+        /**
+         * Filter out global-only settings from display options
+         * These settings should only come from global settings, not be saved to table-level postmeta
+         */
+        private function filter_global_only_settings($display_settings)
+        {
+            if (!is_array($display_settings)) {
+                return $display_settings;
+            }
+
+            // List of settings that should only come from global settings
+            $global_only_settings = [
+                'searchPlaceholder',
+                'searchErrorMessage',
+                'desktop-search-placeholder',
+                'desktop-search-error-message'
+            ];
+
+            // Remove global-only settings from the display array
+            foreach ($global_only_settings as $setting) {
+                if (isset($display_settings[$setting])) {
+                    unset($display_settings[$setting]);
+                }
+            }
+
+            return $display_settings;
         }
     } // END CLASS
 }

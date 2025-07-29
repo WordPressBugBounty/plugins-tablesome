@@ -92,11 +92,11 @@ if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Fields')) {
                 'id' => 'page_limit',
                 'type' => 'number',
                 'title' => __('Number Of Records per Page', "tablesome"),
-                'subtitle' => __("Value should between 1-100", "tablesome"),
+                'subtitle' => __("Value should between 1-200", "tablesome"),
                 'default' => 10,
                 'attributes' => array(
                     'min' => 1,
-                    'max' => 100,
+                    'max' => 200,
                 ),
             );
         }

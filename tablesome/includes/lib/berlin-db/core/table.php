@@ -359,7 +359,7 @@ abstract class Table extends Base {
 		}
 
 		// Query statement
-		$query  = "CREATE TABLE {$this->table_name} ( {$this->schema} ) {$this->charset_collation}";
+		$query  = "CREATE TABLE IF NOT EXISTS {$this->table_name} ( {$this->schema} ) {$this->charset_collation}";
 		$result = $db->query( $query );
 
 		// Was the table created?
@@ -472,7 +472,7 @@ abstract class Table extends Base {
 
 		// Query statement
 		$table  = $this->apply_prefix( $table_name );
-		$query  = "CREATE TABLE {$table} LIKE {$this->table_name}";
+		$query  = "CREATE TABLE IF NOT EXISTS {$table} LIKE {$this->table_name}";
 		$result = $db->query( $query );
 
 		// Did the table get cloned?
