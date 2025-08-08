@@ -68,6 +68,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Record')) {
         {
 
             $prevent_field_column = isset($insert_args['prevent_field_column']) ? $insert_args['prevent_field_column'] : "";
+            
+            // Return false if no duplicate prevention column is specified
+            if (empty($prevent_field_column)) {
+                return false;
+            }
+            
             $prevent_field_value = isset($data[$prevent_field_column]) ? $data[$prevent_field_column] : "";
 
             global $wpdb;

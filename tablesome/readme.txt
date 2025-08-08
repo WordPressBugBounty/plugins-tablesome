@@ -3,7 +3,7 @@ Donate link: https://pauple.com
 Tags: table, email, contact form 7, wpforms, redirect
 Requires at least: 5.2
 Tested up to: 6.8
-Stable tag: 1.1.28
+Stable tag: 1.1.29
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -193,6 +193,10 @@ We love to hear from our users and we try to integrate features that our users w
 5. Copy and paste the shortcode on the post.
 
 == Change Log ==
+
+= 1.1.29 =
+Fix: _load_textdomain_just_in_time called incorrectly
+Fix: Form not storing in some cases
 
 = 1.1.28 =
 Fix: db warning 

@@ -3,11 +3,11 @@
 Library Name: Plugination
 Description: A library to manage plugins
 Author: HelpieWP
-Version: 0.3.6
+Version: 0.3.7
 
  */
 
-define('PLUGINATOR_VERSION', '0.3.6');
+define('PLUGINATOR_VERSION', '0.3.7');
 define('PLUGINATOR__FILE__', __FILE__);
 define('PLUGINATOR_PATH', dirname(PLUGINATOR__FILE__));
 define('PLUGINATOR_SRC_PATH', dirname(PLUGINATOR__FILE__) . '/src');

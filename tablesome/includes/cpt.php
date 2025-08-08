@@ -30,9 +30,9 @@ if (!class_exists('\Tablesome\Includes\Cpt')) {
             $this->register_post_type_with_taxonomy();
         }
 
-        public function register_post_type_with_taxonomy()
+        private function get_cpt_labels()
         {
-            $labels = array(
+            return array(
                 'name' => _x('Tables', 'post type general name', 'tablesome'),
                 'singular_name' => _x('Table', 'post type singular name', 'tablesome'),
                 'menu_name' => _x('Tablesome', 'admin menu', 'tablesome'),
@@ -52,6 +52,11 @@ if (!class_exists('\Tablesome\Includes\Cpt')) {
                 'items_list_navigation' => __('Table Items list Navigation', 'tablesome'),
                 'filter_items_list' => __('Filter Table Items list', 'tablesome'),
             );
+        }
+
+        public function register_post_type_with_taxonomy()
+        {
+            $labels = $this->get_cpt_labels();
 
             $cpt_slug = 'tablesome';
 

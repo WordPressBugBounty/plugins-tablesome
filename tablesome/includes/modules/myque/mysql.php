@@ -41,7 +41,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             $query .= $this->schema->get_schema($column_names);
             $query .= " ); ";
 
-            error_log('$query : ' . $query);
+            // error_log('$query : ' . $query);
 
             $result = $this->wpdb->query($query);
 
@@ -670,7 +670,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             $table_name = $wpdb->prefix . $table_name;
             $query = "DROP TABLE IF EXISTS $table_name";
             $result = $wpdb->query($query);
-            error_log('delete_table $result : ' . $result);
+            // error_log('delete_table $result : ' . $result);
             return $result;
         }
 

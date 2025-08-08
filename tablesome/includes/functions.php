@@ -92,14 +92,22 @@ if (!function_exists('get_tablesome_cell_type')) {
 if (!function_exists('get_tablesome_string')) {
     function get_tablesome_string($stringName)
     {
+        static $strings = null;
+        
+        // Check if we're past the init hook before loading translations
+        if (!did_action('init')) {
+            // Return the string key as fallback if called too early
+            return $stringName;
+        }
+        
         // only set one time
-        if (!isset($strings) || empty($strings)) {
+        if ($strings === null) {
             $translations = new \Tablesome\Includes\Translations();
             $strings = $translations->get_strings();
         }
 
         // Searched string is not exist display error for Developer insights
-        if (!isset($strings[$stringName]) && empty($strings[$stringName])) {
+        if (!isset($strings[$stringName]) || empty($strings[$stringName])) {
             wp_die(wp_kses_post('"' . $stringName . '" translation string is not exist, Please add the given string in the translations.php file.'));
         }
 

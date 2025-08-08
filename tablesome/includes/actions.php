@@ -36,9 +36,9 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
             // Admin Dashboard Area
             /*  Tablesome Admin Section Initialization Hook */
             add_action( 'admin_menu', [$this, 'add_submenu'] );
-            add_action( 'admin_menu', [new \Tablesome\Components\System_Info\Controller(), 'add_menu'], 11 );
+            add_action( 'admin_menu', [$this, 'add_system_info_menu'], 11 );
             add_action( 'admin_menu', [$this, 'add_external_links_as_a_submenus'], 11 );
-            add_action( 'admin_menu', [new \Tablesome\Includes\Modules\Workflow\Event_Log\Event_Log_List_Page(), 'add_menu'] );
+            add_action( 'admin_menu', [$this, 'add_event_log_menu'] );
             // TODO: Remove the get_tables_count_collection method when tablesomeDB release after
             // add_action('admin_init', [$this, 'get_tables_count_collection']);
             add_action( 'admin_init', array($this, 'admin_init_hook') );
@@ -561,6 +561,16 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
                 /* page name */
                 array($submenu_page["callback"]["controller"], $submenu_page["callback"]["method"])
             );
+        }
+
+        public function add_system_info_menu() {
+            $system_info_controller = new \Tablesome\Components\System_Info\Controller();
+            $system_info_controller->add_menu();
+        }
+
+        public function add_event_log_menu() {
+            $event_log_page = new \Tablesome\Includes\Modules\Workflow\Event_Log\Event_Log_List_Page();
+            $event_log_page->add_menu();
         }
 
         public function add_external_links_as_a_submenus() {

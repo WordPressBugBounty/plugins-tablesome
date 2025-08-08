@@ -36,26 +36,31 @@ if ( !function_exists( 'tablesome_fs' ) ) {
         return $tablesome_fs;
     }
 
-    // Init Freemius.
-    tablesome_fs();
-    tablesome_fs()->add_filter( 'permission_list', function ( $permissions ) {
-        $permissions['tablesome-feature-tracking'] = array(
-            'icon-class' => 'dashicons dashicons-admin-generic',
-            'label'      => tablesome_fs()->get_text_inline( 'Tablesome Features', 'tablesome' ),
-            'desc'       => tablesome_fs()->get_text_inline( 'Anonymously track which Tablesome features are being used to allow us to prioritize development.', 'tablesome' ),
-            'priority'   => 50,
-            'optional'   => true,
-        );
-        return $permissions;
-    } );
-    tablesome_fs()->add_filter( 'support_forum_url', 'tablesome_fs_support_forum_url' );
+    // Delay Freemius initialization until after init hook to avoid early translation loading
+    add_action( 'init', 'tablesome_init_freemius' );
+    function tablesome_init_freemius() {
+        // Init Freemius.
+        tablesome_fs();
+        tablesome_fs()->add_filter( 'permission_list', function ( $permissions ) {
+            $permissions['tablesome-feature-tracking'] = array(
+                'icon-class' => 'dashicons dashicons-admin-generic',
+                'label'      => tablesome_fs()->get_text_inline( 'Tablesome Features', 'tablesome' ),
+                'desc'       => tablesome_fs()->get_text_inline( 'Anonymously track which Tablesome features are being used to allow us to prioritize development.', 'tablesome' ),
+                'priority'   => 50,
+                'optional'   => true,
+            );
+            return $permissions;
+        } );
+        tablesome_fs()->add_filter( 'support_forum_url', 'tablesome_fs_support_forum_url' );
+        tablesome_fs()->override_i18n( array(
+            'support-forum' => __( 'Help & Feature Request', TABLESOME_DOMAIN ),
+        ) );
+        // Signal that SDK was initiated.
+        do_action( 'tablesome_fs_loaded' );
+    }
+
     function tablesome_fs_support_forum_url(  $wp_support_url  ) {
         return 'https://wordpress.org/support/plugin/tablesome/';
     }
 
-    tablesome_fs()->override_i18n( array(
-        'support-forum' => __( 'Help & Feature Request', TABLESOME_DOMAIN ),
-    ) );
-    // Signal that SDK was initiated.
-    do_action( 'tablesome_fs_loaded' );
 }

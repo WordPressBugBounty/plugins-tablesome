@@ -9,15 +9,24 @@ if (!defined('ABSPATH')) {
 if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Fields')) {
     class Fields
     {
+        private function get_label($text)
+        {
+            // Only call translation functions after init hook
+            if (!did_action('init')) {
+                return $text;
+            }
+            return __($text, 'tablesome');
+        }
+
         public function get_table_id_field()
         {
             return [
                 'id' => 'table_id',
                 'type' => 'select',
-                'title' => __('Choose the tablesome table', 'tablesome'),
+                'title' => $this->get_label('Choose the tablesome table'),
                 'class' => 'tablesome__fields--table_id',
                 'options' => 'posts',
-                'placeholder' => __('Choose the table', 'tablesome'),
+                'placeholder' => $this->get_label('Choose the table'),
                 'query_args' => array(
                     'post_type' => 'tablesome_cpt',
                     'posts_per_page' => -1,
@@ -32,8 +41,8 @@ if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Fields')) {
             return [
                 'id' => 'hide_table_header',
                 'type' => 'switcher',
-                'title' => __("Hide Table Header", "tablesome"),
-                'subtitle' => __("This will affect the front end only", "tablesome"),
+                'title' => $this->get_label("Hide Table Header"),
+                'subtitle' => $this->get_label("This will affect the front end only"),
                 'class' => 'hide_table_header',
                 'default' => 0,
             ];
@@ -44,8 +53,8 @@ if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Fields')) {
             return [
                 'id' => 'sorting',
                 'type' => 'switcher',
-                'title' => __("Sorting", "tablesome"),
-                'subtitle' => __("This will affect the front end only", "tablesome"),
+                'title' => $this->get_label("Sorting"),
+                'subtitle' => $this->get_label("This will affect the front end only"),
                 'dependency' => array('hide_table_header', '==', 'false'),
                 'default' => 1,
             ];
@@ -68,8 +77,8 @@ if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Fields')) {
             return [
                 'id' => 'search',
                 'type' => 'switcher',
-                'title' => __("Search", "tablesome"),
-                'subtitle' => __("This will affect the front end only", "tablesome"),
+                'title' => $this->get_label("Search"),
+                'subtitle' => $this->get_label("This will affect the front end only"),
                 'class' => 'search',
                 'default' => 1,
             ];

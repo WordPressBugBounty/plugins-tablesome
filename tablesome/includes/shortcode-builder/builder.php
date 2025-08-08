@@ -12,6 +12,12 @@ if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Builder')) {
 
         public function init()
         {
+            // Delay shortcode builder initialization until after init hook to avoid early translation loading
+            add_action('init', array($this, 'initialize_shortcode_builder'));
+        }
+
+        public function initialize_shortcode_builder()
+        {
             // if (!function_exists('\CSF') && !class_exists('\CSF')) {
             //     require_once TABLESOME_PATH . 'includes/lib/codestar-framework/codestar-framework.php';
             // }

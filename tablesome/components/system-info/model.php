@@ -21,31 +21,31 @@ if (!class_exists('\Tablesome\Components\System_Info\Model')) {
 
             $props = array(
                 'server' => array(
-                    'label' => __("Server Environment", "tablesome"),
+                    'label' => $this->get_label("Server Environment"),
                     'data' => $this->get_server_info(),
                 ),
                 'wordpress' => array(
-                    'label' => __('WordPress Environment', 'tablesome'),
+                    'label' => $this->get_label('WordPress Environment'),
                     'data' => $this->get_wordpress_info(),
                 ),
                 'theme' => array(
-                    'label' => __('Theme', 'tablesome'),
+                    'label' => $this->get_label('Theme'),
                     'data' => $this->get_theme_info(),
                 ),
                 'user' => array(
-                    'label' => __('User', 'tablesome'),
+                    'label' => $this->get_label('User'),
                     'data' => $this->get_user_info(),
                 ),
                 'active_plugins' => array(
-                    'label' => __('Active Plugins', 'tablesome'),
+                    'label' => $this->get_label('Active Plugins'),
                     'data' => isset($plugins_info['active_plugins']) && !empty($plugins_info['active_plugins']) ? $plugins_info['active_plugins'] : array(),
                 ),
                 'inactive_plugins' => array(
-                    'label' => __('Inactive Plugins', 'tablesome'),
+                    'label' => $this->get_label('Inactive Plugins'),
                     'data' => isset($plugins_info['inactive_plugins']) && !empty($plugins_info['inactive_plugins']) ? $plugins_info['inactive_plugins'] : array(),
                 ),
                 'tablesome_api_credentials' => array(
-                    'label' => __('Tablesome API Info', 'tablesome'),
+                    'label' => $this->get_label('Tablesome API Info'),
                     'data' => $this->get_tablesome_api_serialize_data(),
                 ),
             );
@@ -54,31 +54,40 @@ if (!class_exists('\Tablesome\Components\System_Info\Model')) {
             return $props;
         }
 
+        private function get_label($text)
+        {
+            // Only call translation functions after init hook
+            if (!did_action('init')) {
+                return $text;
+            }
+            return __($text, 'tablesome');
+        }
+
         public function get_server_info()
         {
             return array(
                 'os' => array(
-                    'label' => __('Operating System', 'tablesome'),
+                    'label' => $this->get_label('Operating System'),
                     'value' => PHP_OS,
                 ),
                 'software' => array(
-                    'label' => __('Software', 'tablesome'),
+                    'label' => $this->get_label('Software'),
                     'value' => $_SERVER['SERVER_SOFTWARE'],
                 ),
                 'mysql_version' => array(
-                    'label' => __('MySQL version', 'tablesome'),
+                    'label' => $this->get_label('MySQL version'),
                     'value' => $this->get_mysql_version(),
                 ),
                 'php_version' => array(
-                    'label' => __('PHP Version', 'tablesome'),
+                    'label' => $this->get_label('PHP Version'),
                     'value' => PHP_VERSION,
                 ),
                 'php_max_input_vars' => array(
-                    'label' => __('PHP Max Input Vars', 'tablesome'),
+                    'label' => $this->get_label('PHP Max Input Vars'),
                     'value' => ini_get('max_input_vars'),
                 ),
                 'php_max_post_size' => array(
-                    'label' => __('PHP Max Post Size', 'tablesome'),
+                    'label' => $this->get_label('PHP Max Post Size'),
                     'value' => ini_get('post_max_size'),
                 ),
             );
@@ -88,47 +97,47 @@ if (!class_exists('\Tablesome\Components\System_Info\Model')) {
         {
             return array(
                 'wp_version' => array(
-                    'label' => __('WP Version', 'tablesome'),
+                    'label' => $this->get_label('WP Version'),
                     'value' => get_bloginfo('version'),
                 ),
                 'home_url' => array(
-                    'label' => __('Home Url', 'tablesome'),
+                    'label' => $this->get_label('Home Url'),
                     'value' => home_url(),
                 ),
                 'site_url' => array(
-                    'label' => __('Site Url', 'tablesome'),
+                    'label' => $this->get_label('Site Url'),
                     'value' => site_url(),
                 ),
                 'is_multisite' => array(
-                    'label' => __('WP Multisite', 'tablesome'),
+                    'label' => $this->get_label('WP Multisite'),
                     'value' => is_multisite() ? "Yes" : "No",
                 ),
                 'max_upload_size' => array(
-                    'label' => __('Max Upload Size', 'tablesome'),
+                    'label' => $this->get_label('Max Upload Size'),
                     'value' => size_format(wp_max_upload_size()),
                 ),
                 'php_memory_limit' => array(
-                    'label' => __('PHP Memory Limit', 'tablesome'),
+                    'label' => $this->get_label('PHP Memory Limit'),
                     'value' => ini_get('memory_limit'),
                 ),
                 'wp_memory_limit' => array(
-                    'label' => __('WP Memory Limit', 'tablesome'),
+                    'label' => $this->get_label('WP Memory Limit'),
                     'value' => WP_MEMORY_LIMIT,
                 ),
                 'permalink_structure' => array(
-                    'label' => __('Permalink Structure', 'tablesome'),
+                    'label' => $this->get_label('Permalink Structure'),
                     'value' => get_option('permalink_structure'),
                 ),
                 'timezone' => array(
-                    'label' => __('Timezone', 'tablesome'),
+                    'label' => $this->get_label('Timezone'),
                     'value' => wp_timezone_string(),
                 ),
                 'language' => array(
-                    'label' => __('Language', 'tablesome'),
+                    'label' => $this->get_label('Language'),
                     'value' => get_locale(),
                 ),
                 'debug_mode' => array(
-                    'label' => __('Debug Mode', 'tablesome'),
+                    'label' => $this->get_label('Debug Mode'),
                     'value' => (defined('WP_DEBUG') && WP_DEBUG) ? "Enabled" : "Disabled",
                 ),
             );
@@ -140,15 +149,15 @@ if (!class_exists('\Tablesome\Components\System_Info\Model')) {
 
             return [
                 'name' => array(
-                    'label' => __('Name', 'tablesome'),
+                    'label' => $this->get_label('Name'),
                     'value' => $theme->get('Name'),
                 ),
                 'version' => array(
-                    'label' => __('Version', 'tablesome'),
+                    'label' => $this->get_label('Version'),
                     'value' => $theme->get('Version'),
                 ),
                 'author' => array(
-                    'label' => __('Author', 'tablesome'),
+                    'label' => $this->get_label('Author'),
                     'value' => $theme->get('Author'),
                 ),
             ];
@@ -162,15 +171,15 @@ if (!class_exists('\Tablesome\Components\System_Info\Model')) {
 
             return [
                 'name' => array(
-                    'label' => __('Name', 'tablesome'),
+                    'label' => $this->get_label('Name'),
                     'value' => isset($user->data->display_name) ? $user->data->display_name : '',
                 ),
                 'role' => array(
-                    'label' => __('Role', 'tablesome'),
+                    'label' => $this->get_label('Role'),
                     'value' => $role,
                 ),
                 'user_agent' => array(
-                    'label' => __('User Agent', 'tablesome'),
+                    'label' => $this->get_label('User Agent'),
                     'value' => isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '',
                 ),
             ];

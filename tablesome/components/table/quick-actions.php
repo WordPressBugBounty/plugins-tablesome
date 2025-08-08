@@ -26,9 +26,11 @@ if ( !class_exists( '\\Tablesome\\Components\\Table\\Quick_Actions' ) ) {
             $title = __( 'Duplicate the table', 'tablesome' );
             $link_text = __( 'Duplicate', 'tablesome' );
             $classes = 'tablesome__table-action--duplicate';
-            $link_text .= '<span class="tablesome__premiumText">PRO</span>';
-            $classes .= ' free';
-            $url = tablesome_fs()->get_trial_url();
+            if ( !can_use_tablesome_premium() ) {
+                $link_text .= '<span class="tablesome__premiumText">PRO</span>';
+                $classes .= ' free';
+                $url = tablesome_fs()->get_trial_url();
+            }
             return '<a class="' . $classes . '" href="javascript:void(0);" data-url="' . $url . '" title="' . $title . '" rel="permalink">' . $link_text . '</a>';
         }
 
@@ -41,9 +43,11 @@ if ( !class_exists( '\\Tablesome\\Components\\Table\\Quick_Actions' ) ) {
             $title = __( 'Empty the table (remove all rows)', 'tablesome' );
             $link_text = __( 'Empty Table', 'tablesome' );
             $classes = 'tablesome__table-action--emptyTable';
-            $link_text .= '<span class="tablesome__premiumText">PRO</span>';
-            $classes .= ' free';
-            $url = tablesome_fs()->get_trial_url();
+            if ( !can_use_tablesome_premium() ) {
+                $link_text .= '<span class="tablesome__premiumText">PRO</span>';
+                $classes .= ' free';
+                $url = tablesome_fs()->get_trial_url();
+            }
             return '<a class="' . $classes . '" href="javascript:void(0);" data-url="' . $url . '" title="' . $title . '" rel="permalink">' . $link_text . '</a>';
         }
 
