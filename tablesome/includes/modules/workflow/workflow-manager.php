@@ -298,9 +298,9 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Manager')) {
             require_once ABSPATH . "/wp-admin/includes/file.php";
             require_once ABSPATH . "/wp-admin/includes/media.php";
 
-            // Download url to a temp file
-            $tmp = download_url($url);
-            if (is_wp_error($tmp)) {
+            // Security: Validate URL format
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                error_log('Tablesome: Invalid URL format: ' . $url);
                 return false;
             }
 
@@ -308,38 +308,45 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Manager')) {
             $filename = pathinfo($url, PATHINFO_FILENAME);
             $extension = pathinfo($url, PATHINFO_EXTENSION);
 
+            // Security: Use WordPress allowed MIME types to match site/plugin policy
+            $wp_allowed_mimes_map = \get_allowed_mime_types();
+            $wp_allowed_mime_types = array_values($wp_allowed_mimes_map);
+
             // An extension is required or else WordPress will reject the upload
             if (!$extension) {
-                // Look up mime type, example: "/photo.png" -> "image/png"
-                $mime = mime_content_type($tmp);
-                $mime = is_string($mime) ? sanitize_mime_type($mime) : false;
+                error_log('Tablesome: No file extension found in URL: ' . $url);
+                return false;
+            }
 
-                // Only allow certain mime types because mime types do not always end in a valid extension (see the .doc example below)
-                $mime_extensions = array(
-                    // mime_type         => extension (no period)
-                    'text/plain' => 'txt',
-                    'text/csv' => 'csv',
-                    'application/msword' => 'doc',
-                    'image/jpg' => 'jpg',
-                    'image/jpeg' => 'jpeg',
-                    'image/gif' => 'gif',
-                    'image/png' => 'png',
-                    'video/mp4' => 'mp4',
-                );
+            // Extension presence is required; specific allowlist handled after content check
 
-                if (isset($mime_extensions[$mime])) {
-                    // Use the mapped extension
-                    $extension = $mime_extensions[$mime];
-                } else {
-                    // Could not identify extension
-                    @unlink($tmp);
-                    return false;
-                }
+            // Download url to a temp file
+            $tmp = download_url($url);
+            if (is_wp_error($tmp)) {
+                error_log('Tablesome: Failed to download file: ' . $tmp->get_error_message());
+                return false;
+            }
+
+            // Security: Validate the actual file type from content
+            $wp_filetype = wp_check_filetype_and_ext($tmp, $filename . '.' . $extension, null);
+            
+            // Reject if file type validation fails
+            if ($wp_filetype['type'] === false || empty($wp_filetype['ext'])) {
+                @unlink($tmp);
+                error_log('Tablesome: File type validation failed for: ' . $filename . '.' . $extension);
+                return false;
+            }
+
+            // Security: Ensure the MIME type is allowed by the WordPress/site policy
+            if (!in_array($wp_filetype['type'], $wp_allowed_mime_types, true)) {
+                @unlink($tmp);
+                error_log('Tablesome: MIME type not allowed by site policy: ' . $wp_filetype['type']);
+                return false;
             }
 
             // Upload by "sideloading": "the same way as an uploaded file is handled by media_handle_upload"
             $args = array(
-                'name' => "$filename.$extension",
+                'name' => sanitize_file_name("$filename." . $wp_filetype['ext']),
                 'tmp_name' => $tmp,
             );
 
@@ -351,6 +358,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Manager')) {
 
             // Error uploading
             if (is_wp_error($attachment_id)) {
+                error_log('Tablesome: media_handle_sideload error: ' . $attachment_id->get_error_message());
                 return false;
             }
 

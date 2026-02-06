@@ -47,6 +47,9 @@ if (!trait_exists('\Tablesome\Includes\Modules\Workflow\Traits\Placeholder')) {
         public function applyPlaceholders($placeholders, $content)
         {
             // error_log('applyPlaceholders() $placeholders : ' . print_r($placeholders, true));
+            if (!is_string($content)) {
+                return '';
+            }
             foreach ($placeholders as $name => $value) {
                 $content = str_replace($name, $value, $content);
             }

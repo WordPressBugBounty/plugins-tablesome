@@ -62,13 +62,8 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
 
             $form = \Forminator_API::get_form($form_id);
 
-            // error_log(' Forminator form : ' . print_r($form, true));
-            // error_log(' Forminator fields_data : ' . print_r($fields_data, true));
-            // error_log(' Forminator entry : ' . print_r($entry, true));
             $submission_data = $this->get_formatted_posted_data($fields_data, $form);
             $submission_data = apply_filters("tablesome_form_submission_data", $submission_data, $form_id);
-
-            // error_log(' Forminator submission_data : ' . print_r($submission_data, true));
 
             $this->trigger_source_id = $form_id;
             $this->trigger_source_data = array(
@@ -150,6 +145,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                 $type = $field_obj->__get('type');
                 $id = $field_obj->__get('element_id');
                 $label = $field_obj->__get('field_label');
+                
                 if (in_array($type, $this->unsupported_formats)) {
                     continue;
                 }
@@ -176,6 +172,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
             }
 
             $form_fields = $this->post_processing_fields($form_fields);
+            
             return $form_fields;
         }
 
@@ -188,15 +185,13 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
             foreach ($fields_data as $field_data) {
                 $name = $field_data['name'];
                 $additional_data = [];
+                $unix_timestamp = ''; // Reset for each field
 
                 if (in_array($name, ['_forminator_user_ip'])) {
                     continue;
                 }
 
                 $field = \Forminator_API::get_form_field($form_obj->id, $name, true);
-
-                // error_log(' Forminator field : ' . print_r($field, true));
-                // error_log(' Forminator field_data : ' . print_r($field_data, true));
 
                 if (is_wp_error($field)) {
                     continue;
@@ -217,18 +212,32 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
 
                 if ($type == 'date') {
                     $incoming_date_format = $field_data['field_array']['date_format'];
-                    // $incoming_date_format = 'm-d-Y';
                     // Note: Special Conversion for Forminator Date Field
                     $incoming_date_format = str_replace("dd", "d", $incoming_date_format);
                     $incoming_date_format = str_replace("mm", "m", $incoming_date_format);
                     $incoming_date_format = str_replace("yy", "Y", $incoming_date_format);
 
-                    $unix_timestamp = (int) convert_tablesome_date_to_unix_timestamp($value, $incoming_date_format);
-                    // $unix_timestamp = strtotime($value);
-                    $unix_timestamp = $unix_timestamp * 1000; // convert to milliseconds
+                    // Handle multi-part date fields (year/month/day posted as array)
+                    if (is_array($value)) {
+                        $year = isset($value['year']) ? $value['year'] : '';
+                        $month = isset($value['month']) ? str_pad($value['month'], 2, '0', STR_PAD_LEFT) : '';
+                        $day = isset($value['day']) ? str_pad($value['day'], 2, '0', STR_PAD_LEFT) : '';
+                        
+                        if (!empty($year) && !empty($month) && !empty($day)) {
+                            // Convert multi-part date array to Y-m-d format (consistent storage format)
+                            // This ensures all dates are stored consistently in Tablesome
+                            $value = sprintf('%s-%s-%s', $year, $month, $day);
+                            $incoming_date_format = 'Y-m-d';
+                        } else {
+                            // Invalid multi-part date, skip timestamp conversion
+                            $value = '';
+                        }
+                    }
 
-                    // error_log('$incoming_date_format : ' . $incoming_date_format);
-                    // error_log('$unix_timestamp : ' . $unix_timestamp);
+                    if (!empty($value)) {
+                        $unix_timestamp = (int) convert_tablesome_date_to_unix_timestamp($value, $incoming_date_format);
+                        $unix_timestamp = $unix_timestamp * 1000; // convert to milliseconds
+                    }
 
                 } else if ($type == 'postdata') {
                     /** Get the Post ID */
@@ -243,14 +252,15 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                     // error_log(' Forminator file : ' . print_r($file, true));
 
                     $value = '';
+                    $file_url = '';
                     if (isset($file['success']) && $file['success'] == 1 && isset($file['file_url'])) {
                         $file_url = is_array($file['file_url']) ? implode(',', $file['file_url']) : $file['file_url'];
 
-                        $value = '';
-                        // $value = attachment_url_to_postid($url);
+                        // Set the value to the file URL for proper integration with Notion and other actions
+                        $value = $file_url;
                         $file_type = wp_check_filetype($file_url);
 
-                        // error_log(' Forminator url : ' . $url);
+                        // error_log(' Forminator url : ' . $file_url);
                         // error_log(' Forminator value : ' . $value);
                     }
                 } else {
@@ -271,7 +281,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                     'type' => $type,
                     'label' => isset($field['field_label']) && !empty($field['field_label']) ? $field['field_label'] : $name,
                     'value' => $value ?? '',
-                    'unix_timestamp' => isset($unix_timestamp) ? $unix_timestamp : '', // use this prop when the column format type is date
+                    'unix_timestamp' => $unix_timestamp, // use this prop when the column format type is date
                     'additional_data' => $additional_data,
                 );
 
@@ -282,6 +292,10 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                     $data[$name]['linkText'] = 'View File';
                     $data[$name]['file_url'] = $file_url ?? '';
                     $data[$name]['type'] = 'file';
+                    // Ensure the value contains the file URL for Notion URL columns
+                    if (!empty($file_url)) {
+                        $data[$name]['value'] = $file_url;
+                    }
                 }
             }
 

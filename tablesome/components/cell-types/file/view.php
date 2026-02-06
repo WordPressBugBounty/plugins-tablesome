@@ -10,7 +10,7 @@ if (!class_exists('Tablesome\Components\CellTypes\File\View')) {
         {
             $html = '';
 
-            if (!isset($data['type']) && empty($data['type'])) {
+            if (!isset($data['type']) || empty($data['type'])) {
                 return $html = '';
             }
 

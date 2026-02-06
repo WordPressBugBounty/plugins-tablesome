@@ -92,34 +92,27 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Datatable')) {
 
         public function run_crud_with_monitoring($params)
         {
+            $debug_enabled = defined('TABLESOME_DEBUG_LARGE_TABLES') && TABLESOME_DEBUG_LARGE_TABLES === true;
 
-            error_log('run_crud_with_monitoring() : ');
-            // Monitor max memory usage during the execution of the function
-            $start_memory = memory_get_usage(true); 
+            if (!$debug_enabled) {
+                return $this->run_crud($params);
+            }
+
+            // Performance monitoring - only when debug is enabled
+            $start_memory = memory_get_usage(true);
             $start_time = microtime(true);
-
-            // Monitor processor usage during the execution of the function
             $start_cpu = sys_getloadavg();
 
             $response_data = $this->run_crud($params);
 
             $end_cpu = sys_getloadavg();
-
             $cpu_usage = $end_cpu[0] - $start_cpu[0];
-
-            error_log('CPU usage: ' . $cpu_usage);
-
-            // $this->run_crud($params);
-
             $end_memory = memory_get_usage(true);
             $end_time = microtime(true);
-
-            $memory_usage = ($end_memory - $start_memory) / (1024 * 1024); // Convert memory usage to MB
-
+            $memory_usage = ($end_memory - $start_memory) / (1024 * 1024);
             $time_taken = $end_time - $start_time;
 
-            error_log('Memory usage: (MB)' . $memory_usage);
-            error_log('Time taken: ' . $time_taken);
+            error_log('run_crud_with_monitoring() - CPU: ' . $cpu_usage . ', Memory: ' . $memory_usage . 'MB, Time: ' . $time_taken . 's');
 
             return $response_data;
         }

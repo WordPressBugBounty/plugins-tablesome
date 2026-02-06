@@ -21,7 +21,7 @@ if (!class_exists('\Tablesome\Components\CellTypes\File\Model')) {
             // error_log('get_media_data() data : ' . print_r($data, true));
             // $post_mime_type = get_post_mime_type($attachment_id);
 
-            if (!isset($post->post_mime_type) && empty($post->post_mime_type)) {
+            if ( empty( $post->post_mime_type ) ) {
                 return $attachment_id;
             }
 

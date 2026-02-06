@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tablesome/shortcode",
+	"version": "1.0.0",
+	"title": "Tablesome",
+	"category": "widgets",
+	"icon": "editor-table",
+	"description": "Insert a Tablesome table with customizable display options.",
+	"keywords": ["tablesome", "table", "data", "grid", "spreadsheet"],
+	"textdomain": "tablesome",
+	"editorScript": "tablesome-block",
+	"attributes": {
+		"shortcode": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"className": false,
+		"customClassName": false
+	}
+}

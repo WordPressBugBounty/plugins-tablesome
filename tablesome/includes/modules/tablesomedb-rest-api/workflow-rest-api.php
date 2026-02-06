@@ -554,5 +554,162 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
             $result = $this->library->integrations['gsheet']->add_records_to_sheet($params);
             return rest_ensure_response($result);
         }
+
+        /**
+         * Get OAuth status for all integrations
+         * 
+         * @param \WP_REST_Request $request Request object
+         * @return \WP_REST_Response Response
+         */
+        public function get_oauth_status($request)
+        {
+            $integrations = ['google', 'google_safe', 'hubspot', 'slack'];
+            $status = array();
+            
+            foreach ($integrations as $integration) {
+                $status[$integration] = tablesome_get_oauth_status($integration);
+            }
+            
+            $status['summary'] = array(
+                'total_integrations' => count($integrations),
+                'healthy_count' => count(array_filter($status, function($s) { 
+                    return isset($s['is_healthy']) && $s['is_healthy']; 
+                })),
+                'action_required_count' => count(array_filter($status, function($s) { 
+                    return isset($s['action_required']) && $s['action_required']; 
+                })),
+                'timestamp' => current_time('mysql', 1),
+            );
+            
+            return rest_ensure_response(array(
+                'status' => 'success',
+                'message' => 'OAuth status retrieved successfully.',
+                'data' => $status,
+            ));
+        }
+
+        /**
+         * Get OAuth status for a specific integration
+         * 
+         * @param \WP_REST_Request $request Request object
+         * @return \WP_REST_Response Response
+         */
+        public function get_oauth_status_by_integration($request)
+        {
+            $integration = $request->get_param('integration');
+            
+            if (empty($integration)) {
+                return rest_ensure_response(array(
+                    'status' => 'failed',
+                    'message' => 'Integration parameter is required.',
+                ));
+            }
+            
+            $valid_integrations = ['google', 'google_safe', 'hubspot', 'slack'];
+            if (!in_array($integration, $valid_integrations)) {
+                return rest_ensure_response(array(
+                    'status' => 'failed',
+                    'message' => 'Invalid integration. Valid options: ' . implode(', ', $valid_integrations),
+                ));
+            }
+            
+            $status = tablesome_get_oauth_status($integration);
+            
+            return rest_ensure_response(array(
+                'status' => 'success',
+                'message' => 'OAuth status retrieved successfully.',
+                'data' => $status,
+            ));
+        }
+
+        /**
+         * Force refresh OAuth token for a specific integration
+         * 
+         * @param \WP_REST_Request $request Request object
+         * @return \WP_REST_Response Response
+         */
+        public function force_refresh_oauth_token($request)
+        {
+            $integration = $request->get_param('integration');
+            
+            if (empty($integration)) {
+                return rest_ensure_response(array(
+                    'status' => 'failed',
+                    'message' => 'Integration parameter is required.',
+                ));
+            }
+            
+            $valid_integrations = ['google', 'google_safe', 'hubspot', 'slack'];
+            if (!in_array($integration, $valid_integrations)) {
+                return rest_ensure_response(array(
+                    'status' => 'failed',
+                    'message' => 'Invalid integration. Valid options: ' . implode(', ', $valid_integrations),
+                ));
+            }
+            
+            // Force refresh (can_retry = true)
+            $access_token = maybe_refresh_access_token_by_integration($integration, true);
+            
+            // Get updated status
+            $status = tablesome_get_oauth_status($integration);
+            
+            $response_status = !empty($access_token) && $status['is_healthy'] ? 'success' : 'failed';
+            $message = $response_status === 'success' 
+                ? 'Token refreshed successfully.' 
+                : 'Token refresh failed. Please re-authenticate.';
+            
+            return rest_ensure_response(array(
+                'status' => $response_status,
+                'message' => $message,
+                'data' => $status,
+            ));
+        }
+
+        /**
+         * Run OAuth health check for all integrations
+         * 
+         * @param \WP_REST_Request $request Request object
+         * @return \WP_REST_Response Response
+         */
+        public function run_oauth_health_check($request)
+        {
+            $integrations = ['google', 'google_safe', 'hubspot', 'slack'];
+            $results = array();
+            $issues_found = 0;
+            
+            foreach ($integrations as $integration) {
+                $status = tablesome_get_oauth_status($integration);
+                
+                // If token is expired and we have refresh token, try to refresh
+                if ($status['is_configured'] && $status['is_token_expired'] && $status['has_refresh_token']) {
+                    $access_token = maybe_refresh_access_token_by_integration($integration, true);
+                    $status = tablesome_get_oauth_status($integration);
+                }
+                
+                $results[$integration] = $status;
+                
+                if ($status['action_required']) {
+                    $issues_found++;
+                }
+            }
+            
+            $results['summary'] = array(
+                'total_integrations' => count($integrations),
+                'issues_found' => $issues_found,
+                'all_healthy' => $issues_found === 0,
+                'timestamp' => current_time('mysql', 1),
+            );
+            
+            $overall_status = $issues_found === 0 ? 'success' : 'warning';
+            $message = $issues_found === 0 
+                ? 'All OAuth integrations are healthy.' 
+                : sprintf('%d integration(s) require attention.', $issues_found);
+            
+            return rest_ensure_response(array(
+                'status' => $overall_status,
+                'message' => $message,
+                'data' => $results,
+            ));
+        }
     }
 }

@@ -11,11 +11,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Feature_Notice')) {
     {
         public $dismissed_option_name = 'tablesome_feature_notice_dismissed';
 
-        public $version = '1.1.25';
+        public $version = '1.2';
 
-        public $feature_page_url = 'https://tablesomewp.com/releases/';
+        public $feature_page_url = '';
 
-        public $content = 'Update Row option ';
+        public $content = 'Tablesome just got faster';
 
         public function init()
         {
@@ -74,7 +74,9 @@ if (!class_exists('\Tablesome\Includes\Modules\Feature_Notice')) {
         public function get_content()
         {
             $content = $this->content;
-            $content .= '<a class="tablesome__notice__button tablesome__featureLinkButton" href="' . $this->feature_page_url . '" target="_blank">See Product Updates</a>';
+            if (!empty($this->feature_page_url)) {
+                $content .= '<a class="tablesome__notice__button tablesome__featureLinkButton" href="' . $this->feature_page_url . '" target="_blank">See Product Updates</a>';
+            }
             return $content;
         }
 

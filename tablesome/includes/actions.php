@@ -3,6 +3,7 @@
 namespace Tablesome\Includes;
 
 use Tablesome\Includes\Modules\API_Credentials_Handler;
+use Tablesome\Includes\Modules\Async_Email_Handler;
 use Tablesome\Components\Table\Settings\Settings as TableLevelSettings;
 use Tablesome\Includes\Settings\Tablesome_Getter;
 if ( !defined( 'ABSPATH' ) ) {
@@ -18,6 +19,10 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
         public $workflow_manager_instance;
 
         public $cron;
+
+        public $oauth_health_monitor;
+
+        public $async_email_handler;
 
         public function __construct() {
             $this->utils = new \Tablesome\Includes\Utils();
@@ -44,6 +49,11 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
             add_action( 'admin_init', array($this, 'admin_init_hook') );
             add_action( 'admin_init', [new \Tablesome\Includes\Modules\Review_Notification(), 'init'] );
             add_action( 'admin_init', [new \Tablesome\Includes\Modules\Feature_Notice(), 'init'] );
+            // Initialize OAuth Health Monitor for proactive token refresh and admin notifications
+            $this->oauth_health_monitor = new \Tablesome\Includes\Modules\OAuth_Health_Monitor();
+            // Initialize Async Email Handler for background email processing
+            // This registers the action hook for processing queued emails
+            $this->async_email_handler = new Async_Email_Handler();
             add_action( 'init', array($this, 'init_automation') );
             add_action( "load-post-new.php", [$this, "redirect_to_add_new_table_custom_page"] );
             add_action( 'admin_enqueue_scripts', 'wp_enqueue_media' );
@@ -375,7 +385,22 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
             $tablesome_localize_data = [
                 "config" => TableLevelSettings::get_config(),
             ];
-            wp_localize_script( $bundle_name, 'tablesome_api_data', $this->get_api_data() );
+            // SECURITY FIX: Only load sensitive API credentials on pages where they're needed
+            // and only for users with appropriate capabilities
+            if ( $this->should_load_api_credentials() ) {
+                wp_localize_script( $bundle_name, 'tablesome_api_data', $this->get_api_data() );
+            } else {
+                // Provide empty API data structure to prevent JavaScript errors
+                wp_localize_script( $bundle_name, 'tablesome_api_data', array(
+                    'mailchimp_api_key'            => '',
+                    'mailchimp_api_status'         => false,
+                    'mailchimp_api_status_message' => '',
+                    'notion_api_key'               => '',
+                    'notion_api_status'            => false,
+                    'notion_api_status_message'    => '',
+                    'api_credentials'              => array(),
+                ) );
+            }
             wp_localize_script( $bundle_name, 'tablesome', $tablesome_localize_data );
             wp_enqueue_script(
                 'google-picker-api',
@@ -472,6 +497,30 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
                 // error_log('$tablesome_settings : ' . print_r($tablesome_settings, true));
                 wp_enqueue_script( 'sheetjs' );
             }
+        }
+
+        /**
+         * SECURITY: Determines if sensitive API credentials should be loaded
+         * Only load on Tablesome-specific admin pages and for users with appropriate capabilities
+         * 
+         * @return bool True if API credentials should be loaded
+         */
+        private function should_load_api_credentials() {
+            // Only administrators should have access to API credentials
+            if ( !current_user_can( 'manage_options' ) ) {
+                return false;
+            }
+            $post_type = ( isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : '' );
+            $page = ( isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '' );
+            // Allow API credentials only on Tablesome-specific pages
+            $allowed_pages = array(
+                'tablesome-settings',
+                // Settings page where integrations are configured
+                'tablesome_admin_page',
+            );
+            // Check if we're on a Tablesome page
+            $is_tablesome_page = $post_type === TABLESOME_CPT && in_array( $page, $allowed_pages );
+            return $is_tablesome_page;
         }
 
         public function get_api_data() {
@@ -725,7 +774,8 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
             // error_log('table_id: ' . $table_id);
             $enqueue_data = array();
             $enqueue_data['triggers'] = get_tablesome_table_triggers( $table_id );
-            if ( $post_type != TABLESOME_CPT || $page != 'tablesome_admin_page' ) {
+            // SECURITY FIX: Only load API data on Tablesome admin pages and for users with appropriate capabilities
+            if ( $post_type != TABLESOME_CPT || $page != 'tablesome_admin_page' || !current_user_can( 'manage_options' ) ) {
                 return $enqueue_data;
             }
             $api_data = $this->get_api_data();
@@ -768,6 +818,7 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
             if ( empty( $tablesome_tables_collection ) ) {
                 return;
             }
+            $json_data = wp_json_encode( $tablesome_tables_collection );
             // $script = "<script type='text/javascript'>";
             // $script .= "window.tablesomeTables = " . tablesome_json_encode($tablesome_tables_collection) . ";";
             // $script .= "</script>";
@@ -775,7 +826,7 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
             ?>
             <script type='text/javascript'>
                 window.tablesomeTables = <?php 
-            echo wp_json_encode( $tablesome_tables_collection );
+            echo $json_data;
             ?> ;
             </script>
     <?php 
@@ -887,22 +938,26 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
                 'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
                 'edit_table_url' => admin_url( 'edit.php?post_type=' . TABLESOME_CPT . '&action=edit&post=0&page=tablesome_admin_page' ),
                 'api_endpoints'  => array(
-                    'prefix'               => get_rest_url( null, 'tablesome/v1/tables/' ),
-                    'save_table'           => get_rest_url( null, 'tablesome/v1/tables' ),
-                    'import_records'       => get_rest_url( null, 'tablesome/v1/tables/import' ),
-                    'store_api_key'        => get_rest_url( null, 'tablesome/v1/tablesome-api-keys/' ),
-                    'workflow_posts_data'  => $url,
-                    'workflow_posts'       => get_rest_url( null, 'tablesome/v1/workflow/posts?' ),
-                    'workflow_fields'      => get_rest_url( null, 'tablesome/v1/workflow/fields?' ),
-                    'workflow_terms'       => get_rest_url( null, 'tablesome/v1/workflow/terms?' ),
-                    'workflow_taxonomies'  => get_rest_url( null, 'tablesome/v1/workflow/taxonomies?' ),
-                    'workflow_user_roles'  => get_rest_url( null, 'tablesome/v1/workflow/get-user-roles?' ),
-                    'workflow_post_types'  => get_rest_url( null, 'tablesome/v1/workflow/get-post-types?' ),
-                    'workflow_users'       => get_rest_url( null, 'tablesome/v1/workflow/get-users?' ),
-                    'get_oauth_data'       => get_rest_url( null, 'tablesome/v1/workflow/get-oauth-data?' ),
-                    'delete_oauth_data'    => get_rest_url( null, 'tablesome/v1/workflow/delete-oauth-data?' ),
-                    'get_access_token'     => get_rest_url( null, 'tablesome/v1/workflow/get-access-token' ),
-                    'get-spreadsheet-data' => get_rest_url( null, 'tablesome/v1/workflow/get-spreadsheet-data' ),
+                    'prefix'                      => get_rest_url( null, 'tablesome/v1/tables/' ),
+                    'save_table'                  => get_rest_url( null, 'tablesome/v1/tables' ),
+                    'import_records'              => get_rest_url( null, 'tablesome/v1/tables/import' ),
+                    'store_api_key'               => get_rest_url( null, 'tablesome/v1/tablesome-api-keys/' ),
+                    'workflow_posts_data'         => $url,
+                    'workflow_posts'              => get_rest_url( null, 'tablesome/v1/workflow/posts?' ),
+                    'workflow_fields'             => get_rest_url( null, 'tablesome/v1/workflow/fields?' ),
+                    'workflow_terms'              => get_rest_url( null, 'tablesome/v1/workflow/terms?' ),
+                    'workflow_taxonomies'         => get_rest_url( null, 'tablesome/v1/workflow/taxonomies?' ),
+                    'workflow_user_roles'         => get_rest_url( null, 'tablesome/v1/workflow/get-user-roles?' ),
+                    'workflow_post_types'         => get_rest_url( null, 'tablesome/v1/workflow/get-post-types?' ),
+                    'workflow_users'              => get_rest_url( null, 'tablesome/v1/workflow/get-users?' ),
+                    'get_oauth_data'              => get_rest_url( null, 'tablesome/v1/workflow/get-oauth-data?' ),
+                    'delete_oauth_data'           => get_rest_url( null, 'tablesome/v1/workflow/delete-oauth-data?' ),
+                    'get_access_token'            => get_rest_url( null, 'tablesome/v1/workflow/get-access-token' ),
+                    'get-spreadsheet-data'        => get_rest_url( null, 'tablesome/v1/workflow/get-spreadsheet-data' ),
+                    'oauth_status'                => get_rest_url( null, 'tablesome/v1/oauth/status' ),
+                    'oauth_status_by_integration' => get_rest_url( null, 'tablesome/v1/oauth/status/' ),
+                    'oauth_refresh'               => get_rest_url( null, 'tablesome/v1/oauth/refresh/' ),
+                    'oauth_health_check'          => get_rest_url( null, 'tablesome/v1/oauth/health-check' ),
                 ),
                 "site_domain"    => $_SERVER['SERVER_NAME'],
             );

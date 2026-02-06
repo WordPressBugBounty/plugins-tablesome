@@ -22,6 +22,7 @@ if (!class_exists('\Tablesome')) {
             $this->load_actions();
             $this->load_filters();
             $this->load_shortcodes();
+            $this->load_blocks();
 
             // Test Prototypes
             // add_action('init', array($this, 'test_google_delete_rows'));
@@ -85,6 +86,13 @@ if (!class_exists('\Tablesome')) {
         protected function setup_autoload()
         {
             require_once TABLESOME_PATH . '/vendor/autoload.php';
+
+            // Load Action Scheduler for async background processing (emails, etc.)
+            // Action Scheduler has built-in version resolution - only highest version loads
+            $action_scheduler_path = TABLESOME_PATH . '/vendor/woocommerce/action-scheduler/action-scheduler.php';
+            if (file_exists($action_scheduler_path)) {
+                require_once $action_scheduler_path;
+            }
         }
 
         protected function load_library()
@@ -160,6 +168,13 @@ if (!class_exists('\Tablesome')) {
             /** Init shortcode builder  */
             $builder = new \Tablesome\Includes\Shortcode_Builder\Builder();
             $builder->init();
+        }
+
+        /* Gutenberg Blocks */
+        public function load_blocks()
+        {
+            $block = new \Tablesome\Includes\Blocks\Tablesome_Shortcode_Block();
+            $block->init();
         }
     }
     new Tablesome();

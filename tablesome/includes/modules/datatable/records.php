@@ -42,8 +42,10 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Records')) {
 
         public function is_admin()
         {
-            $is_admin = current_user_can('administrator');
-            return $is_admin;
+            // Allow administrators and editors to bypass column restrictions
+            $is_admin = current_user_can('manage_options'); // Administrators
+            $is_editor = current_user_can('edit_posts'); // Editors and above
+            return $is_admin || $is_editor;
         }
 
         public function update_records($args, $response_data = [])
@@ -110,7 +112,24 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Records')) {
         {
             // return [];
             $permissions = $this->access_controller->get_permissions($table_meta);
-            return isset($permissions['editable_columns']) ? $permissions['editable_columns'] : [];
+            $editable_columns = isset($permissions['editable_columns']) ? $permissions['editable_columns'] : [];
+            
+            // SECURITY: Protect email column from being edited when email_column_match is enabled
+            // Only restrict for non-admins; admins and editors can still edit the email column
+            $access_control = isset($table_meta['options']['access_control']) ? $table_meta['options']['access_control'] : [];
+            $record_edit_access = isset($access_control['record_edit_access']) ? $access_control['record_edit_access'] : '';
+            $email_column_id = isset($access_control['email_column_for_row_access']) ? $access_control['email_column_for_row_access'] : null;
+            
+            // If email_column_match mode is enabled and email column is set, remove it from editable columns (non-admins only)
+            if ($record_edit_access === 'email_column_match' && $email_column_id !== null && $email_column_id !== '' && !$this->is_admin()) {
+                // Remove email column from editable columns array
+                $editable_columns = array_diff($editable_columns, [$email_column_id]);
+                
+                // Log security event
+                error_log('Tablesome Security: Email column ' . $email_column_id . ' automatically excluded from editable columns (email_column_match mode)');
+            }
+            
+            return $editable_columns;
         }
 
         public function insert_many($table_id, $meta_data, $records)
@@ -177,7 +196,6 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Records')) {
             foreach ($record_ids as $record_id) {
                 $can_delete = $this->record->can_user_delete_record($record_id, $args, $table_meta_data);
 
-                error_log('$can_delete : ' . $can_delete);
                 if ($can_delete) {
                     $query->delete_item($record_id);
                 }
@@ -294,13 +312,15 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Records')) {
                 return $row_permissions;
             }
 
-            $row_permissions['is_deletable'] = $this->access_controller->can_delete_record($record, $table_meta, $permissions);
+            // Cache user data to avoid repeated wp_get_current_user() calls
+            $current_user = wp_get_current_user();
+            $current_user_id = $current_user ? $current_user->ID : 0;
+
+            $row_permissions['is_deletable'] = $this->access_controller->can_delete_record($record, $table_meta, $permissions, $current_user, $current_user_id);
 
             if (!empty($record_edit_access)) {
-                $row_permissions['is_editable'] = $this->access_controller->can_edit_record($record, $table_meta, $record_edit_access);
+                $row_permissions['is_editable'] = $this->access_controller->can_edit_record($record, $table_meta, $record_edit_access, $current_user, $current_user_id);
             }
-
-            error_log('get_row_action_permissions - end $row_permissions: ' . print_r($row_permissions, true));
 
             return $row_permissions;
         }

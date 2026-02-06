@@ -93,10 +93,120 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
         
         public function api_access_permission()
         {
-            if (\get_current_user_id() >= 1) {
+            $debug_enabled = defined('TABLESOME_DEBUG_LARGE_TABLES') && TABLESOME_DEBUG_LARGE_TABLES === true;
+
+            // Method 1: Check user ID directly (most reliable for REST API)
+            $user_id = \get_current_user_id();
+            if ($user_id > 0) {
                 return true;
             }
+
+            // Method 2: Check via wp_get_current_user()
+            $user = \wp_get_current_user();
+            if ($user && isset($user->ID) && $user->ID > 0) {
+                return true;
+            }
+
+            // Method 3: Check is_user_logged_in() as fallback
+            if (\is_user_logged_in()) {
+                return true;
+            }
+
+            // Method 4: Fallback - Try nonce verification for REST API requests
+            $nonce = isset($_SERVER['HTTP_X_WP_NONCE']) ? $_SERVER['HTTP_X_WP_NONCE'] : '';
+            if (!empty($nonce) && \wp_verify_nonce($nonce, 'wp_rest')) {
+                return true;
+            }
+
+            // Method 5: Try to manually authenticate from cookies (last resort)
+            $cookie_name = \LOGGED_IN_COOKIE;
+            if (isset($_COOKIE[$cookie_name])) {
+                $cookie_value = $_COOKIE[$cookie_name];
+                $user_id = \wp_validate_auth_cookie($cookie_value, 'logged_in');
+                if ($user_id) {
+                    \wp_set_current_user($user_id);
+                    return true;
+                }
+            }
+
+            // Debug logging - only when explicitly enabled
+            if ($debug_enabled) {
+                error_log('=== api_access_permission() - All authentication methods failed ===');
+                error_log('REQUEST_METHOD: ' . (isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'N/A'));
+                error_log('REQUEST_URI: ' . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : 'N/A'));
+            }
+
             $error_code = "UNAUTHORIZED";
+            return new \WP_Error($error_code, $this->get_error_message($error_code));
+        }
+
+        /**
+         * Permission callback for REST API endpoints that read table data.
+         * Requires admin-level access (manage_options capability) to prevent
+         * unauthorized access to sensitive table data like email logs.
+         *
+         * @return bool|\WP_Error True if user has permission, WP_Error otherwise
+         */
+        public function api_table_read_permission()
+        {
+            // Require admin-level access for reading table data via REST API
+            if (!\current_user_can('manage_options')) {
+                $error_code = "UNAUTHORIZED";
+                return new \WP_Error($error_code, $this->get_error_message($error_code));
+            }
+            return true;
+        }
+
+        /**
+         * Permission callback for the table export endpoint.
+         *
+         * Security model:
+         *  - If public export is enabled for a table (allow_public_export = true),
+         *    anyone may export it (including unauthenticated users).
+         *  - If public export is disabled:
+         *      - Only Editors/Admins (edit_others_posts / manage_options) may export.
+         *      - Contributors and lower roles are blocked, even on their own tables.
+         *
+         * This ensures that the REST export endpoint is restricted to privileged
+         * backend roles while the frontend export button can continue to use
+         * client-side XLSX based on UI permissions.
+         *
+         * @param \WP_REST_Request $request
+         * @return bool|\WP_Error
+         */
+        public function api_table_export_permission($request)
+        {
+            $table_id = intval($request->get_param('table_id'));
+
+            if (!$table_id) {
+                $error_code = 'REQUIRED_POST_ID';
+                return new \WP_Error($error_code, $this->get_error_message($error_code));
+            }
+
+            $post = \get_post($table_id);
+            if (!$post || $post->post_type !== TABLESOME_CPT) {
+                $error_code = 'INVALID_POST';
+                return new \WP_Error($error_code, $this->get_error_message($error_code));
+            }
+
+            $table_meta = \get_tablesome_data($table_id);
+            $access_control = isset($table_meta['options']['access_control']) ? $table_meta['options']['access_control'] : [];
+            $allow_public_export = isset($access_control['allow_public_export']) ? $access_control['allow_public_export'] : false;
+
+            // When public export is enabled, allow anyone to export.
+            if ($allow_public_export) {
+                return true;
+            }
+
+            // When public export is disabled, only Editors/Admins are allowed.
+            $can_edit_others_posts = \current_user_can('edit_others_posts');
+            $can_manage_options = \current_user_can('manage_options');
+
+            if ($can_manage_options || $can_edit_others_posts) {
+                return true;
+            }
+
+            $error_code = 'UNAUTHORIZED';
             return new \WP_Error($error_code, $this->get_error_message($error_code));
         }
 
@@ -112,6 +222,26 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             $message = isset($messages[$error_code]) ? $messages[$error_code] : 'Something Went Wrong, try later';
             return $message;
+        }
+
+        /**
+         * Map error codes to appropriate HTTP status codes
+         *
+         * @param string $error_code The error code
+         * @return int HTTP status code
+         */
+        public function get_http_status_for_error($error_code)
+        {
+            $status_map = array(
+                'UNAUTHORIZED' => 403,        // Forbidden - user doesn't have permission
+                'REQUIRED_POST_ID' => 400,    // Bad Request - missing required parameter
+                'INVALID_POST' => 404,        // Not Found - resource doesn't exist
+                'REQUIRED_RECORD_IDS' => 400, // Bad Request - missing required parameter
+                'UNABLE_TO_CREATE' => 500,    // Internal Server Error - server-side failure
+                'INVALID_RESPONSE' => 500,    // Internal Server Error - invalid response format
+            );
+
+            return isset($status_map[$error_code]) ? $status_map[$error_code] : 400; // Default to 400 for validation errors
         }
 
         public function is_admin_user()
@@ -389,8 +519,14 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
         public function save_table($params)
         {
-
-            // error_log('save_table() $params : ' . print_r($params, true));
+            // Debug logging - only enable with TABLESOME_DEBUG_LARGE_TABLES constant
+            if (defined('TABLESOME_DEBUG_LARGE_TABLES') && TABLESOME_DEBUG_LARGE_TABLES === true) {
+                error_log('=== save_table() called ===');
+                error_log('Current user ID: ' . \get_current_user_id());
+                error_log('Mode: ' . (isset($params['mode']) ? $params['mode'] : 'N/A'));
+                error_log('Origin location: ' . (isset($params['origin_location']) ? $params['origin_location'] : 'N/A'));
+                error_log('Table ID: ' . (isset($params['table_id']) ? $params['table_id'] : 'N/A'));
+            }
 
             $is_rest_backend = (defined('REST_REQUEST') && REST_REQUEST);
             $should_create_table = ($params['mode'] == 'editor' || \is_admin()) && ($params['origin_location'] == 'backend');
@@ -421,6 +557,16 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             // Backend / Admin Area only
             if ($should_create_table) {
+                // Creating/importing tables requires admin permission
+                if (!$this->is_admin_user()) {
+                    $this->response = array(
+                        'status' => 'failed',
+                        'error_code' => 'UNAUTHORIZED',
+                        'message' => $this->get_error_message('UNAUTHORIZED'),
+                    );
+                    return $this->send_response($params);
+                }
+                
                 // Create a WordPress post of tablesome's post_type (if not update)
                 $params = $this->create_cpt_post($params);
                 $params['update_type'] = 'create';
@@ -432,12 +578,97 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 // Set table settings (as post_meta)
                 $this->datatable->settings->save($params);
             } else {
+                // Updating existing table - check ownership and access control
                 $params['update_type'] = 'edit';
+                
+                // Security: Check permissions when updating table structure (columns/settings)
+                // For frontend mode: Check access control settings first
+                // For backend/editor mode: Check ownership
+                // Record-only updates are handled separately in update_table_records()
+                $has_columns_update = isset($params['columns']) && !empty($params['columns']);
+                $has_settings_update = isset($params['access_control']) || isset($params['display']) || isset($params['style']);
+                
+                // Only perform authorization check if columns or settings are being modified
+                // Note: Frontend always sends these, but we still need to check permissions
+                if (($has_columns_update || $has_settings_update) && !empty($params['table_id'])) {
+                    $post = \get_post($params['table_id']);
+                    if ($post) {
+                        $mode = isset($params['mode']) ? $params['mode'] : '';
+                        $origin_location = isset($params['origin_location']) ? $params['origin_location'] : '';
+                        // Frontend mode: origin_location is 'frontend' (mode can be 'read-only', 'frontend', etc.)
+                        $is_frontend_mode = ($origin_location == 'frontend');
+                        // Editor/backend mode: mode is 'editor' or origin_location is 'backend'
+                        $is_editor_mode = ($mode == 'editor' || $origin_location == 'backend');
+                        
+                        $current_user_id = \get_current_user_id();
+                        $can_edit_others_posts = \current_user_can('edit_others_posts');
+                        // Security: Verify user is authenticated before checking ownership (prevent 0 == 0 bypass)
+                        $is_table_owner = ($current_user_id > 0 && $post->post_author == $current_user_id);
+                        
+                        // For backend/editor mode: Require ownership or edit_others_posts capability
+                        if ($is_editor_mode) {
+                            if (!$can_edit_others_posts && !$is_table_owner) {
+                                error_log('Blocked: User ' . $current_user_id . ' cannot modify table structure for table ' . $params['table_id'] . ' (editor mode)');
+                                $error_code = "UNAUTHORIZED";
+                                return new \WP_Error($error_code, $this->get_error_message($error_code), array('status' => 403));
+                            }
+                        }
+                        // For frontend mode: Check access control settings
+                        elseif ($is_frontend_mode) {
+                            // For frontend mode, check access control permissions first
+                            // Frontend always sends columns, access_control, display, style in requests
+                            // So we check if access control allows editing - if yes, permit the request
+                            // The actual validation of what can be modified happens in the save logic
+                            
+                            // Allow if user owns the table or has edit_others_posts capability
+                            if ($can_edit_others_posts || $is_table_owner) {
+                                // Owner/admin can update - no further checks needed
+                            } else {
+                                // Non-owner: Check access control permissions
+                                $table_meta = \get_tablesome_data($params['table_id']);
+                                if (empty($table_meta)) {
+                                    error_log('Warning: Could not load table meta for table ' . $params['table_id']);
+                                }
+                                $access_controller = new \Tablesome\Components\TablesomeDB\Access_Controller();
+                                $permissions = $access_controller->get_permissions($table_meta);
+                                
+                                // If access control allows frontend editing, permit the request
+                                // The access control system and record/column save logic will handle
+                                // validation of which columns/rows can actually be modified
+                                if (!$permissions['can_edit']) {
+                                    error_log('Blocked: User ' . $current_user_id . ' does not have frontend editing permission for table ' . $params['table_id'] . '. can_edit: ' . ($permissions['can_edit'] ? 'true' : 'false'));
+                                    $error_code = "UNAUTHORIZED";
+                                    return new \WP_Error($error_code, $this->get_error_message($error_code), array('status' => 403));
+                                }
+                                
+                                // Note: Settings (access_control, display, style) modifications from frontend
+                                // are handled by the settings save logic which respects access control
+                                // Column modifications are validated against editable_columns in the save logic
+                                // Record modifications are validated in update_table_records()
+                            }
+                        }
+                        // For other modes or if not frontend/editor: Require ownership or edit_others_posts
+                        else {
+                            if (!$can_edit_others_posts && !$is_table_owner) {
+                                error_log('Blocked: User ' . $current_user_id . ' cannot modify table structure for table ' . $params['table_id']);
+                                $error_code = "UNAUTHORIZED";
+                                return new \WP_Error($error_code, $this->get_error_message($error_code), array('status' => 403));
+                            }
+                        }
+                    }
+                }
             }
 
             // CRUD Records (update table records)
             $params['recordsData']['table_id'] = $params['table_id'];
-            $this->response = $this->update_table_records($params['recordsData']);
+            $update_result = $this->update_table_records($params['recordsData']);
+
+            // Handle WP_Error from update_table_records
+            if (\is_wp_error($update_result)) {
+                return $update_result; // Return WP_Error directly for REST API to handle
+            }
+            
+            $this->response = $update_result;
 
             // error_log('save_table() $params[recordsData] : ' . print_r($params['recordsData'], true));
             // error_log('save_table() $this->response : ' . print_r($this->response, true));
@@ -447,7 +678,21 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
         public function send_response($params)
         {
-            if ($this->response['status'] == 'success') {
+            // Handle WP_Error
+            if (\is_wp_error($this->response)) {
+                return $this->response; // Return WP_Error directly for REST API to handle
+            }
+            
+            // Ensure response is an array
+            if (!is_array($this->response)) {
+                $this->response = array(
+                    'status' => 'failed',
+                    'error_code' => 'INVALID_RESPONSE',
+                    'message' => 'Invalid response format',
+                );
+            }
+            
+            if (isset($this->response['status']) && $this->response['status'] == 'success') {
                 $this->response['message'] = 'Table saved successfully';
             }
 
@@ -455,7 +700,27 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             // Dispatch to Mixpanel
             $this->dispatch_mixpanel_event($params);
-            return \rest_ensure_response($this->response);
+            
+            // Return proper HTTP status code based on response status
+            $response = \rest_ensure_response($this->response);
+            if (isset($this->response['status']) && $this->response['status'] == 'failed') {
+                // Check if status code is explicitly provided in response
+                $http_status = null;
+                if (isset($this->response['http_status'])) {
+                    $http_status = intval($this->response['http_status']);
+                } elseif (isset($this->response['status_code'])) {
+                    $http_status = intval($this->response['status_code']);
+                } elseif (isset($this->response['error_code'])) {
+                    // Map error code to appropriate HTTP status
+                    $http_status = $this->get_http_status_for_error($this->response['error_code']);
+                } else {
+                    // Default to 400 (Bad Request) for general failures
+                    // This is more appropriate than 403, as 403 should be reserved for authorization failures
+                    $http_status = 400;
+                }
+                $response->set_status($http_status);
+            }
+            return $response;
         }
 
         public function create_cpt_post($params)
@@ -495,7 +760,8 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             if (empty($params['table_id'])) {
                 $this->response = array(
                     'status' => 'failed',
-                    'message' => $this->get_error_message('UNABLE_TO_CREATE_POST'),
+                    'error_code' => 'UNABLE_TO_CREATE',
+                    'message' => $this->get_error_message('UNABLE_TO_CREATE'),
                 );
                 // return rest_ensure_response($response);
             } else {
@@ -511,6 +777,16 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
         public function get_tables($request)
         {
+            // Defense-in-depth: Require admin-level access for reading table data via REST API
+            if (!\current_user_can('manage_options')) {
+                $error_code = "UNAUTHORIZED";
+                return new \WP_Error(
+                    $error_code,
+                    $this->get_error_message($error_code),
+                    array('status' => $this->get_http_status_for_error($error_code))
+                );
+            }
+
             $data = array();
             /** Get all tablesome posts */
             $posts = \get_posts(
@@ -586,6 +862,16 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
         }
         public function get_table_data($request)
         {
+            // Defense-in-depth: Require admin-level access for reading table data via REST API
+            if (!\current_user_can('manage_options')) {
+                $error_code = "UNAUTHORIZED";
+                return new \WP_Error(
+                    $error_code,
+                    $this->get_error_message($error_code),
+                    array('status' => $this->get_http_status_for_error($error_code))
+                );
+            }
+
             $data = array();
             $table_id = $request->get_param('table_id');
             $post = \get_post($table_id);
@@ -639,6 +925,12 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
         public function delete($request)
         {
+            // Deleting tables requires admin permission
+            if (!$this->is_admin_user()) {
+                $error_code = "UNAUTHORIZED";
+                return new \WP_Error($error_code, $this->get_error_message($error_code));
+            }
+            
             $table_id = $request->get_param('table_id');
 
             if (empty($table_id)) {
@@ -733,7 +1025,14 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
         public function update_table_records_rest($request)
         {
             $params = $request->get_params();
-            $this->response = $this->update_table_records($params);
+            $update_result = $this->update_table_records($params);
+            
+            // Handle WP_Error from update_table_records
+            if (\is_wp_error($update_result)) {
+                return $update_result; // Return WP_Error directly for REST API to handle
+            }
+            
+            $this->response = $update_result;
             return $this->send_response($params);
         }
 
@@ -761,6 +1060,25 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             if (!$access_info['has_access']) {
                 return new \WP_Error($access_info['error_code'], $access_info['message']);
+            }
+
+            // Security: Check table ownership - Only for backend/editor mode
+            // For frontend mode, rely on Access Controller which checks table settings
+            // Contributors can only update their own tables in editor mode
+            // Editors and Admins (with edit_others_posts) can update any table
+            $mode = isset($params['mode']) ? $params['mode'] : '';
+            $is_editor_mode = ($mode == 'editor');
+            
+            if ($is_editor_mode && $post) {
+                $current_user_id = \get_current_user_id();
+                $can_edit_others_posts = \current_user_can('edit_others_posts');
+                // Security: Verify user is authenticated before checking ownership (prevent 0 == 0 bypass)
+                $is_table_owner = ($current_user_id > 0 && $post->post_author == $current_user_id);
+                
+                if (!$can_edit_others_posts && !$is_table_owner) {
+                    $error_code = "UNAUTHORIZED";
+                    return new \WP_Error($error_code, $this->get_error_message($error_code));
+                }
             }
 
             // if (empty($post) || $post->post_type != TABLESOME_CPT) {
@@ -820,16 +1138,17 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 return new \WP_Error($access_info['error_code'], $access_info['message']);
             }
 
-            // Check if user has permission to delete the table records
-            // if (!current_user_can('delete_post', $table_id)) {
-            //     $error_code = "UNAUTHORIZED";
-            //     return new \WP_Error($error_code, $this->get_error_message($error_code));
-            // }
-
-            // if (empty($post) || $post->post_type != TABLESOME_CPT) {
-            //     $error_code = "INVALID_POST";
-            //     return new \WP_Error($error_code, $this->get_error_message($error_code));
-            // }
+            // Security: Check if user has permission to delete records from this table
+            // Users must either own the table or have edit_others_posts capability
+            $current_user_id = \get_current_user_id();
+            $can_edit_others_posts = \current_user_can('edit_others_posts');
+            // Security: Verify user is authenticated before checking ownership (prevent 0 == 0 bypass)
+            $is_table_owner = ($current_user_id > 0 && $post && $post->post_author == $current_user_id);
+            
+            if (!$can_edit_others_posts && !$is_table_owner) {
+                $error_code = "UNAUTHORIZED";
+                return new \WP_Error($error_code, $this->get_error_message($error_code));
+            }
 
             if (empty($record_ids)) {
                 $error_code = "REQUIRED_RECORD_IDS";
@@ -840,6 +1159,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             $tablesome_db = new \Tablesome\Includes\Modules\TablesomeDB\TablesomeDB();
             $table = $tablesome_db->create_table_instance($post->ID);
+            $table_meta = \get_tablesome_data($post->ID);
 
             $query = $tablesome_db->query(array(
                 'table_id' => $post->ID,
@@ -848,6 +1168,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             $args['table_id'] = $post->ID;
             $args['query'] = $query;
             $args['mode'] = $mode;
+            $args['meta_data'] = $table_meta;
             $delete_records = $this->datatable->records->delete_records($args, $record_ids);
 
             $response_data = array(

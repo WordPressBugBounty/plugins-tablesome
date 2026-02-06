@@ -56,11 +56,11 @@ if (!class_exists('\Tablesome\Includes\Cron')) {
 
         public function run(array $args = array())
         {
-            //error_log('$this->fs_utils->can_track() : ' . $this->fs_utils->can_track());
+            error_log('$this->fs_utils->can_track() : ' . $this->fs_utils->can_track());
             if (!$this->fs_utils->can_track()) {
                 return;
             }
-            // error_log(' READY TO SEND DATA TO AMPLITUDE ');
+            error_log(' READY TO SEND DATA TO AMPLITUDE ');
             $controller = new \Tablesome\Includes\Tracking\Controller();
             $controller->send_data();
 

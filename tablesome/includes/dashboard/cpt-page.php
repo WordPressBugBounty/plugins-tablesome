@@ -102,10 +102,12 @@ if ( !class_exists( '\\Tablesome\\Includes\\Dashboard\\CPT_Page' ) ) {
             $html = '<div class="tablesome__fields">';
             // $html .= '<label for="tablesome-shortcode">'.__("", "tablesome").'Tablesome Shortcode</label>';
             $html .= '<div class="tablesome__field--shortcodeWrapper" title="Table Shortcode">';
-            $html .= '<input type="text" id="tablesome__field--shortcode" value="' . $shortcode_in_text . '" readonly class="tablesome__field--shortcode" >';
-            $html .= '<span class="tablesome__field--clipboardText" title="' . __( "Copy Shortcode Clipboard", "tablesome" ) . '">' . __( "Copy Shortcode", "tablesome" ) . '</span>';
+            $html .= '<input type="text" id="tablesome__field--shortcode" value="' . esc_attr( $shortcode_in_text ) . '" readonly class="tablesome__field--shortcode" data-table-id="' . esc_attr( $post->ID ) . '" data-initial-shortcode="' . esc_attr( $shortcode_in_text ) . '">';
+            $html .= '<span class="tablesome__field--clipboardText" title="' . esc_attr( __( "Copy Shortcode Clipboard", "tablesome" ) ) . '">' . esc_html( __( "Copy Shortcode", "tablesome" ) ) . '</span>';
+            $html .= '<button type="button" class="tablesome__field--customizeButton" title="' . esc_attr( __( "Customize Shortcode", "tablesome" ) ) . '" data-table-id="' . esc_attr( $post->ID ) . '">' . esc_html( __( "Customize", "tablesome" ) ) . '</button>';
             $html .= '</div>';
-            $html .= '<p class="description">' . __( "Copy and paste this shortcode in any page or post to display this Table", "tablesome" ) . '</p>';
+            $html .= '<p class="description">' . esc_html( __( "Copy and paste this shortcode in any page or post to display this Table", "tablesome" ) ) . '</p>';
+            $html .= '<div id="tablesome-shortcode-customizer-container"></div>';
             $html .= '</div>';
             return $html;
         }

@@ -171,29 +171,111 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\On_Send_Email')) {
 
         public function upload_file_from_path($file, $title = null)
         {
+            // Security: Validate that source file exists and is readable
+            if (!file_exists($file) || !is_readable($file)) {
+                error_log('Tablesome Email: Source file not accessible: ' . $file);
+                return 0;
+            }
+            
+            $filename = basename($file);
+            
+            // Security: Define allowed file extensions and MIME types
+            $allowed_extensions = array(
+                // Images
+                'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tiff', 'tif', 'ico', 'webp',
+                // Safe documents
+                'pdf', 'doc', 'docx', 'txt', 'csv', 'xls', 'xlsx', 'ppt', 'pptx',
+                // Video
+                'mp4', 'mov', 'wmv', 'avi', 'mpg', 'mpeg', 'ogv', '3gp', '3g2',
+                // Audio
+                'mp3', 'ogg', 'wav', 'm4a',
+                // Archives
+                'zip', 'rar', '7z', 'tar', 'gz'
+            );
+            
+            $allowed_mime_types = array(
+                // Images
+                'image/jpeg', 'image/gif', 'image/png', 'image/bmp', 'image/tiff', 'image/x-icon', 'image/webp',
+                // Documents
+                'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'text/plain', 'text/csv',
+                'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                // Video
+                'video/mp4', 'video/quicktime', 'video/x-ms-wmv', 'video/avi', 'video/mpeg', 'video/ogg', 'video/3gpp', 'video/3gpp2',
+                // Audio
+                'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp4',
+                // Archives
+                'application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed', 'application/x-tar', 'application/gzip'
+            );
+            
+            // Security: Validate file type from filename BEFORE copying
+            $wp_filetype_pre = wp_check_filetype($filename, null);
+            if ($wp_filetype_pre['type'] === false || empty($wp_filetype_pre['ext'])) {
+                error_log('Tablesome Email: Invalid file type from filename: ' . $filename);
+                return 0;
+            }
+            
+            // Security: Check if extension is in allowed list
+            if (!in_array(strtolower($wp_filetype_pre['ext']), $allowed_extensions, true)) {
+                error_log('Tablesome Email: File extension not allowed: ' . $wp_filetype_pre['ext']);
+                return 0;
+            }
+            
             $media_dir = wp_upload_dir();
             $time_now = time();
-            $upload_data = array();
-
-            copy($file, $media_dir['path'] . '/' . $time_now . '-' . basename($file));
-            $upload_data['name'] = basename($file);
-            $filename = $upload_data['name'];
-            $file = $media_dir['path'] . '/' . $time_now . '-' . basename($file);
-
-            $wp_filetype = wp_check_filetype($filename, null);
-
+            $safe_filename = sanitize_file_name($filename);
+            $dest_file = $media_dir['path'] . '/' . $time_now . '-' . $safe_filename;
+            
+            // Copy the file to destination
+            if (!copy($file, $dest_file)) {
+                error_log('Tablesome Email: Failed to copy file: ' . $file);
+                return 0;
+            }
+            
+            // Security: Validate actual file content after copying
+            $wp_filetype = wp_check_filetype_and_ext($dest_file, $safe_filename, null);
+            
+            // If validation fails, delete the file immediately
+            if ($wp_filetype['type'] === false || 
+                empty($wp_filetype['ext']) || 
+                !in_array(strtolower($wp_filetype['ext']), $allowed_extensions, true) ||
+                !in_array($wp_filetype['type'], $allowed_mime_types, true)) {
+                
+                @unlink($dest_file);
+                error_log('Tablesome Email: File content validation failed, file deleted: ' . $safe_filename);
+                return 0;
+            }
+            
+            // Create attachment with validated file type
             $attachment = array(
                 'post_mime_type' => $wp_filetype['type'],
-                'post_title' => sanitize_file_name($filename),
+                'post_title' => sanitize_file_name(pathinfo($safe_filename, PATHINFO_FILENAME)),
                 'post_content' => '',
                 'post_status' => 'inherit',
             );
-
-            $attachment_id = wp_insert_attachment($attachment, $file);
+            
+            $attachment_id = wp_insert_attachment($attachment, $dest_file);
+            
+            // If attachment creation fails, clean up the file
+            // wp_insert_attachment can return int|WP_Error but PHPStan stubs only show int
+            /** @phpstan-ignore-next-line */
+            if (is_wp_error($attachment_id)) {
+                @unlink($dest_file);
+                error_log('Tablesome Email: Attachment creation error: ' . $attachment_id->get_error_message());
+                return 0;
+            }
+            
+            if (!$attachment_id) {
+                @unlink($dest_file);
+                error_log('Tablesome Email: Failed to create attachment');
+                return 0;
+            }
+            
             require_once ABSPATH . 'wp-admin/includes/image.php';
-            $attachment_metadata = wp_generate_attachment_metadata($attachment_id, $file);
+            $attachment_metadata = wp_generate_attachment_metadata($attachment_id, $dest_file);
             wp_update_attachment_metadata($attachment_id, $attachment_metadata);
-
+            
             return (int) $attachment_id;
         }
 

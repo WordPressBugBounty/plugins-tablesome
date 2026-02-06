@@ -251,27 +251,47 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
             // error_log('get_existing_record_id()prevent_field_column: ' . $prevent_field_column);
             // error_log('get_existing_record_id()row_values: ' . print_r($row_values, true));
 
-            if (empty($prevent_field_column) || !isset($row_values[$prevent_field_column])) {
+            if (empty($prevent_field_column)) {
+                return false;
+            }
+            
+            // Store original column name for array access
+            $original_column_name = $prevent_field_column;
+            
+            // Security: Sanitize column name for SQL use - only allow alphanumeric and underscore
+            $sanitized_column_name = preg_replace('/[^a-zA-Z0-9_]/', '', $prevent_field_column);
+            if (empty($sanitized_column_name)) {
+                error_log('Tablesome: Invalid column name for duplicate prevention');
+                return false;
+            }
+            
+            // Check if original column name exists in row_values (use original key for array access)
+            if (!isset($row_values[$original_column_name])) {
                 return false;
             }
             
             global $wpdb;
-            $table_id = $event_params['table_id'];
+            $table_id = intval($event_params['table_id']);
             $table_name = $wpdb->prefix . 'tablesome_table_' . $table_id;
             
-            $field_value = esc_sql($row_values[$prevent_field_column]);
+            // Use original column name to access array value
+            $field_value = $row_values[$original_column_name];
 
             // error_log('get_existing_record_id() field_value: ' . $field_value);
            
             // error_log('get_existing_record_id()table_name: ' . $table_name);
-            $query = "SELECT id FROM $table_name WHERE $prevent_field_column = '$field_value' LIMIT 1";
+            // Security: Use sanitized column name for SQL query and $wpdb->prepare() for parameterized query
+            $query = $wpdb->prepare(
+                "SELECT id FROM `{$table_name}` WHERE `{$sanitized_column_name}` = %s LIMIT 1",
+                $field_value
+            );
             
             return $wpdb->get_var($query);
         }
 
         private function update_existing_record($record_id, $row_values, $event_params, $db_table)
         {
-            if (empty($record_id)) {
+            if (empty($record_id) || !is_numeric($record_id)) {
                 return false;
             }
 
@@ -283,20 +303,32 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Tablesome_Add_Row')) {
             global $wpdb;
             $table_name = $wpdb->prefix . $db_table->name;
             
-            // Prepare the SET part of the query
-            $set_parts = [];
+            // Security: Build safe update data array with sanitized column names
+            $update_data = array();
+            $format = array();
+            
             foreach ($row_values as $column => $value) {
-                $escaped_value = esc_sql($value);
-                $set_parts[] = "`$column` = '$escaped_value'";
+                // Security: Sanitize column names - only alphanumeric and underscore
+                $safe_column = preg_replace('/[^a-zA-Z0-9_]/', '', $column);
+                if (empty($safe_column) || $safe_column !== $column) {
+                    error_log('Tablesome: Invalid column name skipped: ' . $column);
+                    continue;
+                }
+                
+                $update_data[$safe_column] = $value;
+                $format[] = '%s'; // All values as strings for safety
             }
             
-            $set_clause = implode(', ', $set_parts);
+            // Security: Use $wpdb->update() instead of raw query
+            $result = $wpdb->update(
+                $table_name,
+                $update_data,
+                array('id' => intval($record_id)),
+                $format,
+                array('%d')
+            );
             
-            // Build and execute the UPDATE query
-            $query = "UPDATE $table_name SET $set_clause WHERE id = $record_id";
-            $result = $wpdb->query($query);
-            
-            return $result ? ['record_id' => $record_id, 'status' => 'updated'] : false;
+            return $result !== false ? ['record_id' => intval($record_id), 'status' => 'updated'] : false;
         }
 
         private function insert_missing_columns($insert_record_data, $table_name)

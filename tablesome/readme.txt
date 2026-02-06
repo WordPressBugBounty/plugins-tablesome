@@ -1,9 +1,9 @@
 === Tablesome Table - Contact Form DB - WPForms, CF7, Gravity, Forminator, Fluent ===
 Donate link: https://pauple.com
 Tags: table, email, contact form 7, wpforms, redirect
-Requires at least: 5.2
-Tested up to: 6.8
-Stable tag: 1.1.29
+Requires at least: 6.7
+Tested up to: 6.9
+Stable tag: 1.2.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -13,6 +13,9 @@ Powerful Table, Form & Mail Automations. Form Entry Management (+ frontend table
 
 == Description ==
 [Demo](https://demo.pauple.com/tablesome-demo/) | [Docs](https://tablesomewp.com/docs/) | [Get Pro](https://tablesomewp.com/) | [Test Beta](https://tablesomewp.com/beta-program/) |[Get Support](https://wordpress.org/support/plugin/tablesome/#new-topic-0) | [Submit Feature Requests](https://wordpress.org/support/plugin/tablesome/#new-topic-0)
+
+= 🎉 New Feature: Frontend Access Control with Email Column Option (Pro) 🎉=
+You can now control frontend table access using email columns! This powerful feature allows you to restrict who can view and edit table data based on their email address. Perfect for creating personalized user experiences and managing access to sensitive information directly from your tables.
 
 = All-in-One WordPress plugin to create tables, automation & database for contact forms =
 
@@ -193,6 +196,55 @@ We love to hear from our users and we try to integrate features that our users w
 5. Copy and paste the shortcode on the post.
 
 == Change Log ==
+
+= 1.2.3 =
+Fix: Improved image quality in PDF generation by resolving to full-size originals instead of thumbnails
+Enhancement: Configurable image and signature width settings in PDF action
+Enhancement: Aspect ratio preservation for images and signatures in generated PDFs
+
+= 1.2.2 =
+Feature: New shortcode customizer UI with live preview for configuring table display options
+Feature: Option to exclude specific columns from global search
+General fixes
+
+= 1.2.1 =
+Enhancement: Improved Gutenberg block for inserting tables
+Performance: Faster table loading and API responses
+Fix: Minor bug fixes
+
+= 1.2 =
+Feature: Async email sending via Action Scheduler for improved performance
+Performance: URL and access control related performance optimizations
+Fix: Various bug fixes and improvements
+General: General updates
+
+= 1.1.35.2 =
+Pro: Frontend access control with email column option
+Fix: Elementor Form Signature field issue
+General: General updates
+Performance: Optimized table rendering for large tables
+
+= 1.1.35 =
+General: General updates
+
+= 1.1.34 =
+Fix: Forminator date fix
+Fix: Notion date fix
+
+= 1.1.33 =
+General fixes
+
+= 1.1.32 =
+Fix: Page redirecting on clicking some buttons in tablesome editor
+Fix: Notion file upload issue with Forminator forms
+Enhancement: Freemius SDK upgraded to version 2.12.2
+
+= 1.1.31 =
+Fix: Improved permission validation across
+
+
+= 1.1.30 =
+Fix: Ensure tablesome admin tabs use non-submitting buttons
 
 = 1.1.29 =
 Fix: _load_textdomain_just_in_time called incorrectly

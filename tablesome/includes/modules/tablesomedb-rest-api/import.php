@@ -19,6 +19,12 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Import')) {
 
         public function import_records($request)
         {
+            // Importing records requires editor or admin permission
+            if (!\current_user_can('edit_posts')) {
+                $error_code = "UNAUTHORIZED";
+                return new \WP_Error($error_code, $this->get_error_message($error_code));
+            }
+            
             $crud = new \Tablesome\Includes\Db\CRUD();
             error_log('[START] : ' . get_app_memory_usage());
             $params = $request->get_params();
@@ -34,6 +40,18 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Import')) {
 
             if (empty($post) || $post->post_type != TABLESOME_CPT) {
                 $error_code = "INVALID_POST";
+                return new \WP_Error($error_code, $this->get_error_message($error_code));
+            }
+
+            // Security check: Verify user can edit this specific table
+            // Users can import if they can edit others' posts (Editor/Admin) OR if they own the table
+            $current_user_id = \get_current_user_id();
+            $can_edit_others_posts = \current_user_can('edit_others_posts');
+            // Security: Verify user is authenticated before checking ownership (prevent 0 == 0 bypass)
+            $is_table_owner = ($current_user_id > 0 && $post->post_author == $current_user_id);
+
+            if (!$can_edit_others_posts && !$is_table_owner) {
+                $error_code = "UNAUTHORIZED";
                 return new \WP_Error($error_code, $this->get_error_message($error_code));
             }
             $records = isset($params['records_inserted']) ? $params['records_inserted'] : [];

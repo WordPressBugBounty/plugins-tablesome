@@ -17,10 +17,18 @@ if (!class_exists('\Tablesome\Components\CellTypes\URL')) {
                 return $cell;
             }
 
-            $link = wp_http_validate_url($cell['value']) ? $cell['value'] : '//' . $cell['value'];
+            // Check if URL has a scheme - if not, prepend // for protocol-relative URL
+            // Simple string check is fast and works with IDN URLs, unusual schemes, etc.
+            // esc_url() provides proper XSS protection for HTML output
+            $has_scheme = (strpos($cell['value'], '://') !== false);
+            // Don't prepend // for dangerous protocols (let esc_url handle them directly)
+            $dangerous_protocol = preg_match('/^(javascript|data|vbscript):/i', $cell['value']);
+            $raw_link = ($has_scheme || $dangerous_protocol) ? $cell['value'] : '//' . $cell['value'];
+            $link = esc_url($raw_link);
 
             $link_text = isset($cell['linkText']) && !empty($cell['linkText']) ? $cell['linkText'] : $cell['value'];
             $link_text = url_shorten($link_text, $length = 40);
+            $link_text = esc_html($link_text);
 
             $cell["html"] = '<a class="tablesome__url" href="' . $link . '" target="_blank">' . $link_text . '</a>';
 

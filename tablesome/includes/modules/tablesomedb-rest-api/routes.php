@@ -45,7 +45,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                                 'type' => 'number',
                             ),
                         ),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_table_export_permission'),
                     ),
                 ),
 
@@ -55,7 +55,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($tablesome_db, 'get_tables'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_table_read_permission'),
                     ),
                 ),
 
@@ -71,7 +71,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                                 'type' => 'number',
                             ),
                         ),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_table_read_permission'),
                     ),
                 ),
 
@@ -101,7 +101,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($tablesome_db, 'get_table_records'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
                         'args' => array(
                             'table_id' => array(
                                 'required' => true,
@@ -157,7 +157,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_posts'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
 
@@ -166,7 +166,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_fields'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
                 array(
@@ -174,7 +174,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_tags'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
 
@@ -183,7 +183,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_post_types'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
 
@@ -192,7 +192,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_taxonomies_with_terms_by_post_type'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
 
@@ -201,7 +201,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_terms_by_taxonomy_name'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
                 array(
@@ -209,7 +209,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_user_roles'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
                 array(
@@ -217,7 +217,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_users'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
                 array(
@@ -225,7 +225,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                     'args' => array(
                         'methods' => \WP_REST_Server::READABLE,
                         'callback' => array($workflow_api, 'get_postmeta_keys_by_post_type'),
-                        'permission_callback' => '__return_true',
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
 
@@ -312,6 +312,40 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                         'methods' => \WP_REST_Server::EDITABLE,
                         'callback' => array($gsheet_api, 'delete_rows'),
                         'permission_callback' => array($tablesome_db, 'api_access_permission'),
+                    ),
+                ),
+
+                // OAuth Health Status Endpoints
+                array(
+                    'url' => '/oauth/status',
+                    'args' => array(
+                        'methods' => \WP_REST_Server::READABLE,
+                        'callback' => array($workflow_api, 'get_oauth_status'),
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
+                    ),
+                ),
+                array(
+                    'url' => '/oauth/status/(?P<integration>[a-z_]+)',
+                    'args' => array(
+                        'methods' => \WP_REST_Server::READABLE,
+                        'callback' => array($workflow_api, 'get_oauth_status_by_integration'),
+                        'permission_callback' => array($tablesome_db, 'api_access_permission'),
+                    ),
+                ),
+                array(
+                    'url' => '/oauth/refresh/(?P<integration>[a-z_]+)',
+                    'args' => array(
+                        'methods' => \WP_REST_Server::EDITABLE,
+                        'callback' => array($workflow_api, 'force_refresh_oauth_token'),
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
+                    ),
+                ),
+                array(
+                    'url' => '/oauth/health-check',
+                    'args' => array(
+                        'methods' => \WP_REST_Server::READABLE,
+                        'callback' => array($workflow_api, 'run_oauth_health_check'),
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
             );

@@ -46,6 +46,7 @@ if (!class_exists('\Tablesome\Components\Table\Model')) {
         public function get_collectionProps($args = [])
         {
             $this->table_id = isset($args['post_id']) ? $args['post_id'] : $args['table_id'];
+            
             $this->table_meta = get_tablesome_data($this->table_id);
 
             // error_log('$this->table_meta : ' . print_r($this->table_meta, true));
@@ -417,7 +418,6 @@ if (!class_exists('\Tablesome\Components\Table\Model')) {
 
         public function get_itemProps($collection = [])
         {
-
             $table_data['columns'] = $this->get_columns($this->columns, $collection);
             $table_data['rows'] = $this->get_rows_new($collection);
 

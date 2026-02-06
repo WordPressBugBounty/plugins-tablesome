@@ -22,6 +22,12 @@ if (!class_exists('\Tablesome\Includes\Shortcodes')) {
             $defaults = $this->default_args();
             $args = array_merge($defaults, $atts);
             // $args = shortcode_atts($defaults, $atts);
+            
+            // Sanitize exclude_columns_from_search parameter
+            if (isset($args['exclude_columns_from_search'])) {
+                $args['exclude_columns_from_search'] = sanitize_text_field($args['exclude_columns_from_search']);
+            }
+            
             $is_valid_table = $this->validate($args);
 
             if (!$is_valid_table) {
@@ -41,6 +47,7 @@ if (!class_exists('\Tablesome\Includes\Shortcodes')) {
                 'pagination' => true,
                 // 'page_limit' => Tablesome_Getter::get('num_of_records_per_page'),
                 // 'exclude_column_ids' => '',
+                'exclude_columns_from_search' => '',
                 // 'search' => Tablesome_Getter::get('search'),
                 // 'hide_table_header' => Tablesome_Getter::get('hide_table_header'),
                 // 'show_serial_number_column' => Tablesome_Getter::get('show_serial_number_column'),

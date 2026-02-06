@@ -3,7 +3,7 @@
         'name' => 'pauple/tablesome',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => 'fa7aec2ddae30029933790be81b16bcf93eb97f3',
+        'reference' => 'feb4ec8bb6628c0c2c984d71f8a81b35aa899b23',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -20,9 +20,9 @@
             'dev_requirement' => false,
         ),
         'pauple/pluginator' => array(
-            'pretty_version' => 'dev-release/0.3.7',
-            'version' => 'dev-release/0.3.7',
-            'reference' => 'c3b20460c26ce8f98956a860dd1fd6b44e3b353e',
+            'pretty_version' => 'dev-release/0.3.8',
+            'version' => 'dev-release/0.3.8',
+            'reference' => '601b3fc5924a4fcb21f97828daa75e58f0ec1a76',
             'type' => 'pauple-library',
             'install_path' => __DIR__ . '/../pauple/pluginator',
             'aliases' => array(),
@@ -31,7 +31,7 @@
         'pauple/tablesome' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => 'fa7aec2ddae30029933790be81b16bcf93eb97f3',
+            'reference' => 'feb4ec8bb6628c0c2c984d71f8a81b35aa899b23',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -48,6 +48,15 @@
             'replaced' => array(
                 0 => '*',
             ),
+        ),
+        'woocommerce/action-scheduler' => array(
+            'pretty_version' => '3.9.3',
+            'version' => '3.9.3.0',
+            'reference' => 'c58cdbab17651303d406cd3b22cf9d75c71c986c',
+            'type' => 'wordpress-plugin',
+            'install_path' => __DIR__ . '/../woocommerce/action-scheduler',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
     ),
 );

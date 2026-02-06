@@ -292,9 +292,42 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
             // Add Featured Image to Post
             $image_url = preg_replace('/\?.*/', '', $url); // removing query string from url & Define the image URL here
             $image_name = basename($image_url);
+            
+            // Security: Pre-validate that the name suggests an image; confirm again after save
+            $wp_filetype = wp_check_filetype($image_name, null);
+            if ($wp_filetype['type'] === false || empty($wp_filetype['ext']) || strpos($wp_filetype['type'], 'image/') !== 0) {
+                error_log('Tablesome: Non-image or unknown file type rejected for featured image: ' . $image_name);
+                return;
+            }
+            
             $upload_dir = wp_upload_dir(); // Set upload folder
-            // $image_data = file_get_contents($url); // Get image data
-            $image_data = wp_remote_retrieve_body(wp_remote_get($url)); // Get image data
+            
+            // Get image data from remote URL
+            $response = wp_remote_get($url, array(
+                'timeout' => 15,
+                'sslverify' => true,
+            ));
+            
+            // Check if the request was successful
+            if (is_wp_error($response)) {
+                error_log('Tablesome: Failed to retrieve remote file: ' . $response->get_error_message());
+                return;
+            }
+            
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                error_log('Tablesome: Remote file returned non-200 status code: ' . $response_code);
+                return;
+            }
+            
+            $image_data = wp_remote_retrieve_body($response);
+            
+            // Verify we actually got data
+            if (empty($image_data)) {
+                error_log('Tablesome: Remote file has no content');
+                return;
+            }
+            
             $unique_file_name = wp_unique_filename($upload_dir['path'], $image_name); // Generate unique name
             $filename = basename($unique_file_name); // Create image file name
 
@@ -305,15 +338,25 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
                 $file = $upload_dir['basedir'] . '/' . $filename;
             }
 
-            // Create the image  file on the server
-            file_put_contents($file, $image_data);
+            // Create the image file on the server
+            $saved = file_put_contents($file, $image_data);
+            
+            if ($saved === false) {
+                error_log('Tablesome: Failed to save file to disk: ' . $file);
+                return;
+            }
+            
+            // Security: Verify the actual file type is an image
+            $wp_filetype_actual = wp_check_filetype_and_ext($file, $filename, null);
+            if ($wp_filetype_actual['type'] === false || empty($wp_filetype_actual['ext']) || stripos($wp_filetype_actual['type'], 'image/') !== 0) {
+                @unlink($file);
+                error_log('Tablesome: File content validation failed (not an image), file deleted: ' . $filename);
+                return;
+            }
 
-            // Check image file type
-            $wp_filetype = wp_check_filetype($filename, null);
-
-            // Set attachment data
+            // Set attachment data using the validated file type
             $attachment = array(
-                'post_mime_type' => $wp_filetype['type'],
+                'post_mime_type' => $wp_filetype_actual['type'],
                 'post_title' => sanitize_file_name($filename),
                 'post_content' => '',
                 'post_status' => 'inherit',
@@ -321,6 +364,13 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Post_Creation')) {
 
             // Create the attachment
             $attach_id = wp_insert_attachment($attachment, $file, $post_id);
+            
+            // @phpstan-ignore-next-line - wp_insert_attachment can return WP_Error
+            if (is_wp_error($attach_id) || !$attach_id) {
+                @unlink($file); // Delete the file if attachment creation failed
+                error_log('Tablesome: Failed to create attachment');
+                return;
+            }
 
             // Include image.php
             require_once $ABSPATH . 'wp-admin/includes/image.php';

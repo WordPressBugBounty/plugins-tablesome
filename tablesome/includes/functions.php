@@ -375,8 +375,31 @@ if (!function_exists('is_valid_tablesome_date')) {
 if (!function_exists('convert_tablesome_date_to_unix_timestamp')) {
     function convert_tablesome_date_to_unix_timestamp($date, $format = 'Y-m-d H:i:s')
     {
+        // Normalize array inputs coming from integrations (e.g., Forminator date fields)
+        if (is_array($date)) {
+            if (isset($date['date']) && is_string($date['date'])) {
+                $date = $date['date'];
+            } elseif (isset($date[0]) && is_string($date[0])) {
+                $date = $date[0];
+            } else {
+                // Attempt to collapse any stringy values in the array
+                $stringParts = array_filter($date, 'is_string');
+                $date = !empty($stringParts) ? implode(' ', $stringParts) : '';
+            }
+        }
+
+        if (!is_string($date) || $date === '') {
+            return 0; // safe fallback
+        }
+
         $d = \DateTime::createFromFormat($format, $date);
-        return $d->getTimestamp();
+        if ($d instanceof \DateTime) {
+            return $d->getTimestamp();
+        }
+
+        // Fallback: try PHP's strtotime for unexpected but parseable formats
+        $ts = strtotime($date);
+        return $ts !== false ? $ts : 0;
     }
 }
 
@@ -618,25 +641,22 @@ if (!function_exists('maybe_refresh_access_token_by_integration')) {
         $api_credentials_handler = new Tablesome\Includes\Modules\API_Credentials_Handler();
         $api_credentials = $api_credentials_handler->get_api_credentials($integration);
 
-        // error_log('maybe_refresh_access_token_by_integration $api_credentials: ' . print_r($api_credentials, true));
         $is_access_token_expired = isset($api_credentials["access_token_is_expired"]) && $api_credentials["access_token_is_expired"] == true;
         $does_refresh_token_exist = isset($api_credentials["refresh_token"]) && !empty($api_credentials["refresh_token"]);
 
         $should_request_refresh_token = ($is_access_token_expired && $does_refresh_token_exist) || $can_retry;
-        // error_log(' $should_request_refresh_token: ' . print_r($should_request_refresh_token, true));
+        
         $log_data = array(
             'integration' => $integration,
             'is_access_token_expired' => $is_access_token_expired,
             'does_refresh_token_exist' => $does_refresh_token_exist,
             'should_request_refresh_token' => $should_request_refresh_token,
             'can_retry' => $can_retry,
-            'credentials' => $api_credentials,
         );
 
         // use access token if it's not expired
         if (!$should_request_refresh_token) {
-            // error_log('[Use Exist Access Token] : ' . print_r($log_data, true));
-            return $api_credentials['access_token'];
+            return isset($api_credentials['access_token']) ? $api_credentials['access_token'] : '';
         }
 
         $connector_domain = tablesome_get_connector_domain($integration);
@@ -644,22 +664,139 @@ if (!function_exists('maybe_refresh_access_token_by_integration')) {
             $response = wp_remote_post($connector_domain . "/wp-json/tablesome-connector/v1/oauth/exchange-token?integration=$integration", array(
                 'method' => 'GET',
                 'body' => $api_credentials,
+                'timeout' => 30, // Increased timeout for reliability
             ));
 
             $new_api_credentials = json_decode(wp_remote_retrieve_body($response), true);
-            //error_log('$new_api_credentials : ' . print_r($new_api_credentials, true));
+            $response_code = wp_remote_retrieve_response_code($response);
+            
+            // Comprehensive error checking
+            $is_wp_error = is_wp_error($response);
+            $is_http_error = $response_code < 200 || $response_code >= 300;
+            $is_empty_response = empty($new_api_credentials);
             $is_response_failed = (isset($new_api_credentials['status']) && $new_api_credentials['status'] == 'failed');
-            $is_error = is_wp_error($response) || empty($new_api_credentials) || $is_response_failed;
+            $is_missing_token = !isset($new_api_credentials['access_token']) || empty($new_api_credentials['access_token']);
+            
+            $is_error = $is_wp_error || $is_http_error || $is_empty_response || $is_response_failed || $is_missing_token;
+            
             if ($is_error) {
-                $log_data['error'] = $new_api_credentials;
+                // Build detailed error message
+                $error_details = array();
+                if ($is_wp_error) {
+                    $error_details['wp_error'] = $response->get_error_message();
+                }
+                if ($is_http_error) {
+                    $error_details['http_code'] = $response_code;
+                }
+                if ($is_empty_response) {
+                    $error_details['empty_response'] = true;
+                }
+                if ($is_response_failed && isset($new_api_credentials['message'])) {
+                    $error_details['api_error'] = $new_api_credentials['message'];
+                }
+                if ($is_missing_token && !$is_empty_response) {
+                    $error_details['missing_token'] = true;
+                }
+                
+                $log_data['error_details'] = $error_details;
                 $log_data['label'] = "Error while refreshing access token";
-                error_log('[Error while refreshing access token]' . print_r($log_data, true));
+                error_log('[Tablesome OAuth Error] ' . $integration . ': ' . wp_json_encode($error_details));
+                
+                // Store the error for the health monitor
+                tablesome_record_oauth_error($integration, $error_details);
+            } else {
+                // Success - clear any previous errors
+                tablesome_clear_oauth_error($integration);
             }
+            
             // if error occurs, use old credentials. It avoids throwing undefined index errors.
             $new_api_credentials = $is_error ? $api_credentials : $new_api_credentials;
             $result = $api_credentials_handler->set_api_credentials($integration, $new_api_credentials);
-            return $result['access_token'];
+            return isset($result['access_token']) ? $result['access_token'] : '';
         }
+    }
+}
+
+if (!function_exists('tablesome_record_oauth_error')) {
+    /**
+     * Record an OAuth error for tracking
+     * 
+     * @param string $integration Integration name
+     * @param array $error_details Error details
+     */
+    function tablesome_record_oauth_error($integration, $error_details)
+    {
+        $errors = get_option('tablesome_oauth_errors', array());
+        $errors[$integration] = array(
+            'timestamp' => current_time('mysql', 1),
+            'details' => $error_details,
+        );
+        update_option('tablesome_oauth_errors', $errors);
+        
+        // Increment error count
+        $error_counts = get_option('tablesome_oauth_error_counts', array());
+        $error_counts[$integration] = isset($error_counts[$integration]) ? $error_counts[$integration] + 1 : 1;
+        update_option('tablesome_oauth_error_counts', $error_counts);
+    }
+}
+
+if (!function_exists('tablesome_clear_oauth_error')) {
+    /**
+     * Clear OAuth errors for an integration after successful refresh
+     * 
+     * @param string $integration Integration name
+     */
+    function tablesome_clear_oauth_error($integration)
+    {
+        $errors = get_option('tablesome_oauth_errors', array());
+        unset($errors[$integration]);
+        update_option('tablesome_oauth_errors', $errors);
+        
+        // Reset error count
+        $error_counts = get_option('tablesome_oauth_error_counts', array());
+        $error_counts[$integration] = 0;
+        update_option('tablesome_oauth_error_counts', $error_counts);
+    }
+}
+
+if (!function_exists('tablesome_get_oauth_status')) {
+    /**
+     * Get OAuth status for an integration (testable function)
+     * 
+     * @param string $integration Integration name
+     * @return array Status information
+     */
+    function tablesome_get_oauth_status($integration)
+    {
+        $api_credentials_handler = new Tablesome\Includes\Modules\API_Credentials_Handler();
+        $credentials = $api_credentials_handler->get_api_credentials($integration);
+        $errors = get_option('tablesome_oauth_errors', array());
+        $error_counts = get_option('tablesome_oauth_error_counts', array());
+        
+        $status = array(
+            'integration' => $integration,
+            'is_configured' => !empty($credentials['access_token']) || $credentials['status'] === 'success',
+            'is_connected' => $credentials['status'] === 'success',
+            'is_token_expired' => isset($credentials['access_token_is_expired']) && $credentials['access_token_is_expired'],
+            'has_refresh_token' => !empty($credentials['refresh_token']),
+            'has_recent_error' => isset($errors[$integration]),
+            'error_count' => isset($error_counts[$integration]) ? $error_counts[$integration] : 0,
+            'last_error' => isset($errors[$integration]) ? $errors[$integration] : null,
+            'status_message' => $credentials['message'] ?? '',
+            'action_url' => $api_credentials_handler->get_redirect_url($integration),
+        );
+        
+        // Determine overall health
+        $status['is_healthy'] = $status['is_configured'] && 
+                                $status['is_connected'] && 
+                                !$status['is_token_expired'] && 
+                                !$status['has_recent_error'];
+        
+        // Determine if action is required
+        $status['action_required'] = ($status['is_configured'] && !$status['is_healthy']) ||
+                                     ($status['is_token_expired'] && !$status['has_refresh_token']);
+        
+        return $status;
     }
 }
 

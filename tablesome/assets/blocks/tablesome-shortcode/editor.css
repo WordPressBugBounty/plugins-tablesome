@@ -1,0 +1,19 @@
+/**
+ * Tablesome Shortcode Block - Editor Styles
+ */
+
+.wp-block-tablesome-shortcode {
+	padding: 12px;
+	background: #f0f0f0;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.wp-block-tablesome-shortcode .csf-shortcode-button {
+	margin-bottom: 12px;
+}
+
+.wp-block-tablesome-shortcode .blocks-shortcode__textarea textarea {
+	font-family: monospace;
+	min-height: 60px;
+}

@@ -9,7 +9,7 @@ if (!trait_exists('\Tablesome\Includes\Modules\Workflow\Traits\Cell_Format')) {
             'textarea' => array('textarea', 'address', 'post_excerpt', 'rich_text_input'),
             'date' => array('date', 'date-time', 'input_date'),
             'email' => array('email', 'input_email'),
-            'file' => array("upload", "file-upload", "file", "fileupload", "post_image", "input_image", "input_file"),
+            'file' => array("upload", "file-upload", "file", "fileupload", "post_image", "input_image", "input_file", "signature", "e_signature", "esignature", "pafe_signature"),
             'url' => array('url', 'input_url'),
             'button' => array('button'),
             'number' => array('number-slider', 'rating', 'number', 'postdata', 'currency', 'calculation', 'quantity', 'input_number'),

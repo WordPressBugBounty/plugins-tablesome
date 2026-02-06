@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f
+class ComposerStaticInit5034f46b386716840dc98e051616a4ce
 {
     public static $prefixLengthsPsr4 = array (
         'P' => 
@@ -88,6 +88,7 @@ class ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f
         'Tablesome\\Includes\\Actions' => __DIR__ . '/../..' . '/includes/actions.php',
         'Tablesome\\Includes\\Ajax\\Getter' => __DIR__ . '/../..' . '/includes/ajax/getter.php',
         'Tablesome\\Includes\\Ajax_Handler' => __DIR__ . '/../..' . '/includes/ajax-handler.php',
+        'Tablesome\\Includes\\Blocks\\Tablesome_Shortcode_Block' => __DIR__ . '/../..' . '/includes/blocks/tablesome-shortcode.php',
         'Tablesome\\Includes\\Core\\Deactivation' => __DIR__ . '/../..' . '/includes/core/deactivation.php',
         'Tablesome\\Includes\\Core\\Table' => __DIR__ . '/../..' . '/includes/core/table.php',
         'Tablesome\\Includes\\Cpt' => __DIR__ . '/../..' . '/includes/cpt.php',
@@ -96,6 +97,7 @@ class ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f
         'Tablesome\\Includes\\Db\\CRUD' => __DIR__ . '/../..' . '/includes/db/crud.php',
         'Tablesome\\Includes\\Db\\CRUD_Interface' => __DIR__ . '/../..' . '/includes/db/crud-interface.php',
         'Tablesome\\Includes\\Db\\Tablesome_Table' => __DIR__ . '/../..' . '/includes/db/tablesome-table.php',
+        'Tablesome\\Includes\\Debug\\Large_Table_Diagnostics' => __DIR__ . '/../..' . '/includes/debug/large-table-diagnostics.php',
         'Tablesome\\Includes\\Filters' => __DIR__ . '/../..' . '/includes/filters.php',
         'Tablesome\\Includes\\Freemius_Utils' => __DIR__ . '/../..' . '/includes/freemius-utils.php',
         'Tablesome\\Includes\\Helpers' => __DIR__ . '/../..' . '/includes/helpers.php',
@@ -103,6 +105,7 @@ class ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f
         'Tablesome\\Includes\\Lib\\Table_Crud_WP\\Schema' => __DIR__ . '/../..' . '/includes/lib/table-crud-wp/schema.php',
         'Tablesome\\Includes\\Lib\\Table_Crud_WP\\Table_Crud_WP' => __DIR__ . '/../..' . '/includes/lib/table-crud-wp/table-crud-wp.php',
         'Tablesome\\Includes\\Modules\\API_Credentials_Handler' => __DIR__ . '/../..' . '/includes/modules/api-credentials-handler.php',
+        'Tablesome\\Includes\\Modules\\Async_Email_Handler' => __DIR__ . '/../..' . '/includes/modules/async-email-handler.php',
         'Tablesome\\Includes\\Modules\\Datatable\\Datatable' => __DIR__ . '/../..' . '/includes/modules/datatable/datatable.php',
         'Tablesome\\Includes\\Modules\\Datatable\\Post' => __DIR__ . '/../..' . '/includes/modules/datatable/post.php',
         'Tablesome\\Includes\\Modules\\Datatable\\Record' => __DIR__ . '/../..' . '/includes/modules/datatable/record.php',
@@ -113,6 +116,7 @@ class ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f
         'Tablesome\\Includes\\Modules\\Migrate_Old_Crud_Data_To_TablesomeDB' => __DIR__ . '/../..' . '/includes/modules/migrate-old-crud-data-to-tablesomedb.php',
         'Tablesome\\Includes\\Modules\\Myque\\Myque' => __DIR__ . '/../..' . '/includes/modules/myque/myque.php',
         'Tablesome\\Includes\\Modules\\Myque\\Mysql' => __DIR__ . '/../..' . '/includes/modules/myque/mysql.php',
+        'Tablesome\\Includes\\Modules\\OAuth_Health_Monitor' => __DIR__ . '/../..' . '/includes/modules/oauth-health-monitor.php',
         'Tablesome\\Includes\\Modules\\Onboarding' => __DIR__ . '/../..' . '/includes/modules/onboarding.php',
         'Tablesome\\Includes\\Modules\\Proxy' => __DIR__ . '/../..' . '/includes/modules/proxy.php',
         'Tablesome\\Includes\\Modules\\Review_Notification' => __DIR__ . '/../..' . '/includes/modules/review-notification.php',
@@ -177,6 +181,7 @@ class ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f
         'Tablesome\\Workflow_Library\\Actions\\Tablesome_Filter_Table' => __DIR__ . '/../..' . '/workflow-library/actions/tablesome-filter-table.php',
         'Tablesome\\Workflow_Library\\Actions\\Tablesome_Generate_Pdf' => __DIR__ . '/../..' . '/workflow-library/actions/tablesome-generate-pdf.php',
         'Tablesome\\Workflow_Library\\Actions\\Tablesome_Load_WP_Query_Content' => __DIR__ . '/../..' . '/workflow-library/actions/tablesome-load-wp-query-content.php',
+        'Tablesome\\Workflow_Library\\Actions\\Tablesome_PDF_HTML' => __DIR__ . '/../..' . '/workflow-library/actions/tablesome-pdf-html.php',
         'Tablesome\\Workflow_Library\\Actions\\WP_Post_Creation' => __DIR__ . '/../..' . '/workflow-library/actions/wp-post-creation.php',
         'Tablesome\\Workflow_Library\\Actions\\WP_Redirection' => __DIR__ . '/../..' . '/workflow-library/actions/wp-redirection.php',
         'Tablesome\\Workflow_Library\\Actions\\WP_Send_Mail' => __DIR__ . '/../..' . '/workflow-library/actions/wp-send-mail.php',
@@ -223,9 +228,9 @@ class ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitea323d23d6ae6d5cce4ab73e34f2e77f::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5034f46b386716840dc98e051616a4ce::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5034f46b386716840dc98e051616a4ce::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit5034f46b386716840dc98e051616a4ce::$classMap;
 
         }, null, ClassLoader::class);
     }

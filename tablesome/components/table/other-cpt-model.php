@@ -318,7 +318,7 @@ if (!class_exists('\Tablesome\Components\Table\Other_CPT_Model')) {
                         'linkText' => 'View',
                         'value' => $cell_content,
                     ];
-                    error_log('$cell : ' . print_r($cell, true));
+                    // error_log('$cell : ' . print_r($cell, true));
                 }
 
                 $cell = apply_filters("tablesome_get_cell_data", $cell);

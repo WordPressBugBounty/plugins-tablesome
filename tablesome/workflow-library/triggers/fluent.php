@@ -120,7 +120,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
             $formApi = fluentFormApi('forms')->form($id);
             $form = $formApi->fields();
 
-            if (!isset($form["fields"]) && empty($form["fields"])) {
+            if (!isset($form["fields"]) || empty($form["fields"])) {
                 return [];
             }
 
@@ -196,7 +196,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
             $submission_data = apply_filters("tablesome_form_submission_data", $submission_data, $form->id);
 
             // error_log(' submission_data $fields : ' . print_r($fields, true));
-            error_log(' submission_data $data : ' . print_r($data, true));
+            // error_log(' submission_data $data : ' . print_r($data, true));
 
             $this->trigger_source_id = $form->id;
             $this->trigger_source_data = array(
@@ -267,7 +267,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
 
                 if ($type == 'input_file' || $type == 'input_image') {
                     // $data[$name]['type'] = 'file';
-                    error_log(' Fluent file_type : ' . print_r($file_type, true));
+                    // error_log(' Fluent file_type : ' . print_r($file_type, true));
                     $data[$field['id']]['file_type'] = isset($file_type) ? $file_type['type'] : '';
                     $data[$field['id']]['linkText'] = 'View File';
                     $data[$field['id']]['file_url'] = $file_url ?? '';

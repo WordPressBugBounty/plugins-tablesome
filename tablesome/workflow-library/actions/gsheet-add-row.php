@@ -204,7 +204,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\GSheet_Add_Row')) {
         private function get_attachment_url_by_id($attachment_id)
         {
             $post = get_post($attachment_id);
-            if (!isset($post->post_mime_type) && empty($post->post_mime_type)) {
+            if ( empty( $post->post_mime_type ) ) {
                 return $attachment_id;
             }
             $image_url = wp_get_attachment_image_url($attachment_id, "full");

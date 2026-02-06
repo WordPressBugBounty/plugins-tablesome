@@ -40,6 +40,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
             // $records = $proxy->get_rows($args);
 
             $rows = $this->get_formatted_rows($records, $args['table_meta'], $args['collection']);
+
             return $rows;
         }
 
@@ -171,12 +172,6 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
 
         public function compare($args)
         {
-            error_log('$args[operand_1] : ');
-            var_dump($args['operand_1']);
-            error_log('$args[operand_2] : ');
-            var_dump($args['operand_2']);
-            error_log('$args[operator] : ' . $args['operator']);
-
             $condition = false;
             if ($args['operator'] == '=') {
                 $condition = $args['operand_1'] == $args['operand_2'];
@@ -192,7 +187,6 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
                 $condition = $args['operand_1'] == $args['operand_2'];
             }
 
-            error_log('$condition : ' . $condition);
             return $condition;
         }
 
@@ -239,22 +233,36 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
                 return $processed_rows;
             }
 
-            $is_administrator = $this->access_controller->is_site_admin();
             $is_admin = is_admin();
+            
+            // Cache current user data once before the loop to avoid repeated expensive calls
+            // Get user once and reuse for both is_site_admin() check and permission checks
+            $current_user = wp_get_current_user();
+            $current_user_id = $current_user ? $current_user->ID : 0;
+            $is_administrator = $this->access_controller->is_site_admin_with_user($current_user);
 
-            if (!$is_admin) {
-                // Don't need to get permissions data if user accessing the table in admin area
-                $permissions = $this->access_controller->get_permissions($table_meta);
-                $can_edit = isset($permissions['can_edit']) ? $permissions['can_edit'] : false;
-                $record_edit_access = isset($permissions['record_edit_access']) ? $permissions['record_edit_access'] : '';
+            // Get permissions - pass cached user to avoid repeated wp_get_current_user() calls
+            $permissions = $this->access_controller->get_permissions($table_meta, $current_user);
+            $can_edit = isset($permissions['can_edit']) ? $permissions['can_edit'] : false;
+            $record_edit_access = isset($permissions['record_edit_access']) ? $permissions['record_edit_access'] : '';
+            
+            // In admin area, skip per-record permission checks (all records are editable)
+            if ($is_admin) {
+                $can_edit = false; // Will be handled by is_admin check in loop
             }
 
-            foreach ($records as $record) {
+            // Pre-process exclude_column_ids once to avoid repeated explode() calls
+            $exclude_column_ids = isset($collection['exclude_column_ids']) && !empty($collection['exclude_column_ids']) 
+                ? explode(",", $collection['exclude_column_ids']) 
+                : [];
 
+            foreach ($records as $record) {
+                $formatted_content = $this->get_formatted_row($record, $table_meta, $collection, $exclude_column_ids);
+                
                 $process_row = array(
                     'record_id' => $record->id,
                     'rank_order' => $record->rank_order,
-                    'content' => $this->get_formatted_row($record, $table_meta, $collection),
+                    'content' => $formatted_content,
                     'created_at' => $record->created_at,
                     'updated_at' => $record->updated_at,
                     'is_editable' => false,
@@ -276,11 +284,11 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
                     continue; // skip to next record
                 }
 
-                // CAN EDIT
-                $process_row['is_deletable'] = $this->access_controller->can_delete_record($record, $table_meta, $permissions);
+                // CAN EDIT - Pass cached user data to avoid repeated wp_get_current_user() calls
+                $process_row['is_deletable'] = $this->access_controller->can_delete_record($record, $table_meta, $permissions, $current_user, $current_user_id);
 
                 if (!empty($record_edit_access)) {
-                    $process_row['is_editable'] = $this->access_controller->can_edit_record($record, $table_meta, $record_edit_access);
+                    $process_row['is_editable'] = $this->access_controller->can_edit_record($record, $table_meta, $record_edit_access, $current_user, $current_user_id);
                 }
 
                 $processed_rows[] = $process_row;
@@ -289,11 +297,15 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
             return $processed_rows;
         }
 
-        public function get_formatted_row($record, $table_meta, $collection)
+        public function get_formatted_row($record, $table_meta, $collection, $exclude_column_ids = null)
         {
             $row_content = array();
-            /** get exclude column ids */
-            $exclude_column_ids = isset($collection['exclude_column_ids']) && !empty($collection['exclude_column_ids']) ? explode(",", $collection['exclude_column_ids']) : [];
+            /** get exclude column ids - use pre-processed array if provided, otherwise process it */
+            if ($exclude_column_ids === null) {
+                $exclude_column_ids = isset($collection['exclude_column_ids']) && !empty($collection['exclude_column_ids']) 
+                    ? explode(",", $collection['exclude_column_ids']) 
+                    : [];
+            }
             $columns = isset($table_meta['columns']) ? $table_meta['columns'] : [];
             // error_log('$columns : ' . print_r($columns, true));
             foreach ($columns as $column) {
@@ -311,11 +323,13 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
                 $cell_content = isset($record->$db_column_name) ? $record->$db_column_name : '';
                 $cell_meta_content = isset($record->$db_meta_column_name) ? $record->$db_meta_column_name : '';
 
+                // Sanitize cell content once and reuse for both html and value (50% reduction in tablesome_wp_kses calls)
+                $sanitized_cell_content = tablesome_wp_kses($cell_content);
+
                 $cell = [
                     'type' => esc_textarea($column_format),
-                    'html' => tablesome_wp_kses($cell_content),
-                    'value' => tablesome_wp_kses($cell_content),
-                    // 'value' => $cell_content,
+                    'html' => $sanitized_cell_content,
+                    'value' => $sanitized_cell_content,
                     'column_id' => intval($column_id),
                 ];
 
@@ -323,9 +337,35 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB\TablesomeDB')) {
 
                 $meta_columns = ($column_format == 'url' || $column_format == 'button' || $column_format == 'file');
                 if ($meta_columns && !empty($cell_meta_content)) {
-                    // $link_cell_data = $this->extract_link_content($column_format, $cell_content);
+                    // Optimize: Decode JSON first, then sanitize only HTML fields if needed
+                    // wp_kses_post() on JSON is expensive - decode first, sanitize selectively
+                    // Try direct json_decode first (for properly stored data)
+                    $meta_content = json_decode($cell_meta_content, true);
+                    if ($meta_content === null && json_last_error() !== JSON_ERROR_NONE) {
+                        // Fall back to stripslashes for legacy data that might have WordPress magic quotes
+                        $meta_content = json_decode(stripslashes($cell_meta_content), true);
+                    }
 
-                    $meta_content = json_decode(stripslashes(wp_kses_post($cell_meta_content)), true);
+                    // Only sanitize HTML fields if they exist (link, linkText, html, value)
+                    if (!empty($meta_content) && is_array($meta_content)) {
+                        if (isset($meta_content['html'])) {
+                            $meta_content['html'] = tablesome_wp_kses($meta_content['html']);
+                        }
+                        if (isset($meta_content['linkText'])) {
+                            $meta_content['linkText'] = sanitize_text_field($meta_content['linkText']);
+                        }
+                        if (isset($meta_content['link'])) {
+                            $meta_content['link'] = esc_url($meta_content['link']);
+                        }
+                        if (isset($meta_content['value'])) {
+                            if ($column_format === 'url' || $column_format === 'button') {
+                                $meta_content['value'] = esc_url($meta_content['value']);
+                            } else {
+                                $meta_content['value'] = sanitize_text_field($meta_content['value']);
+                            }
+                        }
+                    }
+
                     $cell = !empty($meta_content) ? array_merge($cell, $meta_content) : $cell;
                 }
 

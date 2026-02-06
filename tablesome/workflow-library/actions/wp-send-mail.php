@@ -4,6 +4,7 @@ namespace Tablesome\Workflow_Library\Actions;
 
 use Tablesome\Includes\Modules\Workflow\Action;
 use Tablesome\Includes\Modules\Workflow\Traits\Placeholder;
+use Tablesome\Includes\Modules\Async_Email_Handler;
 
 if (!defined('ABSPATH')) {
     exit;
@@ -21,6 +22,12 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Send_Mail')) {
         public $body_content = '';
         public $trigger_source_data = [];
         public $placeholders;
+
+        /**
+         * Async email handler instance
+         * @var Async_Email_Handler|null
+         */
+        private $async_email_handler = null;
 
         protected $headers = [
             "from" => '',
@@ -47,9 +54,21 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Send_Mail')) {
         //     error_log('$err : ' . print_r($err, true));
         // }
 
+        /**
+         * Get the async email handler instance
+         *
+         * @return Async_Email_Handler
+         */
+        private function get_async_handler()
+        {
+            if ($this->async_email_handler === null) {
+                $this->async_email_handler = new Async_Email_Handler();
+            }
+            return $this->async_email_handler;
+        }
+
         public function do_action($trigger_class, $trigger_instance)
         {
-            error_log('*** WordPress Sent Email Action Called  ***');
             $this->bind_props($trigger_class, $trigger_instance);
 
             if (!$this->validate()) {
@@ -57,6 +76,8 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Send_Mail')) {
             }
 
             $this->set_mail_headers();
+            $async_handler = $this->get_async_handler();
+
             foreach ($this->to_address_data as $data) {
                 $to_address_emails = $this->get_emails_by_prop_name($data, 'emails');
                 if (empty($to_address_emails)) {
@@ -75,22 +96,26 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\WP_Send_Mail')) {
                     $this->headers['bcc'] = "Bcc: {$bcc_emails_in_string}";
                 }
 
-                $headers_content = implode("\r\n", $this->headers);
-                // add form entry csv attachment as link to the body content
+                // Build headers array for async handler
+                $headers_array = array_filter([
+                    $this->headers['from'],
+                    $this->headers['cc'],
+                    $this->headers['bcc'],
+                    $this->headers['content_type'],
+                ]);
+
                 $attachments = [];
 
-                $sent = \wp_mail(
-                    $to_address_emails,
-                    $this->subject_content,
-                    $this->body_content,
-                    $headers_content,
-                    $attachments
-                );
-                // $this->get_attachments()
+                // Queue email for async sending (or send sync if Action Scheduler unavailable)
+                $email_args = [
+                    'to' => $to_address_emails,
+                    'subject' => $this->subject_content,
+                    'body' => $this->body_content,
+                    'headers' => $headers_array,
+                    'attachments' => $attachments,
+                ];
 
-                //TODO: Add mail failure log
-                // if (!$sent) {
-                // }
+                $async_handler->queue_email($email_args);
             }
         }
 

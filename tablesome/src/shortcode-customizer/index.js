@@ -1,0 +1,1 @@
+import ShortcodeCustomizer from"./ShortcodeCustomizer.svelte";export default ShortcodeCustomizer;export{ShortcodeCustomizer};

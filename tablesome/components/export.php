@@ -22,6 +22,26 @@ if (!class_exists('\Tablesome\Components\Export')) {
         {
             $table_id = $params["table_id"];
             $post = get_post($table_id);
+            
+            // Check if public export is allowed for this table
+            $table_meta = get_tablesome_data($table_id);
+            $access_control = isset($table_meta['options']['access_control']) ? $table_meta['options']['access_control'] : [];
+            $allow_public_export = isset($access_control['allow_public_export']) ? $access_control['allow_public_export'] : false;
+            
+            // If public export is NOT enabled, check table ownership or edit_others_posts capability
+            // Security: Contributors should only be able to export tables they own
+            if (!$allow_public_export) {
+                $current_user_id = \get_current_user_id();
+                $can_edit_others_posts = \current_user_can('edit_others_posts');
+                // Security: Verify user is authenticated before checking ownership (prevent 0 == 0 bypass)
+                $is_table_owner = ($current_user_id > 0 && $post && $post->post_author == $current_user_id);
+                
+                if (!$can_edit_others_posts && !$is_table_owner) {
+                    return new \WP_Error('UNAUTHORIZED', "You don't have permission to export this table");
+                }
+            }
+            
+            // Check basic table access (published status, etc.)
             $access_info = $this->tablesome_rest_api->check_table_access($post);
 
             if (!$access_info['has_access']) {

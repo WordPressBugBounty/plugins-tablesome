@@ -319,6 +319,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             $query .= $this->orderby($args);
             $query .= " LIMIT " . $args['limit'];
+
             $result = $wpdb->get_results($query);
 
             // error_log('Mysql->get_rows $query: ' . $query);
@@ -368,8 +369,6 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
         public function convert_conditions_to_sql_string($conditions, $table_name)
         {
-            error_log('convert_conditions_to_sql_string: ');
-            // error_log('$conditions : ' . print_r($conditions, true));
 
             $columns = $this->get_table_columns($table_name);
             foreach ($conditions as $key => $condition) {
@@ -426,14 +425,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             $sql_string = rtrim($sql_string, ' AND ');
 
-            error_log('$sql_string : ' . $sql_string);
             return $sql_string;
         }
 
         public function get_condition_group_sql($condition_group, $table_name)
         {
-            error_log('$condition_group : ' . print_r($condition_group, true));
-
             $sql_string = '';
             $jj = 0;
             $count = count($condition_group['conditions']);
@@ -473,14 +469,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
         public function get_single_condition_sql($condition, $table_name)
         {
-            error_log('$condition : ' . print_r($condition, true));
             $sql_string = '';
             $condition = $this->condition_modifier($condition);
             $operand1 = $condition['operand_1'];
             $mysql_operator = $condition['mysql_operator'];
             $operand2 = $condition['operand_2'];
-
-            error_log('$condition after : ' . print_r($condition, true));
 
             if ($condition['data_type'] == 'datetime') {
                 // Todo: Detect operand2 format and convert to unix timestamp
@@ -581,7 +574,6 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             // Text, RichText
             $condition = $this->string_condition_modifier($condition);
 
-            error_log('$condition condition_modifier : ' . print_r($condition, true));
             return $condition;
         }
 
@@ -610,6 +602,68 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             return $condition;
         }
 
+        /**
+         * Get whitelist of allowed SQL operators for number/datetime data types
+         * 
+         * @return array Whitelist of safe SQL operators
+         */
+        private function get_allowed_number_operators()
+        {
+            return array(
+                '=',
+                '!=',
+                '<>',
+                '<',
+                '<=',
+                '>',
+                '>=',
+                'BETWEEN',
+                'NOT BETWEEN',
+                'IS',       // Used for date comparisons (e.g., date is today)
+                'IS_NOT',   // Used for date exclusions (e.g., date is_not today)
+            );
+        }
+
+        /**
+         * Get whitelist of allowed SQL operators for text/json data types
+         * 
+         * @return array Whitelist of safe SQL operators
+         */
+        private function get_allowed_string_operators()
+        {
+            return array(
+                '=',
+                '!=',
+                '<>',
+                'LIKE',
+                'NOT LIKE',
+            );
+        }
+
+        /**
+         * Validate and sanitize SQL operator
+         * 
+         * @param string $operator The operator to validate
+         * @param array $allowed_operators Whitelist of allowed operators
+         * @return string|false Validated operator or false if invalid
+         */
+        private function validate_operator($operator, $allowed_operators)
+        {
+            if (empty($operator) || !is_string($operator)) {
+                return false;
+            }
+
+            // Remove any whitespace and convert to uppercase for comparison
+            $operator_clean = strtoupper(trim($operator));
+
+            // Check if operator is in whitelist
+            if (in_array($operator_clean, array_map('strtoupper', $allowed_operators), true)) {
+                return $operator_clean;
+            }
+
+            return false;
+        }
+
         public function number_condition_modifier($condition)
         {
             // Allow only number and datetime
@@ -617,7 +671,16 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 return $condition;
             }
 
-            $condition['mysql_operator'] = $condition['operator'];
+            // SECURITY FIX: Validate operator against whitelist
+            $allowed_operators = $this->get_allowed_number_operators();
+            $validated_operator = $this->validate_operator($condition['operator'], $allowed_operators);
+
+            if ($validated_operator === false) {
+                // Invalid operator - use safe default
+                $condition['mysql_operator'] = '=';
+            } else {
+                $condition['mysql_operator'] = $validated_operator;
+            }
 
             return $condition;
 
@@ -632,8 +695,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 return $condition;
             }
 
-            error_log('$condition[operator] : ' . $condition['operator']);
-
+            // Map user-friendly operators to SQL operators
             if ($condition['operator'] == 'contains') {
                 $condition['operand_2'] = "%" . $condition['operand_2'] . "%";
                 $condition['mysql_operator'] = "LIKE";
@@ -653,7 +715,16 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 $condition['operand_2'] = $condition['operand_2'];
                 $condition['mysql_operator'] = "<>";
             } else {
-                $condition['mysql_operator'] = $condition['operator'];
+                // SECURITY FIX: Validate operator against whitelist instead of direct assignment
+                $allowed_operators = $this->get_allowed_string_operators();
+                $validated_operator = $this->validate_operator($condition['operator'], $allowed_operators);
+
+                if ($validated_operator === false) {
+                    // Invalid operator - use safe default
+                    $condition['mysql_operator'] = '=';
+                } else {
+                    $condition['mysql_operator'] = $validated_operator;
+                }
             }
 
             //

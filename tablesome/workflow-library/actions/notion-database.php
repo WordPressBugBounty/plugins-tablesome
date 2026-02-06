@@ -78,7 +78,6 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Notion_Database')) {
 
         public function get_matched_property_values($match_fields, $form_data, $database)
         {
-
             $data = array();
             foreach ($match_fields as $match_field) {
                 $property_id = isset($match_field['property_id']) ? $match_field['property_id'] : '';
@@ -95,6 +94,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Notion_Database')) {
                 }
 
                 $value = isset($form_data[$field_name]['value']) ? $form_data[$field_name]['value'] : '';
+                
                 $property_values = $this->get_property_values($property, $value);
 
                 if (empty($property_values)) {
@@ -103,6 +103,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Notion_Database')) {
 
                 $data[$property_id] = $property_values;
             }
+            
             return $data;
         }
 
@@ -249,18 +250,136 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Notion_Database')) {
 
         public function get_date_values($property, $value)
         {
-            if (empty($value) && !is_valid_tablesome_date($value, 'Y-m-d')) {
-                return [];
-            }
+			// Handle empty values
+			if (empty($value)) {
+				return [];
+			}
 
-            $datetime = new \DateTime($value);
-            $date = $datetime->format('Y-m-d');
+			// If value is an array with day/month/year keys (e.g., Forminator style)
+			if (is_array($value)) {
+				$day = isset($value['day']) ? (int) $value['day'] : 0;
+				$month = isset($value['month']) ? (int) $value['month'] : 0;
+				$year = isset($value['year']) ? (int) $value['year'] : 0;
 
-            return array(
-                'date' => array(
-                    'start' => $date,
-                ),
-            );
+				if ($day && $month && $year && checkdate($month, $day, $year)) {
+					$date_string = sprintf('%04d-%02d-%02d', $year, $month, $day);
+					return array(
+						'date' => array(
+							'start' => $date_string,
+						),
+					);
+				}
+				return [];
+			}
+
+			// Try to reconstruct from trigger source data (for multi-part date fields)
+			if (!is_valid_tablesome_date($value, 'Y-m-d')) {
+				$form_data = isset($this->trigger_class->trigger_source_data['data']) ? $this->trigger_class->trigger_source_data['data'] : [];
+				$field_base = isset($property['field_name']) ? $property['field_name'] : '';
+				$day = isset($form_data["{$field_base}-day"]) ? (int) $form_data["{$field_base}-day"] : 0;
+				$month = isset($form_data["{$field_base}-month"]) ? (int) $form_data["{$field_base}-month"] : 0;
+				$year = isset($form_data["{$field_base}-year"]) ? (int) $form_data["{$field_base}-year"] : 0;
+
+				if ($day && $month && $year && checkdate($month, $day, $year)) {
+					$date_string = sprintf('%04d-%02d-%02d', $year, $month, $day);
+					return array(
+						'date' => array(
+							'start' => $date_string,
+						),
+					);
+				}
+			}
+
+			// If already in Y-m-d format, use it directly
+			if (is_valid_tablesome_date($value, 'Y-m-d')) {
+				return array(
+					'date' => array(
+						'start' => $value,
+					),
+				);
+			}
+
+			// Check if value is a time-only string (e.g., "12:12 am", "14:30", "3:45 PM")
+			// Time patterns: HH:MM am/pm, HH:MM:SS, etc.
+			$time_patterns = array(
+				'/^(\d{1,2}):(\d{2})\s*(am|pm|AM|PM)$/i',  // 12:12 am, 3:45 PM
+				'/^(\d{1,2}):(\d{2}):(\d{2})\s*(am|pm|AM|PM)?$/i',  // 12:12:30 am
+				'/^(\d{1,2}):(\d{2})$/i',  // 14:30 (24-hour format)
+				'/^(\d{1,2}):(\d{2}):(\d{2})$/i',  // 14:30:45 (24-hour format)
+			);
+
+			$is_time_only = false;
+			foreach ($time_patterns as $pattern) {
+				if (preg_match($pattern, trim($value), $matches)) {
+					$is_time_only = true;
+					break;
+				}
+			}
+
+			// If it's a time-only value, combine with today's date for Notion datetime
+			if ($is_time_only) {
+				$parsed_time = strtotime($value);
+				if ($parsed_time !== false) {
+					// Use today's date combined with the parsed time
+					$datetime = new \DateTime();
+					$datetime->setTime(
+						(int) date('H', $parsed_time),
+						(int) date('i', $parsed_time),
+						(int) date('s', $parsed_time)
+					);
+					// Format as ISO 8601 datetime for Notion: YYYY-MM-DDTHH:MM:SS
+					$date_string = $datetime->format('Y-m-d\TH:i:s');
+					return array(
+						'date' => array(
+							'start' => $date_string,
+						),
+					);
+				}
+			}
+
+			// Try to parse various date formats using PHP's strtotime or DateTime
+			// Common formats: m/d/Y, d/m/Y, Y-m-d, etc.
+			$parsed_date = null;
+			
+			// Try strtotime first (handles many formats automatically)
+			$timestamp = strtotime($value);
+			if ($timestamp !== false) {
+				$parsed_date = new \DateTime('@' . $timestamp);
+			} else {
+				// Try common date formats explicitly
+				$common_formats = array('m/d/Y', 'd/m/Y', 'Y-m-d', 'm-d-Y', 'd-m-Y', 'Y/m/d');
+				foreach ($common_formats as $format) {
+					$datetime = \DateTime::createFromFormat($format, $value);
+					if ($datetime !== false) {
+						$parsed_date = $datetime;
+						break;
+					}
+				}
+			}
+
+			// If we successfully parsed the date, format it appropriately for Notion
+			if ($parsed_date instanceof \DateTime) {
+				// Check if the parsed value includes time information
+				$has_time = ($parsed_date->format('H:i:s') !== '00:00:00' || 
+				            preg_match('/\d{1,2}:\d{2}/', $value));
+				
+				if ($has_time) {
+					// Format as ISO 8601 datetime: YYYY-MM-DDTHH:MM:SS
+					$date_string = $parsed_date->format('Y-m-d\TH:i:s');
+				} else {
+					// Format as date only: YYYY-MM-DD
+					$date_string = $parsed_date->format('Y-m-d');
+				}
+				
+				return array(
+					'date' => array(
+						'start' => $date_string,
+					),
+				);
+			}
+
+			// If all parsing attempts failed, return empty array
+			return [];
         }
 
     }

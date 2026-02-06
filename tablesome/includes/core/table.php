@@ -120,7 +120,7 @@ if (!class_exists('\Tablesome\Includes\Core\Table')) {
 
         public function insert_row($args)
         {
-            if (!isset($args['post_id']) && empty($args['post_id'])) {
+            if (!isset($args['post_id']) || empty($args['post_id'])) {
                 return false;
             }
             $insert_row = $this->crud->insert($args['post_id'], $args);

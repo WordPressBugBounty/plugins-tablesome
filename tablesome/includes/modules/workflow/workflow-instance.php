@@ -70,6 +70,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Instance')) {
 
                 $action_id = isset($action['action_id']) ? intval($action['action_id']) : 0;
 
+                // Skip disabled actions
+                if (isset($action['status']) && !$action['status']) {
+                    continue;
+                }
+
                 $action_class = $this->actions_helper->get_action_class_by_id($action_id, $this->actions);
 
                 // Free plan users only have an access to access the free actions.

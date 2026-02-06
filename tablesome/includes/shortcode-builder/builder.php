@@ -12,8 +12,9 @@ if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Builder')) {
 
         public function init()
         {
-            // Delay shortcode builder initialization until after init hook to avoid early translation loading
-            add_action('init', array($this, 'initialize_shortcode_builder'));
+            // Priority 9 ensures shortcode instances are registered before CSF::setup()
+            // runs at priority 10 and checks for show_in_editor instances
+            add_action('init', array($this, 'initialize_shortcode_builder'), 9);
         }
 
         public function initialize_shortcode_builder()
@@ -27,17 +28,13 @@ if (!class_exists('\Tablesome\Includes\Shortcode_Builder\Builder')) {
             $prefix = 'tablesome-shortcode';
 
             // Init shortcode builder
+            // Note: show_in_editor must be true for CSF to enqueue scripts and render the modal.
+            // We'll unregister CSF's block later so only our native block (tablesome/shortcode) appears.
             \CSF::createShortcoder($prefix, array(
                 'button_title' => __('Add Tablesome Shortcode', "tablesome"),
                 'select_title' => __('Select a shortcode', "tablesome"),
                 'insert_title' => __('Insert Shortcode', "tablesome"),
                 'show_in_editor' => true,
-                'gutenberg' => [
-                    'title' => __('Add Tablesome Shortcode', "tablesome"),
-                    'icon' => 'screenoptions',
-                    'category' => 'widgets',
-                    'keywords' => array('table', 'data', 'tablesome', 'shortcode'),
-                ],
             ));
 
             // create builder section
