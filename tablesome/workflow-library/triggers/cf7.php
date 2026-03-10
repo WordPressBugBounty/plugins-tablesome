@@ -17,6 +17,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
          */
         public $unsupported_formats = array(
             'submit',
+            'group',
         );
 
         public $trigger_source_id = 0;

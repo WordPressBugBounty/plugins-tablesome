@@ -24,6 +24,8 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
 
         public $async_email_handler;
 
+        public $redirect_token;
+
         public function __construct() {
             $this->utils = new \Tablesome\Includes\Utils();
             /** plugin activation Hook */
@@ -243,6 +245,29 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
         // Belows are callback functions of adding Actions order wise
         public function init_hook() {
             $this->setGlobalCurrentUserID();
+            // Set the redirect token cookie early, before any output is sent.
+            // This must happen in init (not wp_enqueue_scripts) because themes
+            // output HTML before wp_head(), making headers_sent() return true.
+            // Exclude wp-login.php: is_admin() returns false for it, but setting
+            // a cookie there creates stale tokens that mismatch the JS token
+            // generated on the actual form page.
+            $is_login_page = isset( $GLOBALS['pagenow'] ) && $GLOBALS['pagenow'] === 'wp-login.php';
+            // REST_REQUEST constant is not defined until parse_request (after init),
+            // so detect REST API requests via REQUEST_URI instead.
+            $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+            $is_rest_request = defined( 'REST_REQUEST' ) || strpos( $request_uri, '/wp-json/' ) !== false || strpos( $request_uri, 'rest_route=' ) !== false;
+            if ( !is_admin() && !$is_login_page && !wp_doing_ajax() && !$is_rest_request && !headers_sent() ) {
+                $this->redirect_token = wp_generate_password( 32, false );
+                setcookie(
+                    'tablesome_redirect_token',
+                    $this->redirect_token,
+                    0,
+                    COOKIEPATH,
+                    COOKIE_DOMAIN,
+                    is_ssl(),
+                    false
+                );
+            }
             $this->cron->action( 'start' );
             /*  Tablesome Table-Actions Ajax Hooks */
             new \Tablesome\Includes\Ajax_Handler();
@@ -961,6 +986,11 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
                 ),
                 "site_domain"    => $_SERVER['SERVER_NAME'],
             );
+            // Use the redirect token that was generated and set as a cookie
+            // during init_hook (before any output was sent)
+            if ( !empty( $this->redirect_token ) ) {
+                $tablesome_ajax_object['redirect_token'] = $this->redirect_token;
+            }
             return $tablesome_ajax_object;
         }
 

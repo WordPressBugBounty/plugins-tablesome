@@ -68,6 +68,14 @@
 			"label": "Current Year"
 		},
 		{
+			"id": "today_and_after",
+			"label": "Today and after"
+		},
+		{
+			"id": "today_and_before",
+			"label": "Today and before"
+		},
+		{
 			"id": "last_n_days",
 			"label": "Last N days"
 		},

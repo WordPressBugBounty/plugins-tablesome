@@ -103,6 +103,15 @@ if (!class_exists('\Tablesome\Includes\Modules\Feature_Notice')) {
 
         public function update_feature_notice_dismissal_data_via_ajax()
         {
+            if (!check_ajax_referer('tablesome_nonce', '_wpnonce', false) &&
+                !check_ajax_referer('tablesome_nonce', 'nonce', false)) {
+                wp_send_json_error(array(
+                    'message' => 'Security check failed.',
+                    'code' => 'invalid_nonce'
+                ), 403);
+                wp_die();
+            }
+
             update_option($this->dismissed_option_name, TABLESOME_VERSION);
 
             $response = array(

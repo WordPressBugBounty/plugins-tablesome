@@ -472,11 +472,11 @@ if (!class_exists('\Tablesome\Components\Table\Other_CPT_Model')) {
                 } else if ('post_author' === $source_operand_id) {
                     $statements .= " AND {$wpdb->posts}.{$source_operand_id} ";
                     if (in_array($operator, ['contains', 'does_not_contain'])) {
-                        $author_ids = empty($destination_value) ? [0] : $destination_value;
+                        $author_ids = empty($destination_value) ? [0] : array_map('intval', (array) $destination_value);
                         $statements .= $operator_map_value . ' (' . implode(',', $author_ids) . ')';
                     } else if (in_array($operator, ['is', 'is_not']) && !empty($destination_value)) {
                         $operator_map_value = ('is' === $operator) ? '=' : '<>';
-                        $author_id = is_array($destination_value) ? $destination_value[0] : $destination_value;
+                        $author_id = intval(is_array($destination_value) ? $destination_value[0] : $destination_value);
                         $statements .= $operator_map_value . '\'' . $author_id . '\'';
                     } else if (in_array($operator, ['empty', 'not_empty'])) {
                         $operator_map_value = ('empty' === $operator) ? '=' : '<>';

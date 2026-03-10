@@ -50,12 +50,13 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
         public function get_row_count($table_id)
         {
-            if( !isset($table_id) || empty($table_id) || is_null($table_id) || $table_id == 0 ){
+            $table_id = intval($table_id);
+            if( empty($table_id) || $table_id == 0 ){
                 return 0;
             }
             $table_name = TABLESOME_TABLE_NAME . '_' . $table_id;
             $table_name = $this->wpdb->prefix . $table_name;
-            $query = "SELECT COUNT(*) FROM $table_name";
+            $query = "SELECT COUNT(*) FROM `$table_name`";
             return $this->wpdb->get_var($query);
         }
 
@@ -116,52 +117,33 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 return 0;
             }
 
-            $query = "INSERT INTO $table_name (";
-
-            $ii = 0;
-
             if (count($record) == 0) {
                 return 0;
             }
 
-            // Check if record has columns missing in table
-            // $this->check_and_add_missing_columns($record, $table_name);
-
-
-            foreach ($record as $key => $cell) {
-                # code...
-                // $column_name = $this->get_column_name($cell);
-                $column_name = $key;
-                $query .= " `$column_name`";
-
-                // Add comma if not the last item
-                if ($ii < count($record) - 1) {
-                    $query .= ",";
-                }
-                $ii++;
-            } // END of cell loop
-
-            $query .= ") SELECT ";
-
-            $ii = 0;
+            // Filter to only valid column names, keeping columns and values in sync
+            $columns = [];
+            $values = [];
             foreach ($record as $key => $value) {
-                # code...
-                // $value = $cell['value'];
-                $value = esc_sql($value);
-                $query .= " '$value'";
-                // Add comma if not the last item
-                if ($ii < count($record) - 1) {
-                    $query .= ",";
+                $column_name = $this->sanitize_column_name($key);
+                if (empty($column_name)) {
+                    continue;
                 }
+                $columns[] = "`$column_name`";
+                $values[] = "'" . esc_sql($value) . "'";
+            }
 
-                $ii++;
-            } // END of cell loop
+            if (empty($columns)) {
+                return 0;
+            }
+
+            $query = "INSERT INTO $table_name (" . implode(", ", $columns) . ") SELECT " . implode(", ", $values);
 
             $query .= " ";
             $enabled_prevent_duplication = isset($insert_args['enable_duplication_prevention']) && $insert_args['enable_duplication_prevention'] == 1 ? true : false;
             $enabled_limit_submission = isset($insert_args['enable_submission_limit']) && $insert_args['enable_submission_limit'] == 1 ? true : false;
             $submission_limit = isset($insert_args['max_allowed_submissions']) && !empty($insert_args['max_allowed_submissions']) ? intval($insert_args['max_allowed_submissions']) : 100;
-            $prevent_field_column = isset($insert_args['prevent_field_column']) ? $insert_args['prevent_field_column'] : "";
+            $prevent_field_column = isset($insert_args['prevent_field_column']) ? $this->sanitize_column_name($insert_args['prevent_field_column']) : "";
             $can_add_prevent_query = ($enabled_prevent_duplication || $enabled_limit_submission);
 
             if ($can_add_prevent_query) {
@@ -171,7 +153,10 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 $query .= "WHERE ";
 
                 if ($enabled_prevent_duplication && !empty($prevent_field_column) && isset($record[$prevent_field_column])) {
-                    $query .= "NOT EXISTS (SELECT 1 FROM " . $table_name . " WHERE " . $prevent_field_column . " = '" . esc_sql($record[$prevent_field_column]) . "' ) ";
+                    $query .= $wpdb->prepare(
+                        "NOT EXISTS (SELECT 1 FROM " . $table_name . " WHERE `" . $prevent_field_column . "` = %s ) ",
+                        $record[$prevent_field_column]
+                    );
                 }
 
                 $query .= " "; // space
@@ -184,11 +169,6 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                     $query .= "cnt < " . $submission_limit . ";";
                 }
             }
-
-            // error_log('$query : ' . $query);
-
-            // Todo: Add wpdb->prepare() to $query
-            // Example: $wpdb->query( $wpdb->prepare($query) );
 
             $insert_success_bool = $wpdb->query($query);
             $inserted_record_id = $wpdb->insert_id;
@@ -204,22 +184,35 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         {
             // error_log('update_record $record : ' . print_r($record, true));
 
-            $prevent_field_column = isset($insert_args['prevent_field_column']) ? $insert_args['prevent_field_column'] : "";
+            $prevent_field_column = isset($insert_args['prevent_field_column']) ? $this->sanitize_column_name($insert_args['prevent_field_column']) : "";
             $prevent_field_value = isset($record[$prevent_field_column]) ? $record[$prevent_field_column] : "";
 
+            if (empty($prevent_field_column)) {
+                error_log('update_record: invalid prevent_field_column');
+                return $record;
+            }
+
             global $wpdb;
-            $query = "UPDATE $table_name SET ";
-            $ii = 0;
+            $assignments = [];
             foreach ($record as $key => $value) {
-                $value = esc_sql($value);
-                $query .= " `$key` = '$value'";
-                // Add comma if not the last item
-                if ($ii < count($record) - 1) {
-                    $query .= ",";
+                $sanitized_key = $this->sanitize_column_name($key);
+                if (empty($sanitized_key)) {
+                    continue;
                 }
-                $ii++;
-            } // END of cell loop
-            $query .= " WHERE `$prevent_field_column` = '$prevent_field_value' LIMIT 1;";
+                $value = esc_sql($value);
+                $assignments[] = "`$sanitized_key` = '$value'";
+            }
+
+            if (empty($assignments)) {
+                error_log('update_record: no valid columns to update');
+                return $record;
+            }
+
+            $query = "UPDATE `$table_name` SET " . implode(", ", $assignments);
+            $query = $wpdb->prepare(
+                $query . " WHERE `$prevent_field_column` = %s LIMIT 1;",
+                $prevent_field_value
+            );
             $wpdb->query($query);
             return $record;
         }   
@@ -228,10 +221,16 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             global $wpdb;
             $table_name = $args['table_name'];
             $args['table_name'] = $table_name;
-            $column_name = $args['name'];
-            $column_type = $args['format'];
+            $column_name = $this->sanitize_column_name($args['name']);
+            $column_type = $this->sanitize_column_type($args['format']);
 
-            $query = "ALTER TABLE $table_name ADD $column_name $column_type DEFAULT ''";
+            if (empty($column_name) || empty($column_type)) {
+                error_log('insert_column: invalid column name or type');
+                $response['new_column_created'] = false;
+                return $response;
+            }
+
+            $query = "ALTER TABLE `$table_name` ADD `$column_name` $column_type DEFAULT ''";
             // error_log('insert_column $query : ' . $query);
             $response['new_column_created'] = $wpdb->query($query);
             return $response;
@@ -242,15 +241,15 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             global $wpdb;
             $table_name = $args['table_name'];
             $args['table_name'] = $table_name;
-            $source_column = $args['source_column'];
-            $target_column = $args['target_column'];
+            $source_column = $this->sanitize_column_name($args['source_column']);
+            $target_column = $this->sanitize_column_name($args['target_column']);
 
             if(empty($source_column) || empty($target_column)){
-                error_log('copy_column_content: $source_column or $target_column is empty');
+                error_log('copy_column_content: $source_column or $target_column is empty or invalid');
                 return $response;
             }
 
-            $query = "UPDATE $table_name SET $target_column = $source_column";
+            $query = "UPDATE `$table_name` SET `$target_column` = `$source_column`";
             $response['copied_column_records'] = $wpdb->query($query);
             return $response;
         }
@@ -262,11 +261,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             global $wpdb;
             $table_name = $args['table_name'];
             $args['table_name'] = $table_name;
-            $source_column = $args['source_column'];
-            $target_column = $args['target_column'];
+            $source_column = $this->sanitize_column_name($args['source_column']);
+            $target_column = $this->sanitize_column_name($args['target_column']);
 
             if(empty($source_column) || empty($target_column)){
-                error_log('duplicate_column: $source_column or $target_column is empty');
+                error_log('duplicate_column: $source_column or $target_column is empty or invalid');
                 return $response;
             }
 
@@ -278,11 +277,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             }
 
             // Create New Column
-            $query = "ALTER TABLE $table_name ADD $target_column TEXT NOT NULL";
+            $query = "ALTER TABLE `$table_name` ADD `$target_column` TEXT NOT NULL";
             $response['new_column_created'] = $wpdb->query($query);
 
             // Copy Data from Source Column to Target Column
-            $query = "UPDATE $table_name SET $target_column = $source_column";
+            $query = "UPDATE `$table_name` SET `$target_column` = `$source_column`";
             // error_log('$query : ' . $query);
             $response['copied_column_records'] = $wpdb->query($query);
 
@@ -294,8 +293,9 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             if (empty($record_id)) {
                 return null;
             }
+            $record_id = intval($record_id);
             $table_name = $args['table_name'];
-            $query = "select * from {$table_name} where id = {$record_id}";
+            $query = $this->wpdb->prepare("SELECT * FROM {$table_name} WHERE id = %d", $record_id);
             $db_record = $this->wpdb->get_row($query);
             if (is_wp_error($db_record)) {
                 error_log("get_record error:" . $db_record->get_error_message());
@@ -318,7 +318,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             }
 
             $query .= $this->orderby($args);
-            $query .= " LIMIT " . $args['limit'];
+            $query .= " LIMIT " . max(1, intval($args['limit']));
 
             $result = $wpdb->get_results($query);
 
@@ -333,12 +333,30 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         {
             $sql_string = " ORDER BY ";
             $orderByArgs = [];
-            foreach ($args['orderby'] as $key => $value) {
-                $orderByArgs[] = $args['table_name'] . "." . $value;
+
+            // Validate orderby column names against actual table columns
+            $table_columns = $this->get_table_columns($args['table_name']);
+            $allowed_columns = ['id', 'rank_order'];
+            foreach ($table_columns as $col) {
+                $allowed_columns[] = $col['Field'];
             }
-            // Looks like wptablesome_table_287.column_2, wptablesome_table_287.column_3 ....
+
+            foreach ($args['orderby'] as $key => $value) {
+                $value = sanitize_key($value);
+                if (in_array($value, $allowed_columns, true)) {
+                    $orderByArgs[] = "`" . $args['table_name'] . "`.`" . $value . "`";
+                }
+            }
+
+            if (empty($orderByArgs)) {
+                $orderByArgs[] = "`" . $args['table_name'] . "`.`id`";
+            }
+
             $sql_string = $sql_string . implode(',', $orderByArgs);
-            $sql_string .= " " . $args['order'];
+
+            // Whitelist order direction
+            $order = strtoupper(trim($args['order']));
+            $sql_string .= in_array($order, ['ASC', 'DESC'], true) ? " " . $order : " ASC";
 
             return $sql_string;
         }
@@ -527,7 +545,13 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 return $sql_string;
             }
 
-            if ($operand2 == 'today') {
+            if ($operand2 == 'today_and_after') {
+                $negate = ($mysql_operator == '!=' || $mysql_operator == 'is_not');
+                $sql_string .= "DATE($operand1_query_string) " . ($negate ? '<' : '>=') . " CURDATE()";
+            } else if ($operand2 == 'today_and_before') {
+                $negate = ($mysql_operator == '!=' || $mysql_operator == 'is_not');
+                $sql_string .= "DATE($operand1_query_string) " . ($negate ? '>' : '<=') . " CURDATE()";
+            } else if ($operand2 == 'today') {
                 $sql_string .= "DATE($operand1_query_string) $mysql_operator CURDATE()";
             } else if ($operand2 == 'tomorrow') {
                 $sql_string .= "DATEDIFF($operand1_query_string, CURDATE()) $mysql_operator 1";
@@ -682,6 +706,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 $condition['mysql_operator'] = $validated_operator;
             }
 
+            // SECURITY FIX: Cast operand_2 to numeric to prevent SQL injection
+            // For number conditions, operand_2 is interpolated directly into SQL
+            if ($condition['data_type'] == 'number') {
+                $condition['operand_2'] = floatval($condition['operand_2']);
+            }
+
             return $condition;
 
         }
@@ -727,19 +757,93 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 }
             }
 
-            //
-            // SHOULD ADD ' '
-            $condition['operand_2'] = "'" . $condition['operand_2'] . "'";
+            // Escape operand_2 value to prevent SQL injection
+            $condition['operand_2'] = "'" . esc_sql($condition['operand_2']) . "'";
 
             return $condition;
+        }
+
+        /**
+         * Sanitize a column name to prevent SQL injection.
+         * Only allows alphanumeric characters and underscores (matching the column_N pattern).
+         *
+         * @param string $column_name The column name to sanitize
+         * @return string Sanitized column name, or empty string if invalid
+         */
+        public function sanitize_column_name($column_name)
+        {
+            if (empty($column_name) || !is_string($column_name)) {
+                return '';
+            }
+
+            // Column names must match pattern: word characters only (letters, digits, underscores)
+            if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $column_name)) {
+                error_log('sanitize_column_name: rejected invalid column name: ' . substr($column_name, 0, 100));
+                return '';
+            }
+
+            return $column_name;
+        }
+
+        /**
+         * Sanitize a column type for ALTER TABLE statements.
+         * Only allows known MySQL data types.
+         *
+         * @param string $column_type The column type to sanitize
+         * @return string Sanitized column type, or empty string if invalid
+         */
+        public function sanitize_column_type($column_type)
+        {
+            if (empty($column_type) || !is_string($column_type)) {
+                return '';
+            }
+
+            $allowed_types = [
+                'text', 'TEXT',
+                'varchar', 'VARCHAR',
+                'int', 'INT',
+                'integer', 'INTEGER',
+                'bigint', 'BIGINT',
+                'float', 'FLOAT',
+                'double', 'DOUBLE',
+                'decimal', 'DECIMAL',
+                'date', 'DATE',
+                'datetime', 'DATETIME',
+                'timestamp', 'TIMESTAMP',
+                'boolean', 'BOOLEAN',
+                'tinyint', 'TINYINT',
+                'smallint', 'SMALLINT',
+                'mediumint', 'MEDIUMINT',
+                'mediumtext', 'MEDIUMTEXT',
+                'longtext', 'LONGTEXT',
+                'json', 'JSON',
+            ];
+
+            $type_upper = strtoupper(trim($column_type));
+
+            // Handle types with length specifiers like VARCHAR(255)
+            if (preg_match('/^([A-Z]+)(\(\d+\))?$/', $type_upper, $matches)) {
+                if (in_array($matches[1], array_map('strtoupper', $allowed_types), true)) {
+                    return $type_upper;
+                }
+            }
+
+            // Check for exact match
+            if (in_array($column_type, $allowed_types, true)) {
+                return $column_type;
+            }
+
+            error_log('sanitize_column_type: rejected invalid column type: ' . substr($column_type, 0, 100));
+            return '';
         }
 
         public function delete_table($table_id)
         {
             global $wpdb;
+            $table_id = intval($table_id);
             $table_name = TABLESOME_TABLE_NAME . '_' . $table_id;
             $table_name = $wpdb->prefix . $table_name;
-            $query = "DROP TABLE IF EXISTS $table_name";
+            $query = "DROP TABLE IF EXISTS `$table_name`";
             $result = $wpdb->query($query);
             // error_log('delete_table $result : ' . $result);
             return $result;
@@ -748,9 +852,10 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         public function empty_the_table($table_id)
         {
             global $wpdb;
+            $table_id = intval($table_id);
             $table_name = TABLESOME_TABLE_NAME . '_' . $table_id;
             $table_name = $wpdb->prefix . $table_name;
-            $query = "DELETE FROM $table_name";
+            $query = "DELETE FROM `$table_name`";
             $result = $wpdb->query($query);
             return $result;
         }

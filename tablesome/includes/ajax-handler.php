@@ -27,11 +27,32 @@ if (!class_exists('\Tablesome\Includes\Ajax_Handler')) {
             add_action('wp_ajax_update_feature_notice_dismissal_data_via_ajax', array(new \Tablesome\Includes\Modules\Feature_Notice(), 'update_feature_notice_dismissal_data_via_ajax'));
 
             add_action("wp_ajax_get_redirection_data", array($this, 'get_redirection_data'));
+            add_action("wp_ajax_nopriv_get_redirection_data", array($this, 'get_redirection_data'));
 
+        }
+
+        private function verify_nonce()
+        {
+            // Check both _wpnonce and nonce fields for backwards compatibility
+            if (check_ajax_referer('tablesome_nonce', '_wpnonce', false)) {
+                return true;
+            }
+            if (check_ajax_referer('tablesome_nonce', 'nonce', false)) {
+                return true;
+            }
+            return false;
         }
 
         public function save_table()
         {
+            if (!$this->verify_nonce()) {
+                wp_send_json_error(array(
+                    'message' => 'Security check failed. Please refresh the page and try again.',
+                    'code' => 'invalid_nonce'
+                ), 403);
+                wp_die();
+            }
+
             if (!current_user_can('manage_options')) {
                 wp_send_json_error(array(
                     'message' => 'Unauthorized access. You do not have permission to perform this action.',
@@ -74,6 +95,14 @@ if (!class_exists('\Tablesome\Includes\Ajax_Handler')) {
 
         public function get_table_columns_by_table_id()
         {
+            if (!$this->verify_nonce()) {
+                wp_send_json_error(array(
+                    'message' => 'Security check failed. Please refresh the page and try again.',
+                    'code' => 'invalid_nonce'
+                ), 403);
+                wp_die();
+            }
+
             if (!current_user_can('edit_posts')) {
                 wp_send_json_error(array(
                     'message' => 'Unauthorized access. You do not have permission to view table columns.',
@@ -126,18 +155,29 @@ if (!class_exists('\Tablesome\Includes\Ajax_Handler')) {
 
         public function get_redirection_data()
         {
-            if (!is_user_logged_in()) {
+            if (!$this->verify_nonce()) {
                 wp_send_json_error(array(
-                    'message' => 'Unauthorized access. You must be logged in to access this resource.',
-                    'code' => 'unauthorized'
+                    'message' => 'Security check failed. Please refresh the page and try again.',
+                    'code' => 'invalid_nonce'
                 ), 403);
                 wp_die();
             }
 
-            $redirection_data = get_option('workflow_redirection_data');
+            $redirection_data = [];
 
-            error_log('*** get_redirection_data ***');
-            $redirection_data = isset($redirection_data) && !empty($redirection_data) ? $redirection_data : [];
+            // Read redirect data from the per-session transient keyed by redirect token
+            $redirect_token = isset($_REQUEST['redirect_token'])
+                ? sanitize_text_field($_REQUEST['redirect_token'])
+                : '';
+
+            if (!empty($redirect_token)) {
+                $transient_key = 'tablesome_redir_' . substr(md5($redirect_token), 0, 20);
+                $transient_data = get_transient($transient_key);
+                if (!empty($transient_data)) {
+                    $redirection_data = $transient_data;
+                    delete_transient($transient_key);
+                }
+            }
 
             $response = array(
                 'status' => 'success',
@@ -145,7 +185,6 @@ if (!class_exists('\Tablesome\Includes\Ajax_Handler')) {
                 'data' => $redirection_data,
             );
 
-            delete_option('workflow_redirection_data');
             wp_send_json($response);
             wp_die();
         }

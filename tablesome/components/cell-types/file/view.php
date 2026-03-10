@@ -32,15 +32,13 @@ if (!class_exists('Tablesome\Components\CellTypes\File\View')) {
                     break;
             }
 
-            // error_log('html : ' . $html);
-
             return $html;
         }
 
         public function get_image($data, $is_preview = false)
         {
-            $url = isset($data["url"]) && !empty($data["url"]) ? $data["url"] : "";
-            $link = isset($data["link"]) && !empty($data["link"]) ? $data["link"] : "";
+            $url = isset($data["url"]) && !empty($data["url"]) ? esc_url($data["url"]) : "";
+            $link = isset($data["link"]) && !empty($data["link"]) ? esc_url($data["link"]) : "";
 
             $html = '<img  class="tablesome__inputMediaPreview tablesome__inputMediaPreview--image" src="' . $url . '" />';
 
@@ -54,7 +52,7 @@ if (!class_exists('Tablesome\Components\CellTypes\File\View')) {
         public function get_video($url = '', $mime_type = '')
         {
             $html = '<video controls class="tablesome__inputMediaPreview tablesome__inputMediaPreview--video">';
-            $html .= '<source src="' . $url . '" type="' . $mime_type . '">';
+            $html .= '<source src="' . esc_url($url) . '" type="' . esc_attr($mime_type) . '">';
             $html .= __('Your browser does not support HTML video', 'tablesome');
             $html .= '</video>';
 
@@ -64,7 +62,7 @@ if (!class_exists('Tablesome\Components\CellTypes\File\View')) {
         public function get_audio($url = '', $mime_type = '')
         {
             $html = '<audio controls class="tablesome__inputMediaPreview tablesome__inputMediaPreview--audio">';
-            $html .= '<source src="' . $url . '" type="' . $mime_type . '">';
+            $html .= '<source src="' . esc_url($url) . '" type="' . esc_attr($mime_type) . '">';
             $html .= __('Your browser does not support HTML audio', 'tablesome');
             $html .= '</audio>';
 
@@ -73,7 +71,7 @@ if (!class_exists('Tablesome\Components\CellTypes\File\View')) {
 
         public function get_media_link($url = '', $name = '')
         {
-            return '<a class="tablesome__inputMediaPreview tablesome__inputMediaPreview--link" href="' . $url . '" target="_blank">' . $name . '</a>';
+            return '<a class="tablesome__inputMediaPreview tablesome__inputMediaPreview--link" href="' . esc_url($url) . '" target="_blank">' . esc_html($name) . '</a>';
         }
     }
 }

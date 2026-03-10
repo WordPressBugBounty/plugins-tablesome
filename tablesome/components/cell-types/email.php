@@ -16,9 +16,9 @@ if (!class_exists('\Tablesome\Components\CellTypes\Email')) {
                 return $cell;
             }
 
-            $cell["html"] = $cell['value'];
+            $cell["html"] = esc_html($cell['value']);
             if (filter_var(trim($cell['value']), FILTER_VALIDATE_EMAIL)) {
-                $cell["html"] = '<a href="mailto:' . $cell['value'] . '?subject = Feedback&body = Message">' . $cell['value'] . '</a>';
+                $cell["html"] = '<a href="' . esc_url('mailto:' . $cell['value'] . '?subject=Feedback&body=Message') . '">' . esc_html($cell['value']) . '</a>';
             }
 
             return $cell;

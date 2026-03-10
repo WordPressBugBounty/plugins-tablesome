@@ -68,16 +68,27 @@ if (!class_exists('\Tablesome\Includes\Modules\Datatable\Record')) {
         {
 
             $prevent_field_column = isset($insert_args['prevent_field_column']) ? $insert_args['prevent_field_column'] : "";
-            
+
             // Return false if no duplicate prevention column is specified
             if (empty($prevent_field_column)) {
                 return false;
             }
-            
-            $prevent_field_value = isset($data[$prevent_field_column]) ? $data[$prevent_field_column] : "";
+
+            // Sanitize column name to prevent SQL injection
+            $mysql = new \Tablesome\Includes\Modules\Myque\Mysql();
+            $sanitized_column = $mysql->sanitize_column_name($prevent_field_column);
+            if (empty($sanitized_column)) {
+                error_log('check_if_duplicate: rejected invalid prevent_field_column');
+                return false;
+            }
+
+            $prevent_field_value = isset($data[$sanitized_column]) ? $data[$sanitized_column] : "";
 
             global $wpdb;
-            $query = "SELECT * FROM $table_name WHERE `$prevent_field_column` = '$prevent_field_value' LIMIT 1;";
+            $query = $wpdb->prepare(
+                "SELECT * FROM `$table_name` WHERE `$sanitized_column` = %s LIMIT 1;",
+                $prevent_field_value
+            );
             $result = $wpdb->get_results($query);
             return !empty($result) ? true : false;
         }

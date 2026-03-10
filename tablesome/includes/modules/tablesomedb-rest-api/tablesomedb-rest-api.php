@@ -983,6 +983,10 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             $query_args = isset($params['query_args']) && is_array($params['query_args']) ? $params['query_args'] : [];
 
+            // Whitelist allowed query_args keys to prevent parameter injection
+            $allowed_query_keys = ['where', 'orderby', 'order', 'limit', 'table_meta', 'collection', 'number'];
+            $query_args = array_intersect_key($query_args, array_flip($allowed_query_keys));
+
             $post = \get_post($table_id);
 
             $access_info = $this->check_table_access($post);
@@ -991,30 +995,27 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 return new \WP_Error($access_info['error_code'], $access_info['message']);
             }
 
-            // if (empty($post) || $post->post_type != TABLESOME_CPT) {
-            //     $error_code = "INVALID_POST";
-            //     return new \WP_Error($error_code, $this->get_error_message($error_code));
-            // }
             $table_meta = \get_tablesome_data($post->ID);
             $tablesome_db = new \Tablesome\Includes\Modules\TablesomeDB\TablesomeDB();
             $table = $tablesome_db->create_table_instance($post->ID);
 
+            // Merge with safe defaults — table_id and table_name cannot be overridden
+            // since they're not in the allowed query_args keys whitelist
             $args = array_merge(
+                $query_args,
                 array(
                     'table_id' => $post->ID,
                     'table_name' => $table->name,
-                ), $query_args
+                    'table_meta' => $table_meta,
+                    'collection' => isset($query_args['collection']) ? $query_args['collection'] : [],
+                )
             );
 
+            // Use get_rows which returns already-formatted rows
             $records = $tablesome_db->get_rows($args);
 
-            // $query = $tablesome_db->query($query_args);
-
-            // // TODO: Return the formatted data if need. don't send the actual db data
-            // $records = isset($query->items) ? $query->items : [];
-
             $response_data = array(
-                'records' => $tablesome_db->get_formatted_rows($records, $table_meta, []),
+                'records' => $records,
                 'message' => 'Get records successfully',
                 'status' => 'success',
             );

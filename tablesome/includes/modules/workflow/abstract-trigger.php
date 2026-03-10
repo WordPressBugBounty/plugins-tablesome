@@ -44,9 +44,6 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Abstract_Trigger')) {
                 return;
             }
 
-            // delete redirection data in DB before loop the trigger instances
-            delete_option('workflow_redirection_data');
-
             // TODO: Will be removed in the future. It Will be replaced with the $workflow_data variable.
             $placeholders = $this->getPlaceholders($trigger_source_data);
 
@@ -57,9 +54,17 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Abstract_Trigger')) {
 
             }
 
-            // store the redirection data in DB if any redirection action has configured
+            // Store redirection data keyed by the per-page-view redirect token
+            // to prevent race conditions between concurrent form submissions
             if (isset($workflow_redirection_data) && count($workflow_redirection_data) > 0) {
-                update_option('workflow_redirection_data', $workflow_redirection_data);
+                $redirect_token = isset($_COOKIE['tablesome_redirect_token'])
+                    ? sanitize_text_field($_COOKIE['tablesome_redirect_token'])
+                    : '';
+
+                if (!empty($redirect_token)) {
+                    $transient_key = 'tablesome_redir_' . substr(md5($redirect_token), 0, 20);
+                    set_transient($transient_key, $workflow_redirection_data, 60);
+                }
             }
 
         }

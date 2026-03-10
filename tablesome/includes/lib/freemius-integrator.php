@@ -12,25 +12,26 @@ if ( !function_exists( 'tablesome_fs' ) ) {
             // }
             // require_once $freemius_wordpress_sdk;
             $tablesome_fs = fs_dynamic_init( array(
-                'id'             => '7163',
-                'slug'           => 'tablesome',
-                'type'           => 'plugin',
-                'public_key'     => 'pk_12b7206bfde98e6b6646e8714b8f2',
-                'is_premium'     => false,
-                'premium_suffix' => '',
-                'has_addons'     => false,
-                'has_paid_plans' => true,
-                'trial'          => array(
+                'id'               => '7163',
+                'slug'             => 'tablesome',
+                'type'             => 'plugin',
+                'public_key'       => 'pk_12b7206bfde98e6b6646e8714b8f2',
+                'is_premium'       => false,
+                'premium_suffix'   => '',
+                'has_addons'       => false,
+                'has_paid_plans'   => true,
+                'trial'            => array(
                     'days'               => 7,
                     'is_require_payment' => true,
                 ),
-                'menu'           => array(
+                'menu'             => array(
                     'slug'       => 'edit.php?post_type=' . TABLESOME_CPT,
                     'first-path' => 'edit.php?post_type=' . TABLESOME_CPT . '&page=tablesome-onboarding',
                     'contact'    => false,
                     'support'    => true,
                 ),
-                'is_live'        => true,
+                'is_live'          => true,
+                'is_org_compliant' => true,
             ) );
         }
         return $tablesome_fs;

@@ -148,7 +148,7 @@ if ( !class_exists( '\\Tablesome\\Workflow_Library\\Actions\\Tablesome_Generate_
                 'A4',
                 $fields
             );
-            // Set configurable image width (default 500px)
+            // Set configurable image width (default 300px)
             $image_width = ( isset( $this->action_meta['image_width'] ) ? absint( $this->action_meta['image_width'] ) : 300 );
             $image_width = apply_filters( 'tablesome_pdf_image_width', $image_width );
             $pdf->setImageWidth( $image_width );
