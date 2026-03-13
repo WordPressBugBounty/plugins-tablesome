@@ -3,7 +3,7 @@ Donate link: https://pauple.com
 Tags: table, email, contact form 7, wpforms, redirect
 Requires at least: 6.7
 Tested up to: 6.9
-Stable tag: 1.2.4
+Stable tag: 1.2.6
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -196,6 +196,13 @@ We love to hear from our users and we try to integrate features that our users w
 5. Copy and paste the shortcode on the post.
 
 == Change Log ==
+
+= 1.2.6 =
+Feature: PDF signature support for all form plugins (WPForms, Forminator, Gravity Forms, Fluent Forms, CF7, Elementor)
+Feature: Base64 signature data URL conversion for Fluent Forms signature pad
+Fix: Notion integration fix
+Fix: Redirection fix
+Fix: General fixes
 
 = 1.2.4 =
 Fix: Security Fixes

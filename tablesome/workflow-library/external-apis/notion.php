@@ -188,9 +188,14 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\Notion')) {
                         continue;
                     }
 
+                    $label = $property['name'];
+                    if ($property['type'] === 'title') {
+                        $label .= ' — Page Title';
+                    }
+
                     $fields[] = array(
                         'id' => $property['id'],
-                        'label' => $property['name'],
+                        'label' => $label,
                         'field_type' => $property['type'],
                     );
                 }

@@ -15,6 +15,11 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
         public $trigger_source_id = 0;
         public $trigger_source_data = array();
 
+        public $signature_field_types = array(
+            'signature',
+            'signature_pad',
+        );
+
         public $unsupported_formats = array(
             'custom_html',
             'section_break',
@@ -272,6 +277,24 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
                     $data[$field['id']]['linkText'] = 'View File';
                     $data[$field['id']]['file_url'] = $file_url ?? '';
                 }
+
+                if (in_array($type, $this->signature_field_types)) {
+                    $sig_url = $value;
+                    // Convert base64 data URLs to saved files
+                    if (!empty($sig_url) && is_string($sig_url) && strpos($sig_url, 'data:image') === 0) {
+                        $saved_url = $this->save_base64_signature_to_file($sig_url);
+                        if ($saved_url) {
+                            $sig_url = $saved_url;
+                            $data[$field['id']]['value'] = $saved_url;
+                        }
+                    }
+                    if (!empty($sig_url)) {
+                        $data[$field['id']]['file_type'] = 'image/png';
+                        $data[$field['id']]['linkText'] = 'View Signature';
+                        $data[$field['id']]['file_url'] = $sig_url;
+                        $data[$field['id']]['is_signature'] = true;
+                    }
+                }
             }
             return $data;
         }
@@ -286,6 +309,62 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
                 );
             }
             return $options;
+        }
+
+        /**
+         * Convert base64 signature data to a saved file and return the URL.
+         *
+         * @param string $base64_data The base64 data URL (e.g., data:image/png;base64,...)
+         * @return string|false The URL of the saved file or false on failure
+         */
+        protected function save_base64_signature_to_file($base64_data)
+        {
+            if (!preg_match('/^data:image\/(png|jpeg|jpg|gif);base64,(.+)$/i', $base64_data, $matches)) {
+                return false;
+            }
+
+            $extension = strtolower($matches[1]);
+            if ($extension === 'jpeg') {
+                $extension = 'jpg';
+            }
+
+            if (!in_array($extension, array('png', 'jpg', 'gif'), true)) {
+                return false;
+            }
+
+            $decoded_data = base64_decode($matches[2], true);
+            if ($decoded_data === false) {
+                return false;
+            }
+
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mime_type = $finfo->buffer($decoded_data);
+            $allowed_mimes = array('image/png', 'image/jpeg', 'image/gif');
+            if (!in_array($mime_type, $allowed_mimes, true)) {
+                return false;
+            }
+
+            $filename = 'signature_' . time() . '_' . wp_rand(1000, 9999) . '.' . $extension;
+            $filename = sanitize_file_name($filename);
+
+            $upload_dir = wp_upload_dir();
+            $signature_dir = $upload_dir['basedir'] . '/tablesome-signatures';
+
+            if (!file_exists($signature_dir)) {
+                wp_mkdir_p($signature_dir);
+                $index_file = $signature_dir . '/index.php';
+                if (!file_exists($index_file)) {
+                    file_put_contents($index_file, '<?php // Silence is golden');
+                }
+            }
+
+            $file_path = $signature_dir . '/' . $filename;
+            $bytes_written = file_put_contents($file_path, $decoded_data);
+            if ($bytes_written === false) {
+                return false;
+            }
+
+            return $upload_dir['baseurl'] . '/tablesome-signatures/' . $filename;
         }
     }
 }

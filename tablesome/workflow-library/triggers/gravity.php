@@ -27,6 +27,10 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Gravity')) {
             'captcha',
         );
 
+        public $signature_field_types = array(
+            'signature',
+        );
+
         public function get_config()
         {
             $is_active = class_exists('GFForms') ? true : false;
@@ -249,6 +253,16 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Gravity')) {
                         'type' => $type,
                         'unix_timestamp' => isset($unix_timestamp) && !empty($unix_timestamp) ? $unix_timestamp : '',
                     );
+
+                    if (in_array($type, $this->signature_field_types)) {
+                        $sig_url = $formatted_value;
+                        if (!empty($sig_url)) {
+                            $data[$field['id']]['file_type'] = 'image/png';
+                            $data[$field['id']]['linkText'] = 'View Signature';
+                            $data[$field['id']]['file_url'] = $sig_url;
+                            $data[$field['id']]['is_signature'] = true;
+                        }
+                    }
                 }
             }
 

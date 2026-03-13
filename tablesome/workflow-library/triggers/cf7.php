@@ -20,6 +20,10 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
             'group',
         );
 
+        public $signature_field_types = array(
+            'signature',
+        );
+
         public $trigger_source_id = 0;
         public $trigger_source_data = array();
 
@@ -221,6 +225,16 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
                     'type' => $field_type,
                     'unix_timestamp' => isset($unix_timestamp) ? $unix_timestamp : '', // use this prop when the column format type is date
                 );
+
+                if (in_array($field_type, $this->signature_field_types)) {
+                    $sig_url = $value;
+                    if (!empty($sig_url)) {
+                        $data[$key]['file_type'] = 'image/png';
+                        $data[$key]['linkText'] = 'View Signature';
+                        $data[$key]['file_url'] = $sig_url;
+                        $data[$key]['is_signature'] = true;
+                    }
+                }
             }
 
             // error_log('cf7 final_data : ' . print_r($data, true));

@@ -21,6 +21,12 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
             'captcha',
         );
 
+        public $signature_field_types = array(
+            'signature',
+            'e_signature',
+            'esignature',
+        );
+
         public static $instance = null;
 
         public static function get_instance()
@@ -286,8 +292,6 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                 );
 
                 if ($type == 'upload') {
-                    // $data[$name]['type'] = 'file';
-                    // error_log(' Forminator file_type : ' . print_r($file_type, true));
                     $data[$name]['file_type'] = isset($file_type) ? $file_type['type'] : '';
                     $data[$name]['linkText'] = 'View File';
                     $data[$name]['file_url'] = $file_url ?? '';
@@ -295,6 +299,16 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                     // Ensure the value contains the file URL for Notion URL columns
                     if (!empty($file_url)) {
                         $data[$name]['value'] = $file_url;
+                    }
+                }
+
+                if (in_array($type, $this->signature_field_types)) {
+                    $sig_url = isset($data[$name]['value']) ? $data[$name]['value'] : '';
+                    if (!empty($sig_url)) {
+                        $data[$name]['file_type'] = 'image/png';
+                        $data[$name]['linkText'] = 'View Signature';
+                        $data[$name]['file_url'] = $sig_url;
+                        $data[$name]['is_signature'] = true;
                     }
                 }
             }

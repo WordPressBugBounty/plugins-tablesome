@@ -24,10 +24,13 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\WP_Forms')) {
             'html',
             'content',
             'entry-preview',
-            'signature',
             'captcha',
             'net_promoter_score',
             'captcha_recaptcha',
+        );
+
+        public $signature_field_types = array(
+            'signature',
         );
 
         public static $instance = null;
@@ -213,6 +216,9 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\WP_Forms')) {
 
                     // $value = attachment_url_to_postid($url);
                     $file_type = wp_check_filetype($file_url);
+                } else if (in_array($type, $this->signature_field_types)) {
+                    $file_url = $value;
+                    $file_type = wp_check_filetype($file_url);
                 }
 
                 $data[$key] = array(
@@ -225,11 +231,16 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\WP_Forms')) {
                 );
 
                 if ($type == 'file-upload') {
-                    // $data[$name]['type'] = 'file';
-                    error_log(' WPForms file_type : ' . print_r($file_type, true));
                     $data[$key]['file_type'] = isset($file_type) ? $file_type['type'] : '';
                     $data[$key]['linkText'] = 'View File';
                     $data[$key]['file_url'] = $file_url ?? '';
+                }
+
+                if (in_array($type, $this->signature_field_types)) {
+                    $data[$key]['file_type'] = isset($file_type) ? $file_type['type'] : 'image/png';
+                    $data[$key]['linkText'] = 'View Signature';
+                    $data[$key]['file_url'] = $file_url ?? '';
+                    $data[$key]['is_signature'] = true;
                 }
             }
             return $data;
