@@ -17,7 +17,6 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
 
         public $signature_field_types = array(
             'signature',
-            'signature_pad',
         );
 
         public $unsupported_formats = array(

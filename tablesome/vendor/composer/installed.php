@@ -3,7 +3,7 @@
         'name' => 'pauple/tablesome',
         'pretty_version' => 'dev-develop',
         'version' => 'dev-develop',
-        'reference' => '39d612aec129ce8db6e8eb911babf2eaa43edbb3',
+        'reference' => 'bc7edb69fba162d578e8ff7f73505e6bcfd2d78f',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -31,7 +31,7 @@
         'pauple/tablesome' => array(
             'pretty_version' => 'dev-develop',
             'version' => 'dev-develop',
-            'reference' => '39d612aec129ce8db6e8eb911babf2eaa43edbb3',
+            'reference' => 'bc7edb69fba162d578e8ff7f73505e6bcfd2d78f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

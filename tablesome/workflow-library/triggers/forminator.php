@@ -269,6 +269,16 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                         // error_log(' Forminator url : ' . $file_url);
                         // error_log(' Forminator value : ' . $value);
                     }
+                } else if (in_array($type, $this->signature_field_types) && is_array($value)) {
+                    // Forminator e-Signature sends value as nested array:
+                    // ['file' => ['file_url' => 'https://...', 'success' => 1]]
+                    if (isset($value['file']['file_url'])) {
+                        $value = $value['file']['file_url'];
+                    } elseif (isset($value['file']) && is_string($value['file'])) {
+                        $value = $value['file'];
+                    } else {
+                        $value = '';
+                    }
                 } else {
                     if (is_array($value) && !empty($value)) {
                         if ($type == 'time') {
