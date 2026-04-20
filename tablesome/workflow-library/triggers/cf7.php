@@ -17,7 +17,6 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
          */
         public $unsupported_formats = array(
             'submit',
-            'group',
         );
 
         public $signature_field_types = array(
@@ -206,6 +205,17 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
                 $field_type = isset($fields_types[$key]) ? $fields_types[$key] : '';
                 $unix_timestamp = 0;
 
+                // Resolve Polylang {string} tags (CF7 + Polylang multilingual forms).
+                // Polylang uses {Tag} syntax in CF7 form definitions for translatable
+                // strings. The browser posts the raw tag; we resolve it here.
+                if (function_exists('pll__')) {
+                    if (is_array($value)) {
+                        $value = array_map([$this, 'resolve_polylang_string'], $value);
+                    } else {
+                        $value = $this->resolve_polylang_string($value);
+                    }
+                }
+
                 if (is_array($value)) {
 
                     if (empty($value)) {
@@ -258,14 +268,49 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
         {
 
             if (isset($file_uploads) && !empty($file_uploads)) {
+                $skip_media_upload = apply_filters('tablesome/cf7/skip_media_upload', false);
+
                 foreach ($file_uploads as $field_key => $field) {
                     if (array_key_exists($field_key, $posted_data) && !empty($field)) {
-                        $posted_data[$field_key] = $this->upload_file_from_path($field[0]);
+                        if ($skip_media_upload) {
+                            $posted_data[$field_key] = $this->get_file_url_from_path($field[0]);
+                        } else {
+                            $posted_data[$field_key] = $this->upload_file_from_path($field[0]);
+                        }
                     }
                 }
             }
 
             return $posted_data;
+        }
+
+        /**
+         * Convert a local file path to its URL without copying to the media library.
+         */
+        public function get_file_url_from_path($file)
+        {
+            if (!file_exists($file) || !is_readable($file)) {
+                return '';
+            }
+
+            $upload_dir = wp_upload_dir();
+            $base_dir = $upload_dir['basedir'];
+            $base_url = $upload_dir['baseurl'];
+
+            // If the file is within the uploads directory, convert path to URL
+            if (strpos($file, $base_dir) === 0) {
+                return str_replace($base_dir, $base_url, $file);
+            }
+
+            // For files outside uploads (e.g. CF7 temp dir), copy to uploads first
+            $filename = sanitize_file_name(basename($file));
+            $dest_file = $upload_dir['path'] . '/' . $filename;
+
+            if (!copy($file, $dest_file)) {
+                return '';
+            }
+
+            return $upload_dir['url'] . '/' . $filename;
         }
 
         public function upload_file_from_path($file, $title = null)
@@ -275,7 +320,23 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
                 error_log('Tablesome CF7: Source file not accessible: ' . $file);
                 return 0;
             }
-            
+
+            // Deduplication: check if this exact file content was already uploaded
+            $file_hash = md5_file($file);
+            if ($file_hash !== false) {
+                $existing = get_posts([
+                    'post_type' => 'attachment',
+                    'post_status' => 'inherit',
+                    'meta_key' => '_tablesome_file_hash',
+                    'meta_value' => $file_hash,
+                    'posts_per_page' => 1,
+                    'fields' => 'ids',
+                ]);
+                if (!empty($existing)) {
+                    return (int) $existing[0];
+                }
+            }
+
             $filename = basename($file);
             
             // Security: Define allowed file extensions and MIME types
@@ -374,8 +435,32 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
             require_once ABSPATH . 'wp-admin/includes/image.php';
             $attachment_metadata = wp_generate_attachment_metadata($attachment_id, $dest_file);
             wp_update_attachment_metadata($attachment_id, $attachment_metadata);
-            
+
+            // Store file hash for deduplication on future submissions
+            if (isset($file_hash) && $file_hash !== false) {
+                update_post_meta($attachment_id, '_tablesome_file_hash', $file_hash);
+            }
+
             return (int) $attachment_id;
+        }
+
+        /**
+         * Resolve a Polylang {string} tag to its translated value.
+         *
+         * Polylang's CF7 integration uses {Tag} syntax in form definitions
+         * to mark translatable strings. The option value posted by the browser
+         * may still contain the raw tag. This method resolves it using
+         * Polylang's translation API.
+         *
+         * @param mixed $value The field value to check.
+         * @return mixed The resolved value, or the original if not a Polylang tag.
+         */
+        private function resolve_polylang_string($value)
+        {
+            if (is_string($value) && preg_match('/^\{([\w\s\-]+)\}$/u', $value, $matches)) {
+                return pll__($matches[1]);
+            }
+            return $value;
         }
     }
 }

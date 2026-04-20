@@ -269,15 +269,28 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
                         // error_log(' Forminator url : ' . $file_url);
                         // error_log(' Forminator value : ' . $value);
                     }
-                } else if (in_array($type, $this->signature_field_types) && is_array($value)) {
-                    // Forminator e-Signature sends value as nested array:
-                    // ['file' => ['file_url' => 'https://...', 'success' => 1]]
-                    if (isset($value['file']['file_url'])) {
-                        $value = $value['file']['file_url'];
-                    } elseif (isset($value['file']) && is_string($value['file'])) {
-                        $value = $value['file'];
-                    } else {
-                        $value = '';
+                } else if (in_array($type, $this->signature_field_types)) {
+                    // Signature fields may arrive as nested arrays (same structure
+                    // as uploads), base64 data URIs, or plain URL strings.
+                    if (is_array($value)) {
+                        if (isset($value['file']['file_url'])) {
+                            $value = $value['file']['file_url'];
+                        } elseif (isset($value['file']) && is_string($value['file'])) {
+                            $value = $value['file'];
+                        } elseif (isset($value['url'])) {
+                            $value = $value['url'];
+                        } elseif (isset($value['file_url'])) {
+                            $value = $value['file_url'];
+                        } else {
+                            $value = '';
+                        }
+                    }
+                    // Convert base64 data URIs to saved files
+                    if (is_string($value) && strpos($value, 'data:image') === 0) {
+                        $saved_url = $this->save_base64_signature_to_file($value);
+                        if ($saved_url) {
+                            $value = $saved_url;
+                        }
                     }
                 } else {
                     if (is_array($value) && !empty($value)) {
@@ -330,6 +343,56 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Forminator')) {
             $data = $this->post_processing($data);
             // error_log(' Forminator formatted data : ' . print_r($data, true));
             return $data;
+        }
+
+        protected function save_base64_signature_to_file($base64_data)
+        {
+            if (!preg_match('/^data:image\/(png|jpeg|jpg|gif);base64,(.+)$/i', $base64_data, $matches)) {
+                return false;
+            }
+
+            $extension = strtolower($matches[1]);
+            if ($extension === 'jpeg') {
+                $extension = 'jpg';
+            }
+
+            if (!in_array($extension, array('png', 'jpg', 'gif'), true)) {
+                return false;
+            }
+
+            $decoded_data = base64_decode($matches[2], true);
+            if ($decoded_data === false) {
+                return false;
+            }
+
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mime_type = $finfo->buffer($decoded_data);
+            $allowed_mimes = array('image/png', 'image/jpeg', 'image/gif');
+            if (!in_array($mime_type, $allowed_mimes, true)) {
+                return false;
+            }
+
+            $filename = 'signature_' . time() . '_' . wp_rand(1000, 9999) . '.' . $extension;
+            $filename = sanitize_file_name($filename);
+
+            $upload_dir = wp_upload_dir();
+            $signature_dir = $upload_dir['basedir'] . '/tablesome-signatures';
+
+            if (!file_exists($signature_dir)) {
+                wp_mkdir_p($signature_dir);
+                $index_file = $signature_dir . '/index.php';
+                if (!file_exists($index_file)) {
+                    file_put_contents($index_file, '<?php // Silence is golden');
+                }
+            }
+
+            $file_path = $signature_dir . '/' . $filename;
+            $bytes_written = file_put_contents($file_path, $decoded_data);
+            if ($bytes_written === false) {
+                return false;
+            }
+
+            return $upload_dir['baseurl'] . '/tablesome-signatures/' . $filename;
         }
 
         public function post_processing_fields($form_fields)

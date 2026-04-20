@@ -241,6 +241,9 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
                 $value = isset($form_data[$field['id']]) ? $form_data[$field['id']] : '';
                 $value = $does_parent_exists && isset($form_data[$field_ids[0]][$field_ids[1]]) ? $form_data[$field_ids[0]][$field_ids[1]] : $value;
                 $type = $field['field_type'];
+                $unix_timestamp = '';
+                $file_url = '';
+                $file_type = null;
 
                 // error_log(' field : ' . print_r($field, true));
 
@@ -278,6 +281,19 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Fluent')) {
                 }
 
                 if (in_array($type, $this->signature_field_types)) {
+                    // Handle array values (e.g., nested file structures from some addons)
+                    if (is_array($value)) {
+                        if (isset($value['file']['file_url'])) {
+                            $value = $value['file']['file_url'];
+                        } elseif (isset($value['url'])) {
+                            $value = $value['url'];
+                        } elseif (isset($value[0]) && is_string($value[0])) {
+                            $value = $value[0];
+                        } else {
+                            $value = '';
+                        }
+                        $data[$field['id']]['value'] = $value;
+                    }
                     $sig_url = $value;
                     // Convert base64 data URLs to saved files
                     if (!empty($sig_url) && is_string($sig_url) && strpos($sig_url, 'data:image') === 0) {

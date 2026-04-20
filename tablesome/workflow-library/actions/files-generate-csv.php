@@ -136,7 +136,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Files_Generate_CSV')) {
                 $format_type = $this->get_cell_format_by_field_type($type);
 
                 if ($format_type == 'date') {
-                    $value = !empty($unix_timestamp) ? date('Y-m-d', ($unix_timestamp / 1000)) : '';
+                    $value = !empty($unix_timestamp) ? date_i18n(get_option('date_format'), ($unix_timestamp / 1000)) : '';
                 } else if ($format_type == 'file') {
                     $value = !empty($value) && is_numeric($value) ? wp_get_attachment_url($value) : $value;
                 }
