@@ -487,6 +487,23 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
 
         }
 
+        /**
+         * REST handler: GET /workflow/get-hubspot-deal-pipelines
+         *
+         * Called by the Create Deal action Svelte UI to populate its
+         * pipeline + stage dropdowns. Always returns 200 with a (possibly
+         * empty) list — HubSpot API errors degrade to empty rather than 500.
+         */
+        public function get_hubspot_deal_pipelines($request)
+        {
+            $pipelines = $this->library->integrations['hubspot']->hubspot_api->get_pipelines();
+            return rest_ensure_response([
+                'status'  => 'success',
+                'message' => 'Successfully fetched HubSpot deal pipelines.',
+                'data'    => is_array($pipelines) ? $pipelines : [],
+            ]);
+        }
+
         public function get_sheets_by_spreadsheet_id($request)
         {
             $params = $request->get_query_params();

@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit5034f46b386716840dc98e051616a4ce
+class ComposerStaticInit5d1d6a0d1749ccab2c9743351df878a5
 {
     public static $prefixLengthsPsr4 = array (
         'P' => 
@@ -171,6 +171,7 @@ class ComposerStaticInit5034f46b386716840dc98e051616a4ce
         'Tablesome\\Workflow_Library\\Actions\\GSheet_Load_From' => __DIR__ . '/../..' . '/workflow-library/actions/gsheet-load-from.php',
         'Tablesome\\Workflow_Library\\Actions\\Hubspot_Add_Contact' => __DIR__ . '/../..' . '/workflow-library/actions/hubspot-add-contact.php',
         'Tablesome\\Workflow_Library\\Actions\\Hubspot_Add_Contact_To_Static_List' => __DIR__ . '/../..' . '/workflow-library/actions/hubspot-add-contact-to-static-list.php',
+        'Tablesome\\Workflow_Library\\Actions\\Hubspot_Create_Deal' => __DIR__ . '/../..' . '/workflow-library/actions/hubspot-create-deal.php',
         'Tablesome\\Workflow_Library\\Actions\\Mailchimp_Add_Contact' => __DIR__ . '/../..' . '/workflow-library/actions/mailchimp-add-contact.php',
         'Tablesome\\Workflow_Library\\Actions\\Notion_Database' => __DIR__ . '/../..' . '/workflow-library/actions/notion-database.php',
         'Tablesome\\Workflow_Library\\Actions\\Open_Ai_Generate_Text' => __DIR__ . '/../..' . '/workflow-library/actions/open-ai-generate-text.php',
@@ -228,9 +229,9 @@ class ComposerStaticInit5034f46b386716840dc98e051616a4ce
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit5034f46b386716840dc98e051616a4ce::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit5034f46b386716840dc98e051616a4ce::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit5034f46b386716840dc98e051616a4ce::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5d1d6a0d1749ccab2c9743351df878a5::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5d1d6a0d1749ccab2c9743351df878a5::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit5d1d6a0d1749ccab2c9743351df878a5::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -1063,22 +1063,32 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 return new \WP_Error($access_info['error_code'], $access_info['message']);
             }
 
-            // Security: Check table ownership - Only for backend/editor mode
-            // For frontend mode, rely on Access Controller which checks table settings
-            // Contributors can only update their own tables in editor mode
-            // Editors and Admins (with edit_others_posts) can update any table
-            $mode = isset($params['mode']) ? $params['mode'] : '';
-            $is_editor_mode = ($mode == 'editor');
-            
-            if ($is_editor_mode && $post) {
+            // Security: Authorize record CRUD regardless of caller-supplied mode.
+            // Owners and edit_others_posts pass. Non-owners are only allowed when
+            // the request is explicitly frontend mode AND the table's Access
+            // Controller settings enable_frontend_editing (can_edit=true).
+            if ($post) {
                 $current_user_id = \get_current_user_id();
                 $can_edit_others_posts = \current_user_can('edit_others_posts');
-                // Security: Verify user is authenticated before checking ownership (prevent 0 == 0 bypass)
+                // Require authenticated user before treating ownership as valid (prevent 0 == 0 bypass)
                 $is_table_owner = ($current_user_id > 0 && $post->post_author == $current_user_id);
-                
+
                 if (!$can_edit_others_posts && !$is_table_owner) {
-                    $error_code = "UNAUTHORIZED";
-                    return new \WP_Error($error_code, $this->get_error_message($error_code));
+                    $mode = isset($params['mode']) ? $params['mode'] : '';
+                    $origin_location = isset($params['origin_location']) ? $params['origin_location'] : '';
+                    $is_frontend_mode = ($mode === 'frontend' || $origin_location === 'frontend');
+
+                    $allowed_via_access_controller = false;
+                    if ($is_frontend_mode) {
+                        $access_controller = new \Tablesome\Components\TablesomeDB\Access_Controller();
+                        $permissions = $access_controller->get_permissions($params['meta_data']);
+                        $allowed_via_access_controller = !empty($permissions['can_edit']);
+                    }
+
+                    if (!$allowed_via_access_controller) {
+                        $error_code = "UNAUTHORIZED";
+                        return new \WP_Error($error_code, $this->get_error_message($error_code));
+                    }
                 }
             }
 

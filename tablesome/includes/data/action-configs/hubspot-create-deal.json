@@ -1,0 +1,33 @@
+{
+	"status": 1,
+	"action_id": 19,
+	"action-data-version": 1,
+	"deal_properties": {
+		"dealname": "",
+		"pipeline": "default",
+		"dealstage": "",
+		"amount": ""
+	},
+	"map_fields": [
+		{
+			"source_field": {
+				"id": "",
+				"label": "",
+				"value": "",
+				"data_type": "",
+				"object_type": "trigger_source",
+				"meta": []
+			},
+			"destination_field": {
+				"id": "",
+				"label": "",
+				"value": "",
+				"data_type": "",
+				"object_type": "deal",
+				"meta": []
+			}
+		}
+	],
+	"associate_with_contact_from_previous_action": true,
+	"require_contact_association": false
+}

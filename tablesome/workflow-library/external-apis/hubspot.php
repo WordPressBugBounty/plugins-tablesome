@@ -140,6 +140,291 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\Hubspot')) {
             return $data;
         }
 
+        /**
+         * Fetch deal pipelines (and their stages) from HubSpot, formatted for
+         * the workflow-builder Svelte UI dropdowns.
+         *
+         * Error states degrade to an empty list rather than leaking API
+         * error bodies into the UI.
+         *
+         * @return array[] {
+         *   @type string   $id     Pipeline id (e.g., 'default' or a numeric id).
+         *   @type string   $label  Pipeline display label.
+         *   @type array[]  $stages [[id, label], ...] ordered as HubSpot returns them.
+         * }
+         */
+        public function get_pipelines()
+        {
+            $access_token = maybe_refresh_access_token_by_integration($this->integration);
+            $url = "https://api.hubapi.com/crm/v3/pipelines/deals";
+
+            $response = wp_remote_request($url, [
+                'method'  => 'GET',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $access_token,
+                    'Content-Type'  => 'application/json',
+                ],
+            ]);
+
+            if (is_wp_error($response)) {
+                error_log('Tablesome Hubspot get_pipelines wp_error: ' . $response->get_error_message());
+                return [];
+            }
+
+            $code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+
+            if ($code >= 400 || !is_array($body) || empty($body['results'])) {
+                if ($code >= 400) {
+                    error_log('Tablesome Hubspot get_pipelines API error: ' . print_r($body, true));
+                }
+                return [];
+            }
+
+            return $this->format_pipelines($body['results']);
+        }
+
+        private function format_pipelines($raw_pipelines)
+        {
+            $pipelines = [];
+            foreach ($raw_pipelines as $pipeline) {
+                if (empty($pipeline['id'])) {
+                    continue;
+                }
+                $stages = [];
+                if (!empty($pipeline['stages']) && is_array($pipeline['stages'])) {
+                    foreach ($pipeline['stages'] as $stage) {
+                        if (empty($stage['id'])) {
+                            continue;
+                        }
+                        $stages[] = [
+                            'id'    => (string) $stage['id'],
+                            'label' => isset($stage['label']) ? (string) $stage['label'] : (string) $stage['id'],
+                        ];
+                    }
+                }
+                $pipelines[] = [
+                    'id'     => (string) $pipeline['id'],
+                    'label'  => isset($pipeline['label']) ? (string) $pipeline['label'] : (string) $pipeline['id'],
+                    'stages' => $stages,
+                ];
+            }
+            return $pipelines;
+        }
+
+        /**
+         * Upsert a contact by email. Creates if the email doesn't exist in
+         * HubSpot, updates the contact's properties if it does.
+         *
+         * Safeguards against Tablesome/frontend bugs that could corrupt the
+         * customer's HubSpot data:
+         *   - Requires a valid email (rejects field-swap bugs at the edge).
+         *   - Strips empty / null / whitespace-only values so an unchecked
+         *     form field never wipes an existing firstname/phone/company.
+         *   - Short-circuits via the `tablesome/hubspot/skip_upsert` filter.
+         *
+         * @param array $properties HubSpot contact properties, keyed by
+         *                          property name. Must contain 'email'.
+         * @return array {
+         *   @type string $status     'success' | 'failed' | 'skipped'
+         *   @type string $message
+         *   @type string $contact_id HubSpot vid, present on success
+         *   @type bool   $created    true if a new contact was created
+         * }
+         */
+        public function upsert_contact($properties)
+        {
+            $properties = $this->prepare_contact_properties($properties);
+
+            if (!$this->is_valid_email_property($properties)) {
+                error_log('Tablesome Hubspot upsert_contact rejected: invalid or missing email');
+                return [
+                    'status'  => 'failed',
+                    'message' => 'Valid email is required for HubSpot upsert.',
+                ];
+            }
+
+            /**
+             * Allow callers to abort an upsert (e.g., staging environments).
+             *
+             * @param bool  $skip       Return true to abort.
+             * @param array $properties Prepared properties that would be sent.
+             */
+            $skip = apply_filters('tablesome/hubspot/skip_upsert', false, $properties);
+            if ($skip) {
+                return [
+                    'status'  => 'skipped',
+                    'message' => 'Upsert skipped by tablesome/hubspot/skip_upsert filter.',
+                ];
+            }
+
+            $access_token = maybe_refresh_access_token_by_integration($this->integration);
+            $url = "https://api.hubapi.com/crm/v3/objects/contacts/batch/upsert";
+
+            $payload = [
+                'inputs' => [[
+                    'idProperty' => 'email',
+                    'id'         => $properties['email'],
+                    'properties' => $properties,
+                ]],
+            ];
+
+            $response = wp_remote_post($url, [
+                'method'  => 'POST',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $access_token,
+                    'Content-Type'  => 'application/json',
+                ],
+                'body'    => wp_json_encode($payload),
+            ]);
+
+            if (is_wp_error($response)) {
+                return [
+                    'status'  => 'failed',
+                    'message' => 'HubSpot upsert request failed: ' . $response->get_error_message(),
+                ];
+            }
+
+            $code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+
+            if ($code >= 400 || !is_array($body)) {
+                error_log('Tablesome Hubspot upsert_contact API error: ' . print_r($body, true));
+                return [
+                    'status'  => 'failed',
+                    'message' => isset($body['message']) ? $body['message'] : 'HubSpot upsert failed.',
+                ];
+            }
+
+            $results = isset($body['results']) && is_array($body['results']) ? $body['results'] : [];
+            $first   = !empty($results) ? $results[0] : null;
+
+            if (!$first || empty($first['id'])) {
+                return [
+                    'status'  => 'failed',
+                    'message' => 'HubSpot upsert returned no contact id.',
+                ];
+            }
+
+            return [
+                'status'     => 'success',
+                'message'    => 'Successfully upserted contact.',
+                'contact_id' => (string) $first['id'],
+                'created'    => isset($first['new']) ? (bool) $first['new'] : false,
+            ];
+        }
+
+        /**
+         * Create a new deal, optionally associated with a contact.
+         *
+         * Always creates — no upsert. Per customer requirement, a new deal is
+         * created for every form submission.
+         *
+         * @param array $properties Deal properties (dealname, pipeline,
+         *                          dealstage, amount, …). Empty values stripped.
+         * @param array $options    {
+         *   @type string $contact_id  HubSpot contact vid to associate.
+         *                             Empty string / missing → no association.
+         * }
+         * @return array {
+         *   @type string $status  'success' | 'failed'
+         *   @type string $message
+         *   @type string $deal_id HubSpot deal id, present on success.
+         * }
+         */
+        public function create_deal($properties, $options = [])
+        {
+            $properties = $this->prepare_contact_properties($properties); // same stripper
+            $contact_id = isset($options['contact_id']) ? (string) $options['contact_id'] : '';
+
+            $access_token = maybe_refresh_access_token_by_integration($this->integration);
+            $url = "https://api.hubapi.com/crm/v3/objects/deals";
+
+            $payload = [
+                'properties' => $properties,
+            ];
+
+            if ($contact_id !== '') {
+                $payload['associations'] = [[
+                    'to'    => ['id' => $contact_id],
+                    'types' => [[
+                        'associationCategory' => 'HUBSPOT_DEFINED',
+                        // HubSpot-defined association type id for deal → contact
+                        'associationTypeId'   => 3,
+                    ]],
+                ]];
+            }
+
+            $response = wp_remote_post($url, [
+                'method'  => 'POST',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $access_token,
+                    'Content-Type'  => 'application/json',
+                ],
+                'body'    => wp_json_encode($payload),
+            ]);
+
+            if (is_wp_error($response)) {
+                return [
+                    'status'  => 'failed',
+                    'message' => 'HubSpot deal request failed: ' . $response->get_error_message(),
+                ];
+            }
+
+            $code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+
+            if ($code >= 400 || !is_array($body) || empty($body['id'])) {
+                error_log('Tablesome Hubspot create_deal API error: ' . print_r($body, true));
+                return [
+                    'status'  => 'failed',
+                    'message' => isset($body['message']) ? $body['message'] : 'HubSpot deal creation failed.',
+                ];
+            }
+
+            return [
+                'status'  => 'success',
+                'message' => 'Successfully created deal.',
+                'deal_id' => (string) $body['id'],
+            ];
+        }
+
+        /**
+         * Strip property values that would harmfully overwrite existing data
+         * in HubSpot. Empty strings, nulls and whitespace-only strings are
+         * removed. "0", false, integers and non-empty strings pass through.
+         */
+        public function prepare_contact_properties($properties)
+        {
+            if (!is_array($properties)) {
+                return [];
+            }
+            $clean = [];
+            foreach ($properties as $key => $value) {
+                if ($value === null) {
+                    continue;
+                }
+                if (is_string($value) && trim($value) === '') {
+                    continue;
+                }
+                $clean[$key] = $value;
+            }
+            return $clean;
+        }
+
+        /**
+         * Validate the mapped 'email' property. Catches frontend field-swap
+         * bugs (e.g., a "name" field mistakenly landing in the email slot)
+         * before they pollute HubSpot with junk contacts.
+         */
+        public function is_valid_email_property($properties)
+        {
+            if (empty($properties['email']) || !is_string($properties['email'])) {
+                return false;
+            }
+            return (bool) is_email($properties['email']);
+        }
+
         public function add_contact_to_static_list($args)
         {
             $data = $this->add_contact($args["properties"]);

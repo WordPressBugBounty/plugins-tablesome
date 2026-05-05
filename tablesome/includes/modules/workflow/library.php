@@ -7,6 +7,7 @@ use Tablesome\Workflow_Library\Actions\GSheet_Add_Row;
 use Tablesome\Workflow_Library\Actions\GSheet_Load_From;
 use Tablesome\Workflow_Library\Actions\Hubspot_Add_Contact;
 use Tablesome\Workflow_Library\Actions\Hubspot_Add_Contact_To_Static_List;
+use Tablesome\Workflow_Library\Actions\Hubspot_Create_Deal;
 use Tablesome\Workflow_Library\Actions\Mailchimp_Add_Contact;
 use Tablesome\Workflow_Library\Actions\Notion_Database;
 use Tablesome\Workflow_Library\Actions\Open_Ai_Generate_Text;
@@ -103,6 +104,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Library')) {
                 'files_generate_csv' => new Files_Generate_CSV(),
                 'open_ai_generate_text' => new Open_Ai_Generate_Text(),
             );
+
+            // Gated behind feature flag — see issue #2454 / v1.3 milestone.
+            // Enabling also switches `hubspot_add_contact` from create to upsert.
+            if (pauple_is_feature_active('hubspot_upsert_deal')) {
+                $this->actions['hubspot_create_deal'] = new Hubspot_Create_Deal();
+            }
 
             if (pauple_is_feature_active('gsheet_action')) {
                 $this->actions['gsheet_add_row'] = new GSheet_Add_Row();

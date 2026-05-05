@@ -9,5 +9,6 @@
 	"slack_action": false,
 	"hubspot_action": false,
 	"gsheet_action": true,
-	"generate_csv_action": true
+	"generate_csv_action": true,
+	"hubspot_upsert_deal": false
 }

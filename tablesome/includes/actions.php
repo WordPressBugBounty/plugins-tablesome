@@ -979,6 +979,7 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
                     'delete_oauth_data'           => get_rest_url( null, 'tablesome/v1/workflow/delete-oauth-data?' ),
                     'get_access_token'            => get_rest_url( null, 'tablesome/v1/workflow/get-access-token' ),
                     'get-spreadsheet-data'        => get_rest_url( null, 'tablesome/v1/workflow/get-spreadsheet-data' ),
+                    'hubspot_deal_pipelines'      => get_rest_url( null, 'tablesome/v1/workflow/get-hubspot-deal-pipelines' ),
                     'oauth_status'                => get_rest_url( null, 'tablesome/v1/oauth/status' ),
                     'oauth_status_by_integration' => get_rest_url( null, 'tablesome/v1/oauth/status/' ),
                     'oauth_refresh'               => get_rest_url( null, 'tablesome/v1/oauth/refresh/' ),

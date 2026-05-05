@@ -41,7 +41,31 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Hubspot_Add_Contact')) {
             if (!$this->can_add_contact()) {
                 return;
             }
-            $this->add_contact($this->get_contact_properties());
+
+            // Feature-flag gate (issue #2454 / v1.3): until upsert+deal ships,
+            // preserve legacy create-only behavior so existing installs are
+            // unaffected by the in-progress feature.
+            if (!pauple_is_feature_active('hubspot_upsert_deal')) {
+                $this->hubspot_api->add_contact($this->get_contact_properties());
+                return;
+            }
+
+            $result = $this->hubspot_api->upsert_contact($this->get_contact_properties());
+
+            // Emit the contact id into $workflow_data so a subsequent
+            // Hubspot_Create_Deal action can associate its new deal with it.
+            if (isset($result['status']) && $result['status'] === 'success' && !empty($result['contact_id'])) {
+                $trigger_instance_id = isset($this->trigger_instance['_trigger_instance_id'])
+                    ? $this->trigger_instance['_trigger_instance_id']
+                    : null;
+                if ($trigger_instance_id) {
+                    global $workflow_data;
+                    if (!isset($workflow_data[$trigger_instance_id]) || !is_array($workflow_data[$trigger_instance_id])) {
+                        $workflow_data[$trigger_instance_id] = [];
+                    }
+                    $workflow_data[$trigger_instance_id]['hubspot_contact_id'] = (string) $result['contact_id'];
+                }
+            }
         }
 
         public function can_add_contact()
@@ -87,11 +111,6 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Hubspot_Add_Contact')) {
             error_log('contact properties : ' . print_r($properties, true));
 
             return $properties;
-        }
-
-        public function add_contact($contact_properties)
-        {
-            $this->hubspot_api->add_contact($contact_properties);
         }
 
         private function get_value($source)

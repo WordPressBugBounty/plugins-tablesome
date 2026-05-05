@@ -148,6 +148,7 @@ return array(
     'Tablesome\\Workflow_Library\\Actions\\GSheet_Load_From' => $baseDir . '/workflow-library/actions/gsheet-load-from.php',
     'Tablesome\\Workflow_Library\\Actions\\Hubspot_Add_Contact' => $baseDir . '/workflow-library/actions/hubspot-add-contact.php',
     'Tablesome\\Workflow_Library\\Actions\\Hubspot_Add_Contact_To_Static_List' => $baseDir . '/workflow-library/actions/hubspot-add-contact-to-static-list.php',
+    'Tablesome\\Workflow_Library\\Actions\\Hubspot_Create_Deal' => $baseDir . '/workflow-library/actions/hubspot-create-deal.php',
     'Tablesome\\Workflow_Library\\Actions\\Mailchimp_Add_Contact' => $baseDir . '/workflow-library/actions/mailchimp-add-contact.php',
     'Tablesome\\Workflow_Library\\Actions\\Notion_Database' => $baseDir . '/workflow-library/actions/notion-database.php',
     'Tablesome\\Workflow_Library\\Actions\\Open_Ai_Generate_Text' => $baseDir . '/workflow-library/actions/open-ai-generate-text.php',

@@ -155,10 +155,9 @@ if (!function_exists('pauple_is_feature_active')) {
 
         $features_array = json_decode($json);
 
-        // error_log("json: " . print_r($json, true));
-        // error_log("features_array: " . print_r($features_array, true));
+        $is_active = isset($features_array->$feature_name) ? (bool) $features_array->$feature_name : false;
 
-        return isset($features_array->$feature_name) ? $features_array->$feature_name : false;
+        return (bool) apply_filters('tablesome/feature_active', $is_active, $feature_name);
     }
 }
 
