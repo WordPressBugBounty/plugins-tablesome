@@ -3,7 +3,7 @@ Donate link: https://pauple.com
 Tags: table, email, contact form 7, wpforms, redirect
 Requires at least: 6.7
 Tested up to: 6.9.4
-Stable tag: 1.2.9
+Stable tag: 1.2.11
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -196,6 +196,11 @@ We love to hear from our users and we try to integrate features that our users w
 5. Copy and paste the shortcode on the post.
 
 == Change Log ==
+
+= 1.2.11 =
+Fix: OAuth integrations failing to connect (HubSpot, Mailchimp, Notion, Google Sheets, Slack, OpenAI)
+Fix: CF7 file uploads now respect WordPress MIME type policy
+Fix: General security and stability improvements
 
 = 1.2.9 =
 Fix: General security and stability improvements

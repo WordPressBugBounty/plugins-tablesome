@@ -74,19 +74,17 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
         
         public function api_nonce_check($request)
         {
-            // error_log('api_nonce_check()');
             $params = $request->get_params();
-            // error_log('api_nonce_check() params: ' . print_r($params, true));
             $nonce = isset($params['client_wp_nonce']) ? $params['client_wp_nonce'] : '';
-            
-            // Check nonce
+
             $stored_nonce = get_transient('tablesome_workflow_nonce');
-            
-            // error_log('api_nonce_check() verified: ' . $verified);
+
             if (!empty($nonce) && $stored_nonce == $nonce) {
-                // error_log('api_access_permission() nonce verified');
+                // Single-use: invalidate immediately so the same redirect
+                // URL cannot be replayed within the transient TTL.
+                delete_transient('tablesome_workflow_nonce');
                 return true;
-            }    
+            }
             $error_code = "UNAUTHORIZED";
             return new \WP_Error($error_code, $this->get_error_message($error_code));
         }
@@ -660,6 +658,10 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             }
 
             // CRUD Records (update table records)
+            if (isset($params['origin_location']) && !isset($params['recordsData']['origin_location'])) {
+                $params['recordsData']['origin_location'] = $params['origin_location'];
+            }
+
             $params['recordsData']['table_id'] = $params['table_id'];
             $update_result = $this->update_table_records($params['recordsData']);
 

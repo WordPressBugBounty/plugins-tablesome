@@ -24,10 +24,14 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Hubspot_Add_Contact')) {
 
         public function get_config()
         {
+            $label = pauple_is_feature_active('hubspot_upsert_deal')
+                ? __('Add or Update Contact', 'tablesome')
+                : __('Add Contact', 'tablesome');
+
             return array(
                 'id' => 10,
                 'name' => 'hubspot_add_contact',
-                'label' => __('Add Contact', 'tablesome'),
+                'label' => $label,
                 'integration' => 'hubspot',
                 'is_premium' => true,
             );

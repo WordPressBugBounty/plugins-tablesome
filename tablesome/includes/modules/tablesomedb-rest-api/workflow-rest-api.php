@@ -450,18 +450,30 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
             $connector_domain = tablesome_get_connector_domain($integration);
             $connector_url = $connector_domain . "/wp-json/tablesome-connector/v1/oauth/install?integration=" . $integration;
             $client_redirect_url = get_rest_url(null, 'tablesome/v1/workflow/set-oauth-data');
-            $client_redirect_url = $pluginator_security_agent->add_query_arg(array('integration' => $integration), $client_redirect_url, 'raw');
             $wp_nonce = wp_create_nonce('tablesome_workflow_nonce');
 
             // Store in transient for 5 minutes
             set_transient('tablesome_workflow_nonce', $wp_nonce, 5 * 60);
-            
+
+            // Embed client_wp_nonce inside client_redirect_url so the value
+            // survives the connector's redirect leg as a normal preserved
+            // URL parameter — independent of whether the connector
+            // forwards `wp_nonce` separately.
+            $client_redirect_url = $pluginator_security_agent->add_query_arg(array(
+                'integration'     => $integration,
+                'client_wp_nonce' => $wp_nonce,
+            ), $client_redirect_url, 'raw');
+
             $connector_url = $pluginator_security_agent->add_query_arg(array('wp_nonce' => $wp_nonce), $connector_url, 'raw');
 
-            // Should be last
-            $connector_url = $pluginator_security_agent->add_query_arg(array('client_redirect_url' => $client_redirect_url), $connector_url, 'raw');
+            // urlencode so the embedded URL's own `?` and `&` separators are
+            // not parsed as outer-level query args by the connector. WordPress's
+            // add_query_arg does NOT URL-encode the values of newly added args,
+            // so without this the connector receives a truncated client_redirect_url
+            // and any embedded params (including client_wp_nonce) leak to the
+            // outer query and never make the round trip back.
+            $connector_url = $pluginator_security_agent->add_query_arg(array('client_redirect_url' => urlencode($client_redirect_url)), $connector_url, 'raw');
 
-            // error_log('get_oauth_redirect_url $connector_url: ' . print_r($connector_url, true));
             return $connector_url;
         }
 
@@ -501,6 +513,23 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Workflow_Res
                 'status'  => 'success',
                 'message' => 'Successfully fetched HubSpot deal pipelines.',
                 'data'    => is_array($pipelines) ? $pipelines : [],
+            ]);
+        }
+
+        /**
+         * REST handler: GET /workflow/get-hubspot-deal-properties
+         *
+         * Called by the Create Deal action Svelte UI to populate the
+         * deal-property destination Select. Same degrade-to-empty contract
+         * as get_hubspot_deal_pipelines.
+         */
+        public function get_hubspot_deal_properties($request)
+        {
+            $properties = $this->library->integrations['hubspot']->hubspot_api->get_deal_properties();
+            return rest_ensure_response([
+                'status'  => 'success',
+                'message' => 'Successfully fetched HubSpot deal properties.',
+                'data'    => is_array($properties) ? $properties : [],
             ]);
         }
 

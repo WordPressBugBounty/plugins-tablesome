@@ -282,6 +282,15 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\Routes')) {
                         'permission_callback' => array($tablesome_db, 'api_backend_permission'),
                     ),
                 ),
+                /** HubSpot deal properties catalogue for Create Deal action UI */
+                array(
+                    'url' => '/workflow/get-hubspot-deal-properties',
+                    'args' => array(
+                        'methods' => \WP_REST_Server::READABLE,
+                        'callback' => array($workflow_api, 'get_hubspot_deal_properties'),
+                        'permission_callback' => array($tablesome_db, 'api_backend_permission'),
+                    ),
+                ),
                 array(
                     'url' => '/workflow/get-spreadsheet-data',
                     'args' => array(

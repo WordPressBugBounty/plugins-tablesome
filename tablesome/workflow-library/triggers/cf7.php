@@ -25,6 +25,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
 
         public $trigger_source_id = 0;
         public $trigger_source_data = array();
+        public $upload_file_validator;
 
         public function get_config()
         {
@@ -321,6 +322,18 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
                 return 0;
             }
 
+            $filename = basename($file);
+            $safe_filename = sanitize_file_name($filename);
+            $validation = $this->get_upload_file_validator()->validate($file, $safe_filename, array(
+                'context' => 'local_upload',
+                'integration' => 'cf7',
+            ));
+
+            if (is_wp_error($validation)) {
+                error_log('Tablesome CF7: ' . $validation->get_error_message() . ' File: ' . $safe_filename);
+                return 0;
+            }
+
             // Deduplication: check if this exact file content was already uploaded
             $file_hash = md5_file($file);
             if ($file_hash !== false) {
@@ -337,54 +350,8 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
                 }
             }
 
-            $filename = basename($file);
-            
-            // Security: Define allowed file extensions and MIME types
-            $allowed_extensions = array(
-                // Images
-                'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tiff', 'tif', 'ico', 'webp',
-                // Safe documents
-                'pdf', 'doc', 'docx', 'txt', 'csv', 'xls', 'xlsx', 'ppt', 'pptx',
-                // Video
-                'mp4', 'mov', 'wmv', 'avi', 'mpg', 'mpeg', 'ogv', '3gp', '3g2',
-                // Audio
-                'mp3', 'ogg', 'wav', 'm4a',
-                // Archives
-                'zip', 'rar', '7z', 'tar', 'gz'
-            );
-            
-            $allowed_mime_types = array(
-                // Images
-                'image/jpeg', 'image/gif', 'image/png', 'image/bmp', 'image/tiff', 'image/x-icon', 'image/webp',
-                // Documents
-                'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'text/plain', 'text/csv',
-                'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                // Video
-                'video/mp4', 'video/quicktime', 'video/x-ms-wmv', 'video/avi', 'video/mpeg', 'video/ogg', 'video/3gpp', 'video/3gpp2',
-                // Audio
-                'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp4',
-                // Archives
-                'application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed', 'application/x-tar', 'application/gzip'
-            );
-            
-            // Security: Validate file type from filename BEFORE copying
-            $wp_filetype_pre = wp_check_filetype($filename, null);
-            if ($wp_filetype_pre['type'] === false || empty($wp_filetype_pre['ext'])) {
-                error_log('Tablesome CF7: Invalid file type from filename: ' . $filename);
-                return 0;
-            }
-            
-            // Security: Check if extension is in allowed list
-            if (!in_array(strtolower($wp_filetype_pre['ext']), $allowed_extensions, true)) {
-                error_log('Tablesome CF7: File extension not allowed: ' . $wp_filetype_pre['ext']);
-                return 0;
-            }
-            
             $media_dir = wp_upload_dir();
             $time_now = time();
-            $safe_filename = sanitize_file_name($filename);
             $dest_file = $media_dir['path'] . '/' . $time_now . '-' . $safe_filename;
             
             // Copy the file to destination
@@ -394,22 +361,21 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
             }
             
             // Security: Validate actual file content after copying
-            $wp_filetype = wp_check_filetype_and_ext($dest_file, $safe_filename, null);
+            $post_copy_validation = $this->get_upload_file_validator()->validate($dest_file, $safe_filename, array(
+                'context' => 'local_upload',
+                'integration' => 'cf7',
+            ));
             
             // If validation fails, delete the file immediately
-            if ($wp_filetype['type'] === false || 
-                empty($wp_filetype['ext']) || 
-                !in_array(strtolower($wp_filetype['ext']), $allowed_extensions, true) ||
-                !in_array($wp_filetype['type'], $allowed_mime_types, true)) {
-                
+            if (is_wp_error($post_copy_validation)) {
                 @unlink($dest_file);
-                error_log('Tablesome CF7: File content validation failed, file deleted: ' . $safe_filename);
+                error_log('Tablesome CF7: ' . $post_copy_validation->get_error_message() . ' File deleted: ' . $safe_filename);
                 return 0;
             }
             
             // Create attachment with validated file type
             $attachment = array(
-                'post_mime_type' => $wp_filetype['type'],
+                'post_mime_type' => $post_copy_validation['type'],
                 'post_title' => sanitize_file_name(pathinfo($safe_filename, PATHINFO_FILENAME)),
                 'post_content' => '',
                 'post_status' => 'inherit',
@@ -444,6 +410,16 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
             return (int) $attachment_id;
         }
 
+        public function get_upload_file_validator()
+        {
+            if (empty($this->upload_file_validator)) {
+                require_once TABLESOME_PATH . 'includes/modules/upload-file-validator.php';
+                $this->upload_file_validator = new \Tablesome\Includes\Modules\Upload_File_Validator();
+            }
+
+            return $this->upload_file_validator;
+        }
+
         /**
          * Resolve a Polylang {string} tag to its translated value.
          *
@@ -457,7 +433,7 @@ if (!class_exists('\Tablesome\Workflow_Library\Triggers\Cf7')) {
          */
         private function resolve_polylang_string($value)
         {
-            if (is_string($value) && preg_match('/^\{([\w\s\-]+)\}$/u', $value, $matches)) {
+            if (function_exists('pll__') && is_string($value) && preg_match('/^\{([\w\s\-]+)\}$/u', $value, $matches)) {
                 return pll__($matches[1]);
             }
             return $value;

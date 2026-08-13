@@ -153,6 +153,50 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\Hubspot')) {
          *   @type array[]  $stages [[id, label], ...] ordered as HubSpot returns them.
          * }
          */
+        /**
+         * Fetch deal properties from HubSpot, formatted for the Create Deal
+         * action's destination Select. Mirrors `get_properties()` (contacts)
+         * but degrades to an empty list on any error rather than leaking
+         * error bodies into the UI.
+         *
+         * @return array[] {
+         *   @type string  $id      Property name (e.g., 'dealname').
+         *   @type string  $label   Display label (e.g., 'Deal Name').
+         *   @type string  $type    HubSpot fieldType.
+         *   @type array[] $options Optional, for enumerated properties.
+         * }
+         */
+        public function get_deal_properties()
+        {
+            $access_token = maybe_refresh_access_token_by_integration($this->integration);
+            $url = "https://api.hubapi.com/crm/v3/properties/deals?archived=false";
+
+            $response = wp_remote_request($url, [
+                'method'  => 'GET',
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $access_token,
+                    'Content-Type'  => 'application/json',
+                ],
+            ]);
+
+            if (is_wp_error($response)) {
+                error_log('Tablesome Hubspot get_deal_properties wp_error: ' . $response->get_error_message());
+                return [];
+            }
+
+            $code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+
+            if ($code >= 400 || !is_array($body) || empty($body['results'])) {
+                if ($code >= 400) {
+                    error_log('Tablesome Hubspot get_deal_properties API error: ' . print_r($body, true));
+                }
+                return [];
+            }
+
+            return $this->get_formated_properties($body['results']);
+        }
+
         public function get_pipelines()
         {
             $access_token = maybe_refresh_access_token_by_integration($this->integration);

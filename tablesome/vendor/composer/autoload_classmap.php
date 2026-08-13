@@ -108,6 +108,7 @@ return array(
     'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\Routes' => $baseDir . '/includes/modules/tablesomedb-rest-api/routes.php',
     'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\TablesomeDB_Rest_Api' => $baseDir . '/includes/modules/tablesomedb-rest-api/tablesomedb-rest-api.php',
     'Tablesome\\Includes\\Modules\\TablesomeDB_Rest_Api\\Workflow_Rest_Api' => $baseDir . '/includes/modules/tablesomedb-rest-api/workflow-rest-api.php',
+    'Tablesome\\Includes\\Modules\\Upload_File_Validator' => $baseDir . '/includes/modules/upload-file-validator.php',
     'Tablesome\\Includes\\Modules\\WP_Media_File_Handler' => $baseDir . '/includes/modules/wp-media-file-handler.php',
     'Tablesome\\Includes\\Modules\\Workflow\\Abstract_Trigger' => $baseDir . '/includes/modules/workflow/abstract-trigger.php',
     'Tablesome\\Includes\\Modules\\Workflow\\Action' => $baseDir . '/includes/modules/workflow/action.php',

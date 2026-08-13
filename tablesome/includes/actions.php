@@ -980,11 +980,16 @@ if ( !class_exists( '\\Tablesome\\Includes\\Actions' ) ) {
                     'get_access_token'            => get_rest_url( null, 'tablesome/v1/workflow/get-access-token' ),
                     'get-spreadsheet-data'        => get_rest_url( null, 'tablesome/v1/workflow/get-spreadsheet-data' ),
                     'hubspot_deal_pipelines'      => get_rest_url( null, 'tablesome/v1/workflow/get-hubspot-deal-pipelines' ),
+                    'hubspot_deal_properties'     => get_rest_url( null, 'tablesome/v1/workflow/get-hubspot-deal-properties' ),
                     'oauth_status'                => get_rest_url( null, 'tablesome/v1/oauth/status' ),
                     'oauth_status_by_integration' => get_rest_url( null, 'tablesome/v1/oauth/status/' ),
                     'oauth_refresh'               => get_rest_url( null, 'tablesome/v1/oauth/refresh/' ),
                     'oauth_health_check'          => get_rest_url( null, 'tablesome/v1/oauth/health-check' ),
                 ),
+                'feature_flags'  => array(
+                    'hubspot_upsert_deal' => pauple_is_feature_active( 'hubspot_upsert_deal' ),
+                ),
+                'smart_fields'   => ( function_exists( 'get_tablesome_action_smart_fields' ) ? get_tablesome_action_smart_fields() : array() ),
                 "site_domain"    => $_SERVER['SERVER_NAME'],
             );
             // Use the redirect token that was generated and set as a cookie

@@ -446,6 +446,30 @@ if (!function_exists('get_default_tablesome_smart_fields')) {
     }
 }
 
+/**
+ * Source of truth for the smart-fields list shown in workflow-action
+ * source dropdowns. Mirrors the runtime values produced by
+ * get_tablesome_smart_field_values(). Pipe this into tablesome_ajax_object
+ * so each Svelte action consumes one shared list rather than its own
+ * hardcoded copy (Conventions §18).
+ *
+ * @return array[] {
+ *   @type string $id    Runtime value key (matches get_tablesome_smart_field_values()).
+ *   @type string $label Human label.
+ * }
+ */
+if (!function_exists('get_tablesome_action_smart_fields')) {
+    function get_tablesome_action_smart_fields()
+    {
+        return array(
+            array('id' => 'created_at_datetime', 'label' => 'Submission Date'),
+            array('id' => 'created_by',          'label' => 'Current User'),
+            array('id' => 'page_source_url',    'label' => 'Page Source URL'),
+            array('id' => 'ip_address',          'label' => 'IP Address'),
+        );
+    }
+}
+
 if (!function_exists('get_tablesome_smart_field_info_by_field_name')) {
     function get_tablesome_smart_field_info_by_field_name($field_name)
     {
