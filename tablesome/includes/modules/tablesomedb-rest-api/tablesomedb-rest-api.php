@@ -36,40 +36,13 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
         public function api_backend_permission()
         {
-            
-            // Check if this is a get-access-token request and verify nonce
-            if (strpos($_SERVER['REQUEST_URI'], '/workflow/get-access-token') !== false) {
-                $user = \wp_get_current_user();
-                // error_log('api_backend_permission() user: ' . print_r($user, true));
-            
-                // Check if user is logged in via cookie authentication
-                if ($user && $user->ID > 0) {
-                    // error_log('api_backend_permission() user is logged in via cookie');
-                    return true;
-                }
-                
-                // Try nonce verification as a fallback
-                $nonce = isset($_SERVER['HTTP_X_WP_NONCE']) ? $_SERVER['HTTP_X_WP_NONCE'] : '';
-                // error_log('api_backend_permission() nonce: ' . $nonce);
-                
-                // Log all headers for debugging
-                // error_log('api_backend_permission() headers: ' . print_r(getallheaders(), true));
-                
-                if (!empty($nonce) && \wp_verify_nonce($nonce, 'wp_rest')) {
-                    // error_log('api_backend_permission() nonce verified');
-                    return true;
-                }
-                
-                // error_log('api_backend_permission() nonce verification failed');
-            }
-            
             $can = \current_user_can('manage_options');
             // error_log('api_backend_permission() can: ' . $can);
             if ($can) {
                 return true;
             }
             $error_code = "UNAUTHORIZED";
-            return new \WP_Error($error_code, $this->get_error_message($error_code));
+            return $this->get_rest_error($error_code);
         }
         
         public function api_nonce_check($request)
@@ -86,45 +59,17 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
                 return true;
             }
             $error_code = "UNAUTHORIZED";
-            return new \WP_Error($error_code, $this->get_error_message($error_code));
+            return $this->get_rest_error($error_code);
         }
         
         public function api_access_permission()
         {
             $debug_enabled = defined('TABLESOME_DEBUG_LARGE_TABLES') && TABLESOME_DEBUG_LARGE_TABLES === true;
 
-            // Method 1: Check user ID directly (most reliable for REST API)
+            // A REST nonce is CSRF protection, not proof of an authenticated user.
             $user_id = \get_current_user_id();
             if ($user_id > 0) {
                 return true;
-            }
-
-            // Method 2: Check via wp_get_current_user()
-            $user = \wp_get_current_user();
-            if ($user && isset($user->ID) && $user->ID > 0) {
-                return true;
-            }
-
-            // Method 3: Check is_user_logged_in() as fallback
-            if (\is_user_logged_in()) {
-                return true;
-            }
-
-            // Method 4: Fallback - Try nonce verification for REST API requests
-            $nonce = isset($_SERVER['HTTP_X_WP_NONCE']) ? $_SERVER['HTTP_X_WP_NONCE'] : '';
-            if (!empty($nonce) && \wp_verify_nonce($nonce, 'wp_rest')) {
-                return true;
-            }
-
-            // Method 5: Try to manually authenticate from cookies (last resort)
-            $cookie_name = \LOGGED_IN_COOKIE;
-            if (isset($_COOKIE[$cookie_name])) {
-                $cookie_value = $_COOKIE[$cookie_name];
-                $user_id = \wp_validate_auth_cookie($cookie_value, 'logged_in');
-                if ($user_id) {
-                    \wp_set_current_user($user_id);
-                    return true;
-                }
             }
 
             // Debug logging - only when explicitly enabled
@@ -135,7 +80,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             }
 
             $error_code = "UNAUTHORIZED";
-            return new \WP_Error($error_code, $this->get_error_message($error_code));
+            return $this->get_rest_error($error_code);
         }
 
         /**
@@ -150,7 +95,7 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             // Require admin-level access for reading table data via REST API
             if (!\current_user_can('manage_options')) {
                 $error_code = "UNAUTHORIZED";
-                return new \WP_Error($error_code, $this->get_error_message($error_code));
+                return $this->get_rest_error($error_code);
             }
             return true;
         }
@@ -178,13 +123,13 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
 
             if (!$table_id) {
                 $error_code = 'REQUIRED_POST_ID';
-                return new \WP_Error($error_code, $this->get_error_message($error_code));
+                return $this->get_rest_error($error_code);
             }
 
             $post = \get_post($table_id);
             if (!$post || $post->post_type !== TABLESOME_CPT) {
                 $error_code = 'INVALID_POST';
-                return new \WP_Error($error_code, $this->get_error_message($error_code));
+                return $this->get_rest_error($error_code);
             }
 
             $table_meta = \get_tablesome_data($table_id);
@@ -205,7 +150,26 @@ if (!class_exists('\Tablesome\Includes\Modules\TablesomeDB_Rest_Api\TablesomeDB_
             }
 
             $error_code = 'UNAUTHORIZED';
-            return new \WP_Error($error_code, $this->get_error_message($error_code));
+            return $this->get_rest_error($error_code);
+        }
+
+        /**
+         * Build a REST error with an explicit HTTP status.
+         *
+         * WordPress defaults permission callback errors without status metadata
+         * to HTTP 500, which incorrectly represents an authorization denial as
+         * a server failure.
+         *
+         * @param string $error_code The Tablesome REST error code.
+         * @return \WP_Error
+         */
+        private function get_rest_error($error_code)
+        {
+            return new \WP_Error(
+                $error_code,
+                $this->get_error_message($error_code),
+                array('status' => $this->get_http_status_for_error($error_code))
+            );
         }
 
         public function get_error_message($error_code)

@@ -109,26 +109,63 @@ if (!class_exists('\Tablesome\Includes\Lib\Table_Crud_WP\Table_Crud_WP')) {
 
         public function insert_many($table_id, array $data = array())
         {
+            $table_id = intval($table_id);
             if (empty($table_id) || empty($data)) {
                 return;
             }
 
-            /** Table Name */
             $table_name = $this->get_table_name($table_id);
-            $values = array();
+            $table_columns = $this->get_table_columns_from_db($table_id);
+            $fields = array();
+
             foreach ($data as $item) {
-                $values[] = "('" . implode("','", array_values($item)) . "')";
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                foreach (array_keys($item) as $field) {
+                    if (
+                        is_string($field)
+                        && preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $field)
+                        && in_array($field, $table_columns, true)
+                        && !in_array($field, $fields, true)
+                    ) {
+                        $fields[] = $field;
+                    }
+                }
             }
 
-            /** Get Inserting Fields */
-            $fields = implode(",", array_keys($data[0]));
+            if (empty($fields)) {
+                return false;
+            }
 
-            $query_clause = array();
-            $query_clause[] = "INSERT INTO " . $table_name;
-            $query_clause[] = "($fields)";
-            $query_clause[] = "VALUES";
-            $query_clause[] = implode(",", $values) . ";";
-            $query = implode(" ", $query_clause);
+            $field_sql = array_map(
+                static function ($field) {
+                    return '`' . $field . '`';
+                },
+                $fields
+            );
+            $row_placeholder = '(' . implode(', ', array_fill(0, count($fields), '%s')) . ')';
+            $row_placeholders = array();
+            $values = array();
+
+            foreach ($data as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $row_placeholders[] = $row_placeholder;
+                foreach ($fields as $field) {
+                    $values[] = isset($item[$field]) ? $item[$field] : '';
+                }
+            }
+
+            if (empty($row_placeholders)) {
+                return false;
+            }
+
+            $query = "INSERT INTO `" . $table_name . "` (" . implode(', ', $field_sql) . ") VALUES " . implode(', ', $row_placeholders);
+            $query = $this->wpdb->prepare($query, $values);
 
             $result = $this->wpdb->query($query);
             $this->wpdb->flush();

@@ -390,12 +390,33 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             $columns = $this->get_table_columns($table_name);
             foreach ($conditions as $key => $condition) {
-                $column_name = $condition['operand_1'];
+                $column_name = isset($condition['operand_1']) ? $condition['operand_1'] : '';
 
                 // Remove columns which are not in Table
                 if (!$this->does_column_exists($columns, $column_name)) {
                     unset($conditions[$key]);
                     continue;
+                }
+
+                if (isset($condition['conditions'])) {
+                    if (!is_array($condition['conditions'])) {
+                        unset($conditions[$key]);
+                        continue;
+                    }
+
+                    foreach ($condition['conditions'] as $nested_key => $nested_condition) {
+                        $nested_column_name = isset($nested_condition['operand_1']) ? $nested_condition['operand_1'] : '';
+                        if (!$this->does_column_exists($columns, $nested_column_name)) {
+                            unset($condition['conditions'][$nested_key]);
+                        }
+                    }
+
+                    if (empty($condition['conditions'])) {
+                        unset($conditions[$key]);
+                        continue;
+                    }
+
+                    $conditions[$key] = $condition;
                 }
 
                 if ($condition['operator'] == 'empty' || $condition['operator'] == 'is_empty') {
@@ -448,29 +469,28 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
         public function get_condition_group_sql($condition_group, $table_name)
         {
-            $sql_string = '';
-            $jj = 0;
-            $count = count($condition_group['conditions']);
-
-            // Return if filter conditions are empty
-            if ($count <= 0) {
+            if (!isset($condition_group['conditions']) || !is_array($condition_group['conditions'])) {
                 return "";
             }
 
-            $sql_string .= " ( ";
-
-            foreach ($condition_group['conditions'] as $key1 => $condition) {
-                $sql_string .= $this->get_single_condition_sql($condition, $table_name);
-                if ($jj < $count - 1) {
-                    $sql_string .= isset($condition_group['relation']) ? " " . $condition_group['relation'] . " " : " AND ";
-                }
-
-                $jj++;
+            $relation = isset($condition_group['relation']) ? strtoupper($condition_group['relation']) : 'AND';
+            if ($relation !== 'AND' && $relation !== 'OR') {
+                $relation = 'AND';
             }
 
-            $sql_string .= " ) ";
+            $condition_sql = array();
+            foreach ($condition_group['conditions'] as $condition) {
+                $sql = $this->get_single_condition_sql($condition, $table_name);
+                if ($sql !== '') {
+                    $condition_sql[] = $sql;
+                }
+            }
 
-            return $sql_string;
+            if (empty($condition_sql)) {
+                return "";
+            }
+
+            return " ( " . implode(" " . $relation . " ", $condition_sql) . " ) ";
         }
 
         public function convert_condition_to_condition_group($condition, $relation)
@@ -488,6 +508,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         public function get_single_condition_sql($condition, $table_name)
         {
             $sql_string = '';
+            $operand1 = isset($condition['operand_1']) ? $this->sanitize_column_name($condition['operand_1']) : '';
+            if (empty($operand1)) {
+                return $sql_string;
+            }
+
+            $condition['operand_1'] = $operand1;
             $condition = $this->condition_modifier($condition);
             $operand1 = $condition['operand_1'];
             $mysql_operator = $condition['mysql_operator'];
@@ -521,6 +547,28 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             if ($condition['data_type'] != 'datetime') {
                 return $sql_string;
             }
+
+            $date_keywords = array(
+                'today_and_after',
+                'today_and_before',
+                'today',
+                'tomorrow',
+                'yesterday',
+                'last_seven_days',
+                'last_thirty_days',
+                'last_n_days',
+                'next_n_days',
+                'current_month',
+                'current_year',
+                'month',
+                'year',
+                'exact_date',
+            );
+
+            if (!in_array($operand2, $date_keywords, true)) {
+                $operand2 = (int) $operand2;
+            }
+            $operand2_meta = (int) $operand2_meta;
 
             if ($operand2 == 'last_seven_days' || $operand2 == 'last_thirty_days' || $operand2 == 'last_n_days' || $operand2 == 'next_n_days') {
                 if ($mysql_operator == 'is' || $mysql_operator == '=') {

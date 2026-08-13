@@ -70,6 +70,11 @@ if (!class_exists('\Tablesome\Includes\Lib\Table_Crud_WP\Helper')) {
                 }
 
                 $column = $this->get_column_by_id($columns, $column_id);
+                if ($column === false) {
+                    $cell_index++;
+                    continue;
+                }
+                $column_id = $column['id'];
 
                 // Column Format
                 $column_format = isset($column['format']) ? $column['format'] : 'text';
@@ -90,8 +95,8 @@ if (!class_exists('\Tablesome\Includes\Lib\Table_Crud_WP\Helper')) {
 
                 // error_log('2 $cell_value: ' . $cell_value);
 
-                $cell_value = $this->utils->isNotEmptyExceptZero($cell_value) ? addslashes($cell_value) : '';
-                $cell_html = $this->utils->isNotEmptyExceptZero($cell_html) ? addslashes($cell_html) : '';
+                $cell_value = $this->utils->isNotEmptyExceptZero($cell_value) ? $cell_value : '';
+                $cell_html = $this->utils->isNotEmptyExceptZero($cell_html) ? $cell_html : '';
 
                 // error_log('3 $cell_value: ' . $cell_value);
 
@@ -126,7 +131,7 @@ if (!class_exists('\Tablesome\Includes\Lib\Table_Crud_WP\Helper')) {
                         );
 
                     }
-                    $cell_values[$db_meta_column_name] = esc_sql(wp_json_encode($cell_meta_args, JSON_UNESCAPED_UNICODE));
+                    $cell_values[$db_meta_column_name] = wp_json_encode($cell_meta_args, JSON_UNESCAPED_UNICODE);
                 }
 
                 // Should store the cell prop html value instead of value prop if the cell-format is textarea
@@ -146,9 +151,13 @@ if (!class_exists('\Tablesome\Includes\Lib\Table_Crud_WP\Helper')) {
         {
             $selected_column = false;
 
+            if (!is_scalar($column_id)) {
+                return $selected_column;
+            }
+
             for ($ii = 0; $ii < count($columns); $ii++) {
                 $column = $columns[$ii];
-                if ($column['id'] == $column_id) {
+                if (isset($column['id']) && (string) $column['id'] === (string) $column_id) {
                     $selected_column = $column;
                     break;
                 }
@@ -177,7 +186,7 @@ if (!class_exists('\Tablesome\Includes\Lib\Table_Crud_WP\Helper')) {
         {
             $does_column_id_exist_in_submission = false;
             foreach ($user_record as $cell_data) {
-                if (isset($cell_data['column_id']) && $cell_data['column_id'] == $column_id) {
+                if (isset($cell_data['column_id']) && is_scalar($cell_data['column_id']) && (string) $cell_data['column_id'] === (string) $column_id) {
                     $does_column_id_exist_in_submission = true;
                     break;
                 }
