@@ -19,6 +19,40 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             $this->schema = new \Tablesome\Includes\Lib\Table_Crud_WP\Schema();
         }
 
+        /**
+         * Return the canonical, WordPress-prefixed form of a Tablesome table
+         * identifier. Callers historically pass both generated forms, but SQL
+         * must always target the table belonging to the current site prefix.
+         *
+         * @param mixed $table_name Tablesome table name.
+         * @return string|false Canonical table name, or false when invalid.
+         */
+        private function normalize_tablesome_table_name($table_name)
+        {
+            if (!is_string($table_name)) {
+                return false;
+            }
+
+            $table_prefix = $this->wpdb->prefix;
+
+            // Check the complete prefixed form first. A custom prefix such as
+            // "tablesome_" starts with the unprefixed table namespace, so a
+            // prefix check based on strpos() would mistake the unprefixed name
+            // for an already-prefixed identifier.
+            $table_base_pattern = preg_quote(TABLESOME_TABLE_NAME, '/');
+            $prefixed_pattern = '/^' . preg_quote($table_prefix, '/') . $table_base_pattern . '_[0-9]+$/D';
+            if ($table_prefix !== '' && preg_match($prefixed_pattern, $table_name) === 1) {
+                return $table_name;
+            }
+
+            $unprefixed_pattern = '/^' . $table_base_pattern . '_[0-9]+$/D';
+            if (preg_match($unprefixed_pattern, $table_name) === 1) {
+                return $table_prefix . $table_name;
+            }
+
+            return false;
+        }
+
         public function create_table($table_name, $columns)
         {
             $column_names = array();
@@ -31,7 +65,8 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             }
 
-            if (empty($table_name) || empty($columns)) {
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if ($table_name === false || empty($columns)) {
                 error_log('create_table: $table_name or $columns is empty');
                 return false;
             }
@@ -113,6 +148,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             $response = '';
 
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if ($table_name === false) {
+                error_log('insert_record: invalid table name');
+                return 0;
+            }
+
             if (!isset($record) || is_null($record)) {
                 return 0;
             }
@@ -184,6 +225,12 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         {
             // error_log('update_record $record : ' . print_r($record, true));
 
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if ($table_name === false) {
+                error_log('update_record: invalid table name');
+                return $record;
+            }
+
             $prevent_field_column = isset($insert_args['prevent_field_column']) ? $this->sanitize_column_name($insert_args['prevent_field_column']) : "";
             $prevent_field_value = isset($record[$prevent_field_column]) ? $record[$prevent_field_column] : "";
 
@@ -219,12 +266,13 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
         public function insert_column($args , $response = array()){
             global $wpdb;
-            $table_name = $args['table_name'];
+            $table_name = isset($args['table_name']) ? $args['table_name'] : '';
             $args['table_name'] = $table_name;
             $column_name = $this->sanitize_column_name($args['name']);
             $column_type = $this->sanitize_column_type($args['format']);
 
-            if (empty($column_name) || empty($column_type)) {
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if ($table_name === false || empty($column_name) || empty($column_type)) {
                 error_log('insert_column: invalid column name or type');
                 $response['new_column_created'] = false;
                 return $response;
@@ -239,12 +287,13 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         public function copy_column_content($args, $response = array())
         {
             global $wpdb;
-            $table_name = $args['table_name'];
+            $table_name = isset($args['table_name']) ? $args['table_name'] : '';
             $args['table_name'] = $table_name;
-            $source_column = $this->sanitize_column_name($args['source_column']);
-            $target_column = $this->sanitize_column_name($args['target_column']);
+            $source_column = isset($args['source_column']) ? $this->sanitize_column_name($args['source_column']) : '';
+            $target_column = isset($args['target_column']) ? $this->sanitize_column_name($args['target_column']) : '';
 
-            if(empty($source_column) || empty($target_column)){
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if($table_name === false || empty($source_column) || empty($target_column)){
                 error_log('copy_column_content: $source_column or $target_column is empty or invalid');
                 return $response;
             }
@@ -259,12 +308,13 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             // error_log('args: ' . print_r($args, true));
             global $wpdb;
-            $table_name = $args['table_name'];
+            $table_name = isset($args['table_name']) ? $args['table_name'] : '';
             $args['table_name'] = $table_name;
-            $source_column = $this->sanitize_column_name($args['source_column']);
-            $target_column = $this->sanitize_column_name($args['target_column']);
+            $source_column = isset($args['source_column']) ? $this->sanitize_column_name($args['source_column']) : '';
+            $target_column = isset($args['target_column']) ? $this->sanitize_column_name($args['target_column']) : '';
 
-            if(empty($source_column) || empty($target_column)){
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if($table_name === false || empty($source_column) || empty($target_column)){
                 error_log('duplicate_column: $source_column or $target_column is empty or invalid');
                 return $response;
             }
@@ -294,7 +344,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 return null;
             }
             $record_id = intval($record_id);
-            $table_name = $args['table_name'];
+            $table_name = isset($args['table_name']) ? $args['table_name'] : '';
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if ($table_name === false) {
+                return null;
+            }
             $query = $this->wpdb->prepare("SELECT * FROM {$table_name} WHERE id = %d", $record_id);
             $db_record = $this->wpdb->get_row($query);
             if (is_wp_error($db_record)) {
@@ -309,7 +363,13 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             // error_log(' Mysql $args : ' . print_r($args, true));
             global $wpdb;
 
-            $table_name = $wpdb->prefix . $args['table_name'];
+            $table_name = isset($args['table_name'])
+                ? $this->normalize_tablesome_table_name($args['table_name'])
+                : false;
+            if ($table_name === false) {
+                return [];
+            }
+
             $args['table_name'] = $table_name;
 
             $query = "SELECT * FROM $table_name";
@@ -365,6 +425,11 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         {
             global $wpdb;
 
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if ($table_name === false) {
+                return [];
+            }
+
             $table_name_escaped = esc_sql($table_name);
             $sql = $this->wpdb->prepare("SHOW COLUMNS FROM %1s", $table_name_escaped);
 
@@ -388,8 +453,17 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         public function convert_conditions_to_sql_string($conditions, $table_name)
         {
 
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if (!is_array($conditions) || $table_name === false) {
+                return "";
+            }
+
             $columns = $this->get_table_columns($table_name);
             foreach ($conditions as $key => $condition) {
+                if (!is_array($condition)) {
+                    unset($conditions[$key]);
+                    continue;
+                }
                 $column_name = isset($condition['operand_1']) ? $condition['operand_1'] : '';
 
                 // Remove columns which are not in Table
@@ -419,7 +493,8 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                     $conditions[$key] = $condition;
                 }
 
-                if ($condition['operator'] == 'empty' || $condition['operator'] == 'is_empty') {
+                $operator = isset($condition['operator']) ? $condition['operator'] : '';
+                if ($operator == 'empty' || $operator == 'is_empty') {
                     // Convert empty and not_empty to a condition_group
                     $conditions[$key] = $this->convert_condition_to_condition_group($condition, 'OR');
                     $new_condition = $condition;
@@ -427,7 +502,7 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                     array_push($conditions[$key]['conditions'], $new_condition);
                 }
 
-                if ($condition['operator'] == 'not_empty' || $condition['operator'] == 'is_not_empty') {
+                if ($operator == 'not_empty' || $operator == 'is_not_empty') {
                     // Convert empty and not_empty to a condition_group
                     $conditions[$key] = $this->convert_condition_to_condition_group($condition, 'AND');
                     $new_condition = $condition;
@@ -438,33 +513,26 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
 
             // error_log('$conditions : ' . print_r($conditions, true));
 
-            $count = count($conditions);
-            $ii = 0;
-
             // Return if filter conditions are empty
-            if ($count <= 0) {
+            if (empty($conditions)) {
                 return "";
             }
 
-            $sql_string = " WHERE ";
-
-            foreach ($conditions as $key => $condition) {
+            $condition_sql = [];
+            foreach ($conditions as $condition) {
 
                 if (isset($condition['conditions'])) {
-                    $sql_string .= $this->get_condition_group_sql($condition, $table_name);
+                    $sql = $this->get_condition_group_sql($condition, $table_name);
                 } else {
-                    $sql_string .= $this->get_single_condition_sql($condition, $table_name);
+                    $sql = $this->get_single_condition_sql($condition, $table_name);
                 }
 
-                if ($ii < $count - 1) {
-                    $sql_string .= " AND ";
+                if ($sql !== '') {
+                    $condition_sql[] = $sql;
                 }
-                $ii++;
             }
 
-            $sql_string = rtrim($sql_string, ' AND ');
-
-            return $sql_string;
+            return empty($condition_sql) ? "" : " WHERE " . implode(" AND ", $condition_sql);
         }
 
         public function get_condition_group_sql($condition_group, $table_name)
@@ -508,6 +576,27 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
         public function get_single_condition_sql($condition, $table_name)
         {
             $sql_string = '';
+            $table_name = $this->normalize_tablesome_table_name($table_name);
+            if (!is_array($condition) || $table_name === false) {
+                return $sql_string;
+            }
+
+            $data_type = isset($condition['data_type']) && is_string($condition['data_type'])
+                ? strtolower(trim($condition['data_type']))
+                : '';
+            $data_type_aliases = [
+                'string' => 'text',
+                'array' => 'json',
+                'date' => 'datetime',
+            ];
+            if (isset($data_type_aliases[$data_type])) {
+                $data_type = $data_type_aliases[$data_type];
+            }
+            if (!in_array($data_type, ['text', 'json', 'number', 'datetime'], true)) {
+                return $sql_string;
+            }
+            $condition['data_type'] = $data_type;
+
             $operand1 = isset($condition['operand_1']) ? $this->sanitize_column_name($condition['operand_1']) : '';
             if (empty($operand1)) {
                 return $sql_string;
@@ -526,7 +615,18 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
             } else if ($condition['data_type'] == 'number') {
                 $sql_string .= "CAST($table_name.$operand1 as UNSIGNED) $mysql_operator $operand2";
             } else if ($condition['data_type'] == 'json') {
-                $sql_string .= "JSON_EXTRACT($table_name.$operand1, '$.value') $mysql_operator $operand2";
+                $json_expression = "JSON_EXTRACT($table_name.$operand1, '$.value')";
+                if (!empty($condition['json_contains'])) {
+                    $json_negation = !empty($condition['json_contains_not']) ? 'NOT ' : '';
+                    $sql_string .= $json_negation . "JSON_CONTAINS($json_expression, $operand2)";
+                } else if ($condition['operator'] == 'is' || $condition['operator'] == 'is_not') {
+                    $json_equals = "JSON_CONTAINS($json_expression, $operand2) AND JSON_CONTAINS($operand2, $json_expression)";
+                    $sql_string .= $condition['operator'] == 'is_not'
+                        ? "NOT ($json_equals)"
+                        : "($json_equals)";
+                } else {
+                    $sql_string .= "CAST($json_expression AS CHAR) $mysql_operator $operand2";
+                }
             } else {
                 $sql_string .= "TRIM(" . $table_name . "." . $operand1 . ") " . $mysql_operator . " " . $operand2;
             }
@@ -640,11 +740,62 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 return $condition;
             }
 
+            if ($condition['data_type'] == 'json') {
+                return $this->json_condition_modifier($condition);
+            }
+
             // Number and Datetime
             $condition = $this->number_condition_modifier($condition);
 
             // Text, RichText
             $condition = $this->string_condition_modifier($condition);
+
+            return $condition;
+        }
+
+        /**
+         * Prepare JSON-backed condition operands without coercing arrays to
+         * the string "Array". JSON_CONTAINS handles both scalar and list
+         * candidates for array-valued fields; equality compares the persisted
+         * JSON value as a JSON document.
+         *
+         * @param array $condition Condition data.
+         * @return array Prepared condition data.
+         */
+        public function json_condition_modifier($condition)
+        {
+            $operator = isset($condition['operator']) ? $condition['operator'] : '';
+            $operand = isset($condition['operand_2']) ? $condition['operand_2'] : '';
+            $json_operand = wp_json_encode(is_array($operand) ? array_values($operand) : $operand);
+
+            if ($json_operand === false) {
+                $json_operand = 'null';
+            }
+
+            $condition['operand_2'] = "'" . esc_sql($json_operand) . "'";
+
+            if ($operator == 'contains' || $operator == 'does_not_contain') {
+                $condition['mysql_operator'] = 'JSON_CONTAINS';
+                $condition['json_contains'] = true;
+                $condition['json_contains_not'] = ($operator == 'does_not_contain');
+                return $condition;
+            }
+
+            if ($operator == 'is') {
+                $condition['mysql_operator'] = '=';
+                return $condition;
+            }
+
+            if ($operator == 'is_not') {
+                $condition['mysql_operator'] = '<>';
+                return $condition;
+            }
+
+            $validated_operator = $this->validate_operator(
+                $operator,
+                $this->get_allowed_string_operators()
+            );
+            $condition['mysql_operator'] = $validated_operator === false ? '=' : $validated_operator;
 
             return $condition;
         }
@@ -752,6 +903,18 @@ if (!class_exists('\Tablesome\Includes\Modules\Myque\Mysql')) {
                 $condition['mysql_operator'] = '=';
             } else {
                 $condition['mysql_operator'] = $validated_operator;
+            }
+
+            // The UI uses the semantic operators `is` and `is_not` for date
+            // comparisons. MySQL's `IS` operator is intended for NULL tests,
+            // so emit ordinary equality/inequality for date values.
+            if ($condition['data_type'] == 'datetime' && is_string($condition['operator'])) {
+                $operator = strtolower(trim($condition['operator']));
+                if ($operator == 'is') {
+                    $condition['mysql_operator'] = '=';
+                } else if ($operator == 'is_not') {
+                    $condition['mysql_operator'] = '!=';
+                }
             }
 
             // SECURITY FIX: Cast operand_2 to numeric to prevent SQL injection

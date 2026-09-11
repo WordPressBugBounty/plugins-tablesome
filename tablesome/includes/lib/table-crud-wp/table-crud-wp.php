@@ -95,6 +95,13 @@ if (!class_exists('\Tablesome\Includes\Lib\Table_Crud_WP\Table_Crud_WP')) {
          */
         public function get_table_columns_from_db($table_id)
         {
+            $table_id = filter_var($table_id, FILTER_VALIDATE_INT, array(
+                'options' => array('min_range' => 1),
+            ));
+            if ($table_id === false) {
+                return array();
+            }
+
             $table_name = $this->get_table_name($table_id);
             $table_name_escaped = esc_sql($table_name);
 

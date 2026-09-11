@@ -3,7 +3,7 @@ Donate link: https://pauple.com
 Tags: table, email, contact form 7, wpforms, redirect
 Requires at least: 6.7
 Tested up to: 6.9.4
-Stable tag: 1.2.12
+Stable tag: 1.2.13
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -196,6 +196,11 @@ We love to hear from our users and we try to integrate features that our users w
 5. Copy and paste the shortcode on the post.
 
 == Change Log ==
+
+= 1.2.13 =
+Security: Improved protection for table data and filters.
+Fix: Improved date and multi-value filtering.
+Fix: Improved reliability for form workflows and integrations.
 
 = 1.2.12 =
 Fix: General maintenance and stability improvements
@@ -511,4 +516,3 @@ Fix: Important Bug on creating new columns
 * Paste the Table ID in the Shortcode Builder and choose the options you need
 * Then you click 'Add Shortcode'
 * Page Builders such as Elementor, Beaver, Divi, etc., can find this button in the text editor widgets of the respective plugins
-
