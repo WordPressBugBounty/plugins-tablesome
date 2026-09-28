@@ -25,10 +25,38 @@ if (!class_exists('\Tablesome\Includes\Settings\Tablesome_Getter')) {
             // error_log('self::$options : ' . print_r(self::$options, true));
 
             if (isset(self::$options[$option_name])) {
+                if (isset(self::$defaults[$option_name])
+                    && is_array(self::$defaults[$option_name])
+                    && is_array(self::$options[$option_name])) {
+                    return array_replace_recursive(
+                        self::$defaults[$option_name],
+                        self::$options[$option_name]
+                    );
+                }
+
                 return self::$options[$option_name];
-            } else {
-                return self::$defaults[$option_name];
             }
+
+            return isset(self::$defaults[$option_name]) ? self::$defaults[$option_name] : null;
+        }
+
+        /**
+         * Keep the per-request cache in sync with WordPress option writes.
+         *
+         * The settings framework writes TABLESOME_OPTIONS directly. Without
+         * invalidating this cache, later table renders in the same request can
+         * continue using the previous global style values.
+         */
+        public static function option_added($option_name, $option_value)
+        {
+            if ($option_name === TABLESOME_OPTIONS) {
+                self::$options = is_array($option_value) ? $option_value : [];
+            }
+        }
+
+        public static function option_updated($option_name, $old_value, $option_value)
+        {
+            self::option_added($option_name, $option_value);
         }
 
         public static function set($option_name, $option_value)
@@ -75,6 +103,41 @@ if (!class_exists('\Tablesome\Includes\Settings\Tablesome_Getter')) {
 
                 // Style settings
                 "style_disable" => false,
+                "style_table_header_border_color" => array(
+                    'all' => '1',
+                    'style' => 'solid',
+                    'color' => '#dddddd',
+                ),
+                "style_header_background" => '#1d1f20',
+                "style_header_typography" => array(
+                    'color' => '#ffffff',
+                    'font-family' => 'Trebuchet MS',
+                    'font-style' => 'normal',
+                    'font-size' => '16',
+                    'line-height' => '20',
+                    'letter-spacing' => '0',
+                    'text-align' => 'left',
+                    'text-transform' => 'none',
+                    'unit' => 'px',
+                ),
+                "style_row_background" => '#ffffff',
+                "style_row_background_even" => '#f2f2f2',
+                "style_cell_border" => array(
+                    'all' => '1',
+                    'style' => 'solid',
+                    'color' => '#dddddd',
+                ),
+                "style_cell_typography" => array(
+                    'color' => '#000000',
+                    'font-family' => 'Trebuchet MS',
+                    'font-style' => 'normal',
+                    'font-size' => '16',
+                    'line-height' => '20',
+                    'letter-spacing' => '0',
+                    'text-align' => 'left',
+                    'text-transform' => 'none',
+                    'unit' => 'px',
+                ),
                 "sticky_first_column" => false,
 
                 // Form Settings
@@ -84,4 +147,7 @@ if (!class_exists('\Tablesome\Includes\Settings\Tablesome_Getter')) {
             return $defaults;
         }
     } // END CLASS
+
+    add_action('added_option', [Tablesome_Getter::class, 'option_added'], 10, 2);
+    add_action('updated_option', [Tablesome_Getter::class, 'option_updated'], 10, 3);
 }

@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'pauple/tablesome',
-        'pretty_version' => 'dev-main',
-        'version' => 'dev-main',
-        'reference' => '18a2af9cc80667207d1500daa9d5dfdad83d1070',
+        'pretty_version' => 'dev-release/1.2.14',
+        'version' => 'dev-release/1.2.14',
+        'reference' => '4717f0e179a3cc9fddf9eb00ee750b8e1855e6d4',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -29,9 +29,9 @@
             'dev_requirement' => false,
         ),
         'pauple/tablesome' => array(
-            'pretty_version' => 'dev-main',
-            'version' => 'dev-main',
-            'reference' => '18a2af9cc80667207d1500daa9d5dfdad83d1070',
+            'pretty_version' => 'dev-release/1.2.14',
+            'version' => 'dev-release/1.2.14',
+            'reference' => '4717f0e179a3cc9fddf9eb00ee750b8e1855e6d4',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

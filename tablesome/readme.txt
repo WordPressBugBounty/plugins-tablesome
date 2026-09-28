@@ -3,7 +3,7 @@ Donate link: https://pauple.com
 Tags: table, email, contact form 7, wpforms, redirect
 Requires at least: 6.7
 Tested up to: 6.9.4
-Stable tag: 1.2.13
+Stable tag: 1.2.14
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -196,6 +196,10 @@ We love to hear from our users and we try to integrate features that our users w
 5. Copy and paste the shortcode on the post.
 
 == Change Log ==
+
+= 1.2.14 =
+Fix: Global table styles now update reliably after saving changes.
+Fix: Table styling now falls back safely when saved settings are incomplete.
 
 = 1.2.13 =
 Security: Improved protection for table data and filters.
