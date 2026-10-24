@@ -54,16 +54,18 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Abstract_Trigger')) {
 
             }
 
-            // Store redirection data keyed by the per-page-view redirect token
-            // to prevent race conditions between concurrent form submissions
-            if (isset($workflow_redirection_data) && count($workflow_redirection_data) > 0) {
-                $redirect_token = isset($_COOKIE['tablesome_redirect_token'])
-                    ? sanitize_text_field($_COOKIE['tablesome_redirect_token'])
-                    : '';
-
-                if (!empty($redirect_token)) {
-                    $transient_key = 'tablesome_redir_' . substr(md5($redirect_token), 0, 20);
-                    set_transient($transient_key, $workflow_redirection_data, 60);
+            // Correlate the actual submission, never a site-wide browser cookie.
+            // AJAX integrations with nested payloads send the token in a header;
+            // native POST and FormData integrations send the hidden form field.
+            if (!empty($workflow_redirection_data)) {
+                $redirect_token = $_SERVER['HTTP_X_TABLESOME_REDIRECT_TOKEN']
+                    ?? ($_POST['_tablesome_redirect_token'] ?? '');
+                if (is_string($redirect_token)) {
+                    $redirect_token = wp_unslash($redirect_token);
+                    if (preg_match('/\A[a-f0-9]{32}\z/', $redirect_token)) {
+                        $transient_key = 'tablesome_redir_' . substr(md5($redirect_token), 0, 20);
+                        set_transient($transient_key, $workflow_redirection_data, 60);
+                    }
                 }
             }
 

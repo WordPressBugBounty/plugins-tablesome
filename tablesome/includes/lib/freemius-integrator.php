@@ -5,12 +5,7 @@ if ( !function_exists( 'tablesome_fs' ) ) {
     function tablesome_fs() {
         global $tablesome_fs;
         if ( !isset( $tablesome_fs ) ) {
-            // Include Freemius SDK.
-            // $freemius_wordpress_sdk = TABLESOME_PATH . "vendor/freemius/wordpress-sdk/start.php";
-            // if (!file_exists($freemius_wordpress_sdk)) {
-            //     wp_die("composer package \"freemius/wordpress-sdk\" was not installed, Do run \"composer update.\"");
-            // }
-            // require_once $freemius_wordpress_sdk;
+            // The SDK is loaded by vendor/autoload.php during plugin bootstrap.
             $tablesome_fs = fs_dynamic_init( array(
                 'id'               => '7163',
                 'slug'             => 'tablesome',

@@ -686,6 +686,27 @@ if (!class_exists('\Tablesome\Includes\Settings\Settings')) {
                     'style' => 'info',
                     'content' => 'Learn how to find your OpenAI API Key <a href="https://platform.openai.com/account/api-keys" target="_blank">Here >></a>.',
                 ),
+                array(
+                    'id' => \Tablesome\Workflow_Library\External_Apis\OpenAI::MODEL_SETTING,
+                    'type' => 'text',
+                    'title' => __('Model', 'tablesome'),
+                    'subtitle' => __('Used by the "Generate Text (OpenAI)" workflow action.', 'tablesome'),
+                    'desc' => sprintf(
+                        /* translators: %s: default OpenAI model id. */
+                        __('Pick a model your API key can use, or type any model id. Leave empty to use %s. Suggestions appear after the API key is connected.', 'tablesome'),
+                        '<code>' . \Tablesome\Workflow_Library\External_Apis\OpenAI::DEFAULT_MODEL . '</code>'
+                    ),
+                    'placeholder' => \Tablesome\Workflow_Library\External_Apis\OpenAI::DEFAULT_MODEL,
+                    'sanitize' => array(\Tablesome\Workflow_Library\External_Apis\OpenAI::class, 'sanitize_model'),
+                    'attributes' => array(
+                        'list' => 'tablesome-openai-models',
+                        'autocomplete' => 'off',
+                    ),
+                ),
+                array(
+                    'type' => 'callback',
+                    'function' => array(new \Tablesome\Workflow_Library\Integrations\OpenAi(), 'print_models_datalist'),
+                ),
             );
         }
 

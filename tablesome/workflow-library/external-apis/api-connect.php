@@ -73,6 +73,9 @@ if (!class_exists('\Tablesome\Workflow_Library\External_Apis\Api_Connect')) {
 
             } else if ($type == 'openai') {
 
+                // The model list belongs to the old key; ping() below fetches it again.
+                delete_transient(\Tablesome\Workflow_Library\External_Apis\OpenAI::MODELS_TRANSIENT);
+
                 if ($action == 'disconnect') {
 
                     $this->api_credentials_handler->delete_api_credentials("openai");

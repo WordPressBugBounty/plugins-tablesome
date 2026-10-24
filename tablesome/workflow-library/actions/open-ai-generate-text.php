@@ -47,25 +47,38 @@ if (!class_exists('\Tablesome\Workflow_Library\Actions\Open_Ai_Generate_Text')) 
             $prompt = $this->get_prompt_content($prompt_content);
             $payload = $this->get_payload($this->action_meta);
             $response = $this->openai_api_handler->completions_request($prompt, $payload);
-            $choices = isset($response['choices']) ? $response['choices'] : [];
-
-            $response_text = isset($choices[0]['message']['content']) ? $choices[0]['message']['content'] : '';
 
             $action_output_id = isset($this->action_meta['outputs'][0]['id']) ? $this->action_meta['outputs'][0]['id'] : '';
+
+            if (is_wp_error($response)) {
+                \Tablesome\Workflow_Library\External_Apis\OpenAI::record_error($response->get_error_message());
+                // Leave the output unset and tell the workflow which output is missing,
+                // so actions that use it are skipped instead of getting empty text.
+                return new \WP_Error($response->get_error_code(), $response->get_error_message(), array(
+                    'failed_outputs' => '' !== $action_output_id ? array($action_output_id) : array(),
+                ));
+            }
+
+            \Tablesome\Workflow_Library\External_Apis\OpenAI::clear_last_error();
+
             // Add current action responses to the global $workflow_data array by current trigger instance id
-            $workflow_data[$_trigger_instance_id][$action_output_id] = $response_text;
+            $workflow_data[$_trigger_instance_id][$action_output_id] = $response['choices'][0]['message']['content'];
         }
 
         public function get_payload($actionmeta)
         {
+            // The action's number fields save '' when cleared, so fall back to the defaults.
             return [
-                'max_tokens' => isset($actionmeta['max_tokens']) ? $actionmeta['max_tokens'] : 100,
-                'temperature' => isset($actionmeta['temperature']) ? $actionmeta['temperature'] : 0.9,
-                // The OpenAI documentation recommends that only one of Temperature and Top P are used, so when using one of them, make sure that the other is set to 1.
-                'top_p' => 1,
-                'frequency_penalty' => isset($actionmeta['frequency_penalty']) ? $actionmeta['frequency_penalty'] : 0,
-                'presence_penalty' => isset($actionmeta['presence_penalty']) ? $actionmeta['presence_penalty'] : 0,
+                'max_tokens' => $this->get_number($actionmeta, 'max_tokens', 100),
+                'temperature' => $this->get_number($actionmeta, 'temperature', 0.9),
+                'frequency_penalty' => $this->get_number($actionmeta, 'frequency_penalty', 0),
+                'presence_penalty' => $this->get_number($actionmeta, 'presence_penalty', 0),
             ];
+        }
+
+        private function get_number($actionmeta, $key, $default)
+        {
+            return isset($actionmeta[$key]) && is_numeric($actionmeta[$key]) ? $actionmeta[$key] + 0 : $default;
         }
 
         private function bind_props($trigger_class, $trigger_instance)

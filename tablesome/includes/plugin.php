@@ -102,7 +102,11 @@ if (!class_exists('\Tablesome')) {
             }
 
             $library = new \Pauple\Pluginator\Library();
-            $library::register_libraries(['codestar', 'freemius']);
+            // Register our SDK even if Composer loaded another plugin's copy or ran
+            // before WordPress. start.php handles repeated loads and version arbitration.
+            require TABLESOME_PATH . 'vendor/freemius/wordpress-sdk/start.php';
+
+            $library::register_libraries(['codestar']);
 
             //
             global $pluginator_security_agent;

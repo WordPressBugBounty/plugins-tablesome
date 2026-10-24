@@ -165,12 +165,12 @@ if (!class_exists('\Tablesome\Includes\Ajax_Handler')) {
 
             $redirection_data = [];
 
-            // Read redirect data from the per-session transient keyed by redirect token
-            $redirect_token = isset($_REQUEST['redirect_token'])
-                ? sanitize_text_field($_REQUEST['redirect_token'])
-                : '';
+            // Read only a valid browser-generated submission token. Reject arrays
+            // and malformed values before hashing; never fall back to shared data.
+            $redirect_token = $_REQUEST['redirect_token'] ?? '';
+            $redirect_token = is_string($redirect_token) ? wp_unslash($redirect_token) : '';
 
-            if (!empty($redirect_token)) {
+            if (preg_match('/\A[a-f0-9]{32}\z/', $redirect_token)) {
                 $transient_key = 'tablesome_redir_' . substr(md5($redirect_token), 0, 20);
                 $transient_data = get_transient($transient_key);
                 if (!empty($transient_data)) {

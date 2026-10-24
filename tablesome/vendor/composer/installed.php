@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'pauple/tablesome',
-        'pretty_version' => 'dev-release/1.2.14',
-        'version' => 'dev-release/1.2.14',
-        'reference' => '4717f0e179a3cc9fddf9eb00ee750b8e1855e6d4',
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'reference' => '6909310fcfb5d5e7588cc02f8164c04ec7d92848',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -19,6 +19,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'freemius/wordpress-sdk' => array(
+            'pretty_version' => '2.13.4',
+            'version' => '2.13.4.0',
+            'reference' => 'fa43eb92ae9dffa0d9f5ae11b5a1739bd7222308',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../freemius/wordpress-sdk',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'pauple/pluginator' => array(
             'pretty_version' => 'dev-release/0.3.8',
             'version' => 'dev-release/0.3.8',
@@ -29,9 +38,9 @@
             'dev_requirement' => false,
         ),
         'pauple/tablesome' => array(
-            'pretty_version' => 'dev-release/1.2.14',
-            'version' => 'dev-release/1.2.14',
-            'reference' => '4717f0e179a3cc9fddf9eb00ee750b8e1855e6d4',
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'reference' => '6909310fcfb5d5e7588cc02f8164c04ec7d92848',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

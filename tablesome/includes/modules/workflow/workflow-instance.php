@@ -62,6 +62,9 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Instance')) {
 
             $placeholders = $this->trigger->getPlaceholders($this->trigger_source_data);
 
+            // Outputs of earlier actions that failed, e.g. OpenAI text that was never generated.
+            $failed_outputs = [];
+
             foreach ($this->actions as $action_position => $action) {
                 /** Appends the action position and the action meta in $trigger_data array */
                 $trigger_instance['action_position'] = $action_position;
@@ -85,10 +88,34 @@ if (!class_exists('\Tablesome\Includes\Modules\Workflow\Workflow_Instance')) {
                     continue;
                 }
 
+                if (!empty($failed_outputs) && $this->uses_outputs($action, $failed_outputs)) {
+                    error_log('Tablesome workflow: skipped action ' . $action_id . ' because it uses the output of a failed action (' . implode(', ', $failed_outputs) . ').');
+                    continue;
+                }
+
                 if ($action_class->conditions($trigger_instance, $action)) {
-                    $action_class->do_action($this->trigger, $trigger_instance);
+                    $result = $action_class->do_action($this->trigger, $trigger_instance);
+
+                    $error_data = is_wp_error($result) ? $result->get_error_data() : null;
+                    if (is_array($error_data) && !empty($error_data['failed_outputs'])) {
+                        $failed_outputs = array_merge($failed_outputs, (array) $error_data['failed_outputs']);
+                    }
                 }
             }
+        }
+
+        private function uses_outputs($action, $output_ids)
+        {
+            // An action declares its own outputs; only references to other actions' outputs count.
+            unset($action['outputs']);
+            $action_json = wp_json_encode($action);
+
+            foreach ($output_ids as $output_id) {
+                if (false !== strpos($action_json, $output_id)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public function get_workflow_data($trigger_source_data)
